@@ -36,18 +36,25 @@ class DawarichClient
     }
 
     /**
+     * Checks URL and API key with a minimal request.
+     *
+     * @return int number of GPS points Dawarich knows for the last 30 days
+     * @throws DawarichException
+     */
+    public function testConnection(User $user): int
+    {
+        $to = new \DateTimeImmutable();
+        [, $headers, $count] = $this->request($user, $to->modify('-30 days'), $to, 1, 1);
+
+        return max($count, (int) ($headers['x-total-pages'][0] ?? $count));
+    }
+
+    /**
      * @return GpsPoint[]
      * @throws DawarichException
      */
     public function fetchPoints(User $user, \DateTimeInterface $from, \DateTimeInterface $to): array
     {
-        $baseUrl = $this->configuration->getDawarichUrl($user);
-        $apiKey = $this->configuration->getDawarichApiKey($user);
-
-        if ($baseUrl === null || $apiKey === null) {
-            throw new DawarichException('dawarich.error.not_configured');
-        }
-
         if ($to <= $from) {
             throw new DawarichException('trip.error.arrival_before_departure');
         }
@@ -56,35 +63,7 @@ class DawarichClient
         $page = 1;
 
         do {
-            try {
-                $response = $this->httpClient->request('GET', $baseUrl . '/api/v1/points', [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $apiKey,
-                        'Accept' => 'application/json',
-                    ],
-                    'query' => [
-                        'start_at' => $from->format(\DateTimeInterface::ATOM),
-                        'end_at' => $to->format(\DateTimeInterface::ATOM),
-                        'page' => $page,
-                        'per_page' => self::PER_PAGE,
-                        'order' => 'asc',
-                    ],
-                    'timeout' => 20,
-                ]);
-
-                $status = $response->getStatusCode();
-                if ($status === 401 || $status === 403) {
-                    throw new DawarichException('dawarich.error.unauthorized');
-                }
-                if ($status >= 400) {
-                    throw new DawarichException('dawarich.error.http', ['%status%' => $status]);
-                }
-
-                $data = $response->toArray(false);
-                $headers = $response->getHeaders(false);
-            } catch (ExceptionInterface $e) {
-                throw new DawarichException('dawarich.error.connection', ['%message%' => $e->getMessage()], $e);
-            }
+            [$data, $headers] = $this->request($user, $from, $to, $page, self::PER_PAGE);
 
             foreach ($data as $row) {
                 $point = \is_array($row) ? $this->parsePoint($row) : null;
@@ -98,6 +77,52 @@ class DawarichClient
         } while ($page <= $totalPages && $page <= self::MAX_PAGES && \count($data) > 0);
 
         return $points;
+    }
+
+    /**
+     * @return array{0: array<mixed>, 1: array<string, list<string>>, 2: int}
+     * @throws DawarichException
+     */
+    private function request(User $user, \DateTimeInterface $from, \DateTimeInterface $to, int $page, int $perPage): array
+    {
+        $baseUrl = $this->configuration->getDawarichUrl($user);
+        $apiKey = $this->configuration->getDawarichApiKey($user);
+
+        if ($baseUrl === null || $apiKey === null) {
+            throw new DawarichException('dawarich.error.not_configured');
+        }
+
+        try {
+            $response = $this->httpClient->request('GET', $baseUrl . '/api/v1/points', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Accept' => 'application/json',
+                ],
+                'query' => [
+                    'start_at' => $from->format(\DateTimeInterface::ATOM),
+                    'end_at' => $to->format(\DateTimeInterface::ATOM),
+                    'page' => $page,
+                    'per_page' => $perPage,
+                    'order' => 'asc',
+                ],
+                'timeout' => 20,
+            ]);
+
+            $status = $response->getStatusCode();
+            if ($status === 401 || $status === 403) {
+                throw new DawarichException('dawarich.error.unauthorized');
+            }
+            if ($status >= 400) {
+                throw new DawarichException('dawarich.error.http', ['%status%' => $status]);
+            }
+
+            $data = $response->toArray(false);
+            $headers = $response->getHeaders(false);
+        } catch (ExceptionInterface $e) {
+            throw new DawarichException('dawarich.error.connection', ['%message%' => $e->getMessage()], $e);
+        }
+
+        return [$data, $headers, \count($data)];
     }
 
     /**

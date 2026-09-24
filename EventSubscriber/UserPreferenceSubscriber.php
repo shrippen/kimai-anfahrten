@@ -5,6 +5,7 @@ namespace KimaiPlugin\MileageBundle\EventSubscriber;
 use App\Entity\UserPreference;
 use App\Event\UserPreferenceEvent;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
+use KimaiPlugin\MileageBundle\Form\Type\SecretType;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -53,7 +54,7 @@ class UserPreferenceSubscriber implements EventSubscriberInterface
         };
 
         $add(MileageConfiguration::PREF_DAWARICH_URL, UrlType::class, ['help' => 'mileage_dawarich_url_help']);
-        $add(MileageConfiguration::PREF_DAWARICH_API_KEY, TextType::class, ['help' => 'mileage_dawarich_api_key_help']);
+        $add(MileageConfiguration::PREF_DAWARICH_API_KEY, SecretType::class, ['help' => 'mileage_dawarich_api_key_help']);
         $add(MileageConfiguration::PREF_HOME_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_WORK_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_COMMUTE_KM, NumberType::class, ['help' => 'mileage_commute_km_help', 'scale' => 1, 'html5' => true]);

@@ -418,6 +418,14 @@
         <source>tax.total</source>
         <target>Werbungskosten Fahrten</target>
       </trans-unit>
+      <trans-unit id="m104" resname="dawarich.test">
+        <source>dawarich.test</source>
+        <target>Dawarich-Verbindung testen</target>
+      </trans-unit>
+      <trans-unit id="m105" resname="dawarich.test_ok">
+        <source>dawarich.test_ok</source>
+        <target>Verbindung zu Dawarich OK — %count% GPS-Punkte in den letzten 30 Tagen.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

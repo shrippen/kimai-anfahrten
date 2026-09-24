@@ -1,0 +1,25 @@
+# Static analysis against the Kimai core source.
+# Kimai is not a Composer package, so clone it next to the plugin first:
+#   git clone --depth 1 --branch 2.67.0 https://github.com/kimai/kimai.git .kimai
+parameters:
+    level: 6
+    paths:
+        - .
+    excludePaths:
+        analyse:
+            - .kimai (?)
+            - vendor
+            - tools (?)
+            - tests
+            - Migrations
+    scanDirectories:
+        - .kimai/src
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+        - identifier: missingType.generics
+        # Doctrine assigns generated ids via reflection.
+        -
+            identifier: property.unusedType
+            path: Entity/*

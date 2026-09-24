@@ -27,6 +27,25 @@
     "require": {
         "php": "^8.1"
     },
+    "require-dev": {
+        "doctrine/dbal": "^3.8 || ^4.0",
+        "doctrine/doctrine-bundle": "^2.12",
+        "doctrine/orm": "^2.19 || ^3.0",
+        "doctrine/persistence": "^3.3 || ^4.0",
+        "friendsofphp/php-cs-fixer": "^3.59",
+        "kevinpapst/tabler-bundle": "^2.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5",
+        "symfony/form": "^6.4 || ^7.0",
+        "symfony/http-client": "^6.4 || ^7.0",
+        "symfony/routing": "^6.4 || ^7.0",
+        "symfony/security-core": "^6.4 || ^7.0",
+        "symfony/security-csrf": "^6.4 || ^7.0",
+        "symfony/security-http": "^6.4 || ^7.0",
+        "symfony/translation": "^6.4 || ^7.0",
+        "symfony/twig-bridge": "^6.4 || ^7.0",
+        "symfony/validator": "^6.4 || ^7.0"
+    },
     "extra": {
         "kimai": {
             "require": 26400,
@@ -37,5 +56,25 @@
         "psr-4": {
             "KimaiPlugin\\MileageBundle\\": ""
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KimaiPlugin\\MileageBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": false
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "check": [
+            "@cs",
+            "@stan",
+            "@test"
+        ]
     }
 }

@@ -418,6 +418,14 @@
         <source>tax.total</source>
         <target>Deductible travel costs</target>
       </trans-unit>
+      <trans-unit id="m104" resname="dawarich.test">
+        <source>dawarich.test</source>
+        <target>Test Dawarich connection</target>
+      </trans-unit>
+      <trans-unit id="m105" resname="dawarich.test_ok">
+        <source>dawarich.test_ok</source>
+        <target>Dawarich connection OK — %count% GPS points in the last 30 days.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

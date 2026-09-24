@@ -43,8 +43,8 @@ class TripRepository extends ServiceEntityRepository
     {
         return $this->findByUserBetween(
             $user,
-            new \DateTimeImmutable(sprintf('%d-01-01', $year)),
-            new \DateTimeImmutable(sprintf('%d-12-31', $year))
+            new \DateTimeImmutable(\sprintf('%d-01-01', $year)),
+            new \DateTimeImmutable(\sprintf('%d-12-31', $year))
         );
     }
 

@@ -7,6 +7,7 @@ use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Utils\PageSetup;
+use Doctrine\ORM\EntityManagerInterface;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
@@ -18,7 +19,7 @@ use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\TaxCalculator;
 use KimaiPlugin\MileageBundle\Service\TripCsvExporter;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\ClickableInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -56,7 +57,7 @@ class TripController extends AbstractController
         if ($month === null) {
             $trips = $this->tripRepository->findByUserAndYear($user, $year);
         } else {
-            $from = new \DateTimeImmutable(sprintf('%d-%02d-01', $year, $month));
+            $from = new \DateTimeImmutable(\sprintf('%d-%02d-01', $year, $month));
             $trips = $this->tripRepository->findByUserBetween($user, $from, $from->modify('last day of this month'));
         }
 
@@ -176,6 +177,24 @@ class TripController extends AbstractController
         ]);
     }
 
+    #[Route(path: '/dawarich/test', name: 'mileage_dawarich_test', methods: ['POST'])]
+    public function testDawarich(Request $request): Response
+    {
+        $user = $this->getTargetUser($request, $this->userRepository);
+        if (!$this->isCsrfTokenValid('mileage_dawarich_test', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+
+        try {
+            $count = $this->dawarichClient->testConnection($user);
+            $this->flashSuccess($this->translator->trans('dawarich.test_ok', ['%count%' => $count]));
+        } catch (DawarichException $e) {
+            $this->flashError($this->translator->trans($e->getMessage(), $e->getParameters()));
+        }
+
+        return $this->redirectToRoute('mileage_trips', ['user' => $user->getId()]);
+    }
+
     #[Route(path: '/export/{year}', name: 'mileage_export', requirements: ['year' => '\d{4}'], methods: ['GET'])]
     public function export(Request $request, int $year): Response
     {
@@ -184,7 +203,7 @@ class TripController extends AbstractController
 
         return new Response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => sprintf('attachment; filename="fahrten-%s-%d.csv"', $user->getUserIdentifier(), $year),
+            'Content-Disposition' => \sprintf('attachment; filename="fahrten-%s-%d.csv"', $user->getUserIdentifier(), $year),
         ]);
     }
 
@@ -197,7 +216,8 @@ class TripController extends AbstractController
         $form = $this->createForm(TripForm::class, $trip, ['dawarich' => $dawarich]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $dawarich && $form->get('dawarich')->isClicked()) {
+        $lookup = $dawarich ? $form->get('dawarich') : null;
+        if ($form->isSubmitted() && $lookup instanceof ClickableInterface && $lookup->isClicked()) {
             $this->lookupDistance($trip);
 
             // Re-create the form so the measured distance replaces the submitted value.

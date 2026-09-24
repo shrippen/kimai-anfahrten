@@ -38,7 +38,7 @@ class TripCsvExporter
             'trip.project',
             'trip.comment',
             'trip.source',
-        ]), ';');
+        ]), ';', '"', '');
 
         foreach ($trips as $trip) {
             fputcsv($handle, [
@@ -57,7 +57,7 @@ class TripCsvExporter
                 $trip->getProject()?->getName(),
                 $trip->getComment(),
                 $this->translator->trans($trip->getSource()->label()),
-            ], ';');
+            ], ';', '"', '');
         }
 
         rewind($handle);

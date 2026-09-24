@@ -11,9 +11,13 @@ use App\EventSubscriber\Actions\AbstractActionsSubscriber;
  */
 final class TimesheetTripSubscriber extends AbstractActionsSubscriber
 {
-    public static function getActionName(): string
+    public static function getSubscribedEvents(): array
     {
-        return 'timesheet';
+        // Own timesheets and the team timesheet view.
+        return [
+            'actions.timesheet' => ['handleEvent', 1000],
+            'actions.timesheet_team' => ['handleEvent', 1000],
+        ];
     }
 
     public function onActions(PageActionsEvent $event): void

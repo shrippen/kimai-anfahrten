@@ -27,7 +27,7 @@ class CommuteGenerator
      */
     public function suggestDays(User $user, int $year, int $month): array
     {
-        $from = new \DateTimeImmutable(sprintf('%d-%02d-01 00:00:00', $year, $month));
+        $from = new \DateTimeImmutable(\sprintf('%d-%02d-01 00:00:00', $year, $month));
         $to = $from->modify('first day of next month');
 
         /** @var Timesheet[] $timesheets */

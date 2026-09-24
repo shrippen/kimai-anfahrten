@@ -21,3 +21,8 @@ composer.lock
 .php-cs-fixer.cache
 .phpstan.cache
 /coverage/
+
+/tools/
+composer.local.json
+/.kimai
+.phpunit.cache/
