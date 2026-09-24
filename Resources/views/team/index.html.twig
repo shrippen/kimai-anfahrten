@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'team'} %}
+    {% set prev = month == 1 ? {year: year - 1, month: 12} : {year: year, month: month - 1} %}
+    {% set next = month == 12 ? {year: year + 1, month: 1} : {year: year, month: month + 1} %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <h2 class="me-auto mb-0">{{ 'approval.team'|trans }} — {{ '%02d/%d'|format(month, year) }}</h2>
+        <a href="{{ path('mileage_team', prev) }}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
+        <a href="{{ path('mileage_team', next) }}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
+    </div>
+
+    {% if not approval_enabled %}
+        <div class="alert alert-info">{{ 'approval.disabled_hint'|trans }}</div>
+    {% endif %}
+
+    {% if pending|length > 0 %}
+        <div class="card mb-3 border-warning">
+            <div class="card-header"><h3 class="card-title">{{ 'approval.pending'|trans }} ({{ pending|length }})</h3></div>
+            <ul class="list-group list-group-flush">
+                {% for lock in pending %}
+                    <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+                        <span class="me-auto">
+                            <strong>{{ lock.user.displayName }}</strong> — {{ '%02d/%d'|format(lock.month, lock.year) }}
+                            <span class="small text-muted">{{ 'approval.submitted_at'|trans }} {{ lock.lockedAt|date('Y-m-d H:i') }}</span>
+                            <a class="ms-2" href="{{ path('mileage_trips', {year: lock.year, month: lock.month, user: lock.user.id}) }}">{{ 'menu.mileage'|trans }}</a>
+                        </span>
+                        <form method="post" action="{{ path('mileage_team_review', {id: lock.id}) }}" class="d-flex gap-1">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mileage_team_review' ~ lock.id) }}">
+                            <input type="text" name="comment" class="form-control form-control-sm" placeholder="{{ 'approval.reason'|trans }}" aria-label="{{ 'approval.reason'|trans }}" required>
+                            <button type="submit" name="decision" value="approve" class="btn btn-sm btn-success text-nowrap" formnovalidate>{{ 'approval.approve'|trans }}</button>
+                            <button type="submit" name="decision" value="reject" class="btn btn-sm btn-outline-danger text-nowrap">{{ 'approval.reject'|trans }}</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-vcenter mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'approval.user'|trans }}</th>
+                        <th class="text-end">{{ 'tax.trips'|trans }}</th>
+                        <th class="text-end">{{ 'logbook.km.business'|trans }}</th>
+                        <th class="text-end">{{ 'logbook.km.commute'|trans }}</th>
+                        <th class="text-end">{{ 'logbook.km.private'|trans }}</th>
+                        <th class="text-end">{{ 'approval.amount'|trans }}</th>
+                        <th>{{ 'logbook.status'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td><a href="{{ path('mileage_trips', {year: year, month: month, user: row.user.id}) }}">{{ row.user.displayName }}</a></td>
+                            <td class="text-end">{{ row.trips }}</td>
+                            <td class="text-end">{{ row.km.business|number_format(0, ',', '.') }}</td>
+                            <td class="text-end">{{ row.km.commute|number_format(0, ',', '.') }}</td>
+                            <td class="text-end">{{ row.km.private|number_format(0, ',', '.') }}</td>
+                            <td class="text-end">{{ row.total|number_format(2, ',', '.') }} €</td>
+                            <td>{{ row.lock ? row.lock.status.label|trans : 'logbook.month_open'|trans }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

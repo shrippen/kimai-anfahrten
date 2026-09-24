@@ -5,6 +5,7 @@ namespace KimaiPlugin\MileageBundle\Entity;
 use App\Entity\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
 
 /**
@@ -37,8 +38,23 @@ class MonthLock
     #[ORM\Column(name: 'locked_at', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $lockedAt;
 
-    public function __construct(User $user, int $year, int $month, ?User $lockedBy)
+    #[ORM\Column(type: Types::STRING, length: 16, enumType: MonthStatus::class, options: ['default' => 'closed'])]
+    private MonthStatus $status = MonthStatus::CLOSED;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'reviewed_by_id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $reviewedBy = null;
+
+    #[ORM\Column(name: 'reviewed_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $reviewedAt = null;
+
+    /** Reason of a rejection. */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $comment = null;
+
+    public function __construct(User $user, int $year, int $month, ?User $lockedBy, MonthStatus $status = MonthStatus::CLOSED)
     {
+        $this->status = $status;
         $this->user = $user;
         $this->year = $year;
         $this->month = $month;
@@ -74,5 +90,61 @@ class MonthLock
     public function getLockedAt(): \DateTimeImmutable
     {
         return $this->lockedAt;
+    }
+
+    public function getStatus(): MonthStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(MonthStatus $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->status->isLocked();
+    }
+
+    public function getReviewedBy(): ?User
+    {
+        return $this->reviewedBy;
+    }
+
+    public function getReviewedAt(): ?\DateTimeImmutable
+    {
+        return $this->reviewedAt;
+    }
+
+    public function review(MonthStatus $status, ?User $by, ?string $comment = null): self
+    {
+        $this->status = $status;
+        $this->reviewedBy = $by;
+        $this->reviewedAt = new \DateTimeImmutable();
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * Re-submission after a rejection.
+     */
+    public function resubmit(MonthStatus $status, ?User $by): self
+    {
+        $this->status = $status;
+        $this->lockedBy = $by;
+        $this->lockedAt = new \DateTimeImmutable();
+        $this->reviewedBy = null;
+        $this->reviewedAt = null;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
     }
 }

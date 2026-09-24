@@ -1270,6 +1270,162 @@
         <source>overview.empty</source>
         <target>No business trips in this period.</target>
       </trans-unit>
+      <trans-unit id="m317" resname="mileage.approval_enabled">
+        <source>mileage.approval_enabled</source>
+        <target>Approval by team lead</target>
+      </trans-unit>
+      <trans-unit id="m318" resname="mileage.approval_enabled_help">
+        <source>mileage.approval_enabled_help</source>
+        <target>Users submit months for approval instead of closing them themselves.</target>
+      </trans-unit>
+      <trans-unit id="m319" resname="approval.team">
+        <source>approval.team</source>
+        <target>Team trips</target>
+      </trans-unit>
+      <trans-unit id="m320" resname="approval.status.closed">
+        <source>approval.status.closed</source>
+        <target>Closed</target>
+      </trans-unit>
+      <trans-unit id="m321" resname="approval.status.submitted">
+        <source>approval.status.submitted</source>
+        <target>Submitted for approval</target>
+      </trans-unit>
+      <trans-unit id="m322" resname="approval.status.approved">
+        <source>approval.status.approved</source>
+        <target>Approved</target>
+      </trans-unit>
+      <trans-unit id="m323" resname="approval.status.rejected">
+        <source>approval.status.rejected</source>
+        <target>Rejected</target>
+      </trans-unit>
+      <trans-unit id="m324" resname="approval.submit">
+        <source>approval.submit</source>
+        <target>Submit for approval</target>
+      </trans-unit>
+      <trans-unit id="m325" resname="approval.submit_confirm">
+        <source>approval.submit_confirm</source>
+        <target>Submit this month for approval? No changes are possible until it is reviewed.</target>
+      </trans-unit>
+      <trans-unit id="m326" resname="approval.submitted">
+        <source>approval.submitted</source>
+        <target>Month %month% submitted for approval.</target>
+      </trans-unit>
+      <trans-unit id="m327" resname="approval.submitted_at">
+        <source>approval.submitted_at</source>
+        <target>submitted</target>
+      </trans-unit>
+      <trans-unit id="m328" resname="approval.pending">
+        <source>approval.pending</source>
+        <target>Waiting for approval</target>
+      </trans-unit>
+      <trans-unit id="m329" resname="approval.approve">
+        <source>approval.approve</source>
+        <target>Approve</target>
+      </trans-unit>
+      <trans-unit id="m330" resname="approval.reject">
+        <source>approval.reject</source>
+        <target>Reject</target>
+      </trans-unit>
+      <trans-unit id="m331" resname="approval.reason">
+        <source>approval.reason</source>
+        <target>Reason (required when rejecting)</target>
+      </trans-unit>
+      <trans-unit id="m332" resname="approval.error.reason">
+        <source>approval.error.reason</source>
+        <target>Please give a reason for the rejection.</target>
+      </trans-unit>
+      <trans-unit id="m333" resname="approval.approved">
+        <source>approval.approved</source>
+        <target>Trips of %user% for %month% approved.</target>
+      </trans-unit>
+      <trans-unit id="m334" resname="approval.rejected">
+        <source>approval.rejected</source>
+        <target>Trips of %user% for %month% rejected.</target>
+      </trans-unit>
+      <trans-unit id="m335" resname="approval.reviewed_by">
+        <source>approval.reviewed_by</source>
+        <target>Reviewed by</target>
+      </trans-unit>
+      <trans-unit id="m336" resname="approval.user">
+        <source>approval.user</source>
+        <target>User</target>
+      </trans-unit>
+      <trans-unit id="m337" resname="approval.amount">
+        <source>approval.amount</source>
+        <target>Deductible (estimate)</target>
+      </trans-unit>
+      <trans-unit id="m338" resname="approval.disabled_hint">
+        <source>approval.disabled_hint</source>
+        <target>Approval by team leads is turned off (System → Settings). The overview works anyway.</target>
+      </trans-unit>
+      <trans-unit id="m339" resname="import.title">
+        <source>import.title</source>
+        <target>CSV import</target>
+      </trans-unit>
+      <trans-unit id="m340" resname="import.help">
+        <source>import.help</source>
+        <target>Take over old logbooks or exports of other apps. Separator, encoding and columns are detected — including this plugin's own CSV export.</target>
+      </trans-unit>
+      <trans-unit id="m341" resname="import.columns">
+        <source>import.columns</source>
+        <target>Recognized columns include: date, departure, arrival, purpose/type, vehicle, license plate, from, to, km/distance, round trip, costs, comment, odometer start/end. Required: date and km (or odometer).</target>
+      </trans-unit>
+      <trans-unit id="m342" resname="import.check">
+        <source>import.check</source>
+        <target>Check</target>
+      </trans-unit>
+      <trans-unit id="m343" resname="import.preview">
+        <source>import.preview</source>
+        <target>Preview</target>
+      </trans-unit>
+      <trans-unit id="m344" resname="import.recognized">
+        <source>import.recognized</source>
+        <target>Column mapping</target>
+      </trans-unit>
+      <trans-unit id="m345" resname="import.ok">
+        <source>import.ok</source>
+        <target>%count% ready</target>
+      </trans-unit>
+      <trans-unit id="m346" resname="import.duplicates">
+        <source>import.duplicates</source>
+        <target>%count% possible duplicates</target>
+      </trans-unit>
+      <trans-unit id="m347" resname="import.errors">
+        <source>import.errors</source>
+        <target>%count% with errors</target>
+      </trans-unit>
+      <trans-unit id="m348" resname="import.duplicate">
+        <source>import.duplicate</source>
+        <target>probably exists already</target>
+      </trans-unit>
+      <trans-unit id="m349" resname="import.skip_duplicates">
+        <source>import.skip_duplicates</source>
+        <target>Skip possible duplicates</target>
+      </trans-unit>
+      <trans-unit id="m350" resname="import.run">
+        <source>import.run</source>
+        <target>Import now</target>
+      </trans-unit>
+      <trans-unit id="m351" resname="import.done">
+        <source>import.done</source>
+        <target>%imported% trips imported, %skipped% skipped.</target>
+      </trans-unit>
+      <trans-unit id="m352" resname="import.error.file">
+        <source>import.error.file</source>
+        <target>The file could not be read (max. 2 MB).</target>
+      </trans-unit>
+      <trans-unit id="m353" resname="import.error.date_missing">
+        <source>import.error.date_missing</source>
+        <target>Date missing</target>
+      </trans-unit>
+      <trans-unit id="m354" resname="import.error.distance_missing">
+        <source>import.error.distance_missing</source>
+        <target>Distance missing</target>
+      </trans-unit>
+      <trans-unit id="m355" resname="trip.error.distance">
+        <source>trip.error.distance</source>
+        <target>Please enter the distance.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

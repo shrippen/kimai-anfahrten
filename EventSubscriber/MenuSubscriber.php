@@ -39,5 +39,13 @@ class MenuSubscriber implements EventSubscriberInterface
             $item->setTranslationDomain('messages');
             $reporting->addChild($item);
         }
+
+        $teamAccess = $this->security->isGranted('approve_mileage') || $this->security->isGranted('approve_other_mileage')
+            || $this->security->isGranted('view_other_mileage') || $this->security->isGranted('view_team_mileage');
+        if ($reporting !== null && $teamAccess && $reporting->getChild('mileage_team') === null) {
+            $item = new MenuItemModel('mileage_team', 'approval.team', 'mileage_team', [], 'fas fa-people-group');
+            $item->setTranslationDomain('messages');
+            $reporting->addChild($item);
+        }
     }
 }

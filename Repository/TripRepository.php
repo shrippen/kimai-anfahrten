@@ -113,6 +113,11 @@ class TripRepository extends ServiceEntityRepository
         }
     }
 
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
     public function remove(Trip $trip, bool $flush = true): void
     {
         $this->getEntityManager()->remove($trip);

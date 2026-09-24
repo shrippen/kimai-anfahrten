@@ -6,6 +6,7 @@ use App\Event\SystemConfigurationEvent;
 use App\Form\Model\Configuration;
 use App\Form\Model\SystemConfiguration as SystemConfigurationModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -53,6 +54,12 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(UrlType::class)
                         ->setOptions(['help' => 'mileage.dawarich_url_help']),
+                    (new Configuration('mileage.approval_enabled'))
+                        ->setLabel('mileage.approval_enabled')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(CheckboxType::class)
+                        ->setOptions(['help' => 'mileage.approval_enabled_help']),
                     (new Configuration('mileage.geocoder_url'))
                         ->setLabel('mileage.geocoder_url')
                         ->setTranslationDomain('messages')

@@ -74,7 +74,7 @@ class RentalController extends AbstractController
     public function show(Rental $rental): Response
     {
         $user = $rental->getUser();
-        if ($user !== $this->getUser() && !$this->isGranted('view_other_mileage') && !$this->isGranted('edit_other_mileage')) {
+        if (!$this->canViewTripsOf($user)) {
             throw $this->createAccessDeniedException();
         }
 

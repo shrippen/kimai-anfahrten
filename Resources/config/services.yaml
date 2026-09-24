@@ -11,6 +11,7 @@ services:
             - '../../Resources/'
             - '../../DependencyInjection/'
             - '../../Controller/'
+            - '../../API/'
             - '../../tests/'
             - '../../vendor/'
             - '../../tools/'
@@ -19,5 +20,10 @@ services:
 
     KimaiPlugin\MileageBundle\Controller\:
         resource: '../../Controller'
+        tags: ['controller.service_arguments']
+        public: true
+
+    KimaiPlugin\MileageBundle\API\:
+        resource: '../../API'
         tags: ['controller.service_arguments']
         public: true

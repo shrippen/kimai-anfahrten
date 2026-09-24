@@ -6,6 +6,7 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use KimaiPlugin\MileageBundle\Entity\MonthLock;
+use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 
 /**
  * @extends ServiceEntityRepository<MonthLock>
@@ -33,6 +34,29 @@ class MonthLockRepository extends ServiceEntityRepository
         }
 
         return $locks;
+    }
+
+    /**
+     * Months waiting for approval of the given users.
+     *
+     * @param User[] $users
+     * @return MonthLock[]
+     */
+    public function findSubmitted(array $users): array
+    {
+        if ($users === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.user IN (:users)')
+            ->andWhere('l.status = :status')
+            ->setParameter('users', $users)
+            ->setParameter('status', MonthStatus::SUBMITTED)
+            ->orderBy('l.year', 'ASC')
+            ->addOrderBy('l.month', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function save(MonthLock $entity, bool $flush = true): void

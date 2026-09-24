@@ -20,19 +20,22 @@
                             <td class="text-end">{{ counts[m] }}</td>
                             <td>
                                 {% if lock %}
-                                    <i class="fas fa-lock me-1"></i>{{ 'logbook.month_locked'|trans }}
+                                    <i class="fas {{ lock.locked ? 'fa-lock' : 'fa-rotate-left text-danger' }} me-1"></i>{{ lock.status.label|trans }}
                                     <div class="small text-muted">{{ lock.lockedAt|date('Y-m-d H:i') }}{% if lock.lockedBy %} · {{ lock.lockedBy.displayName }}{% endif %}</div>
+                                    {% if lock.reviewedBy %}<div class="small text-muted">{{ 'approval.reviewed_by'|trans }}: {{ lock.reviewedBy.displayName }}, {{ lock.reviewedAt|date('Y-m-d H:i') }}</div>{% endif %}
+                                    {% if lock.comment %}<div class="small text-danger">{{ lock.comment }}</div>{% endif %}
                                 {% else %}
                                     <span class="text-muted"><i class="fas fa-lock-open me-1"></i>{{ 'logbook.month_open'|trans }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-end">
-                                <form method="post" action="{{ path(lock ? 'mileage_month_unlock' : 'mileage_month_lock', {year: year, month: m, user: target_user.id}) }}" {% if not lock %}onsubmit="return confirm('{{ 'logbook.lock_confirm'|trans|e('js') }}');"{% endif %}>
+                                {% set is_locked = lock and lock.locked %}
+                                <form method="post" action="{{ path(is_locked ? 'mileage_month_unlock' : 'mileage_month_lock', {year: year, month: m, user: target_user.id}) }}" {% if not is_locked %}onsubmit="return confirm('{{ (approval_enabled ? 'approval.submit_confirm' : 'logbook.lock_confirm')|trans|e('js') }}');"{% endif %}>
                                     <input type="hidden" name="_token" value="{{ csrf_token('mileage_month_lock') }}">
-                                    {% if lock and can_unlock %}
+                                    {% if is_locked and can_unlock %}
                                         <button class="btn btn-sm btn-outline-warning" type="submit">{{ 'logbook.unlock'|trans }}</button>
-                                    {% elseif not lock and can_lock %}
-                                        <button class="btn btn-sm btn-outline-primary" type="submit">{{ 'logbook.lock'|trans }}</button>
+                                    {% elseif not is_locked and can_lock %}
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">{{ (approval_enabled ? 'approval.submit' : 'logbook.lock')|trans }}</button>
                                     {% endif %}
                                 </form>
                             </td>

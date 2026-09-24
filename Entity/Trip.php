@@ -58,7 +58,7 @@ class Trip
      * Business/private: the driven distance; doubled when {@see $roundTrip} is set.
      */
     #[ORM\Column(name: 'distance_km', type: Types::FLOAT, options: ['default' => 0])]
-    #[Assert\PositiveOrZero]
+    #[Assert\Positive(message: 'trip.error.distance')]
     private float $distanceKm = 0.0;
 
     #[ORM\Column(name: 'round_trip', type: Types::BOOLEAN, options: ['default' => false])]

@@ -170,7 +170,7 @@ class PlausibilityChecker
         $unlocked = [];
         foreach (array_keys($months) as $month) {
             $end = (new \DateTimeImmutable(\sprintf('%d-%02d-01', $year, $month)))->modify('last day of this month');
-            if (!isset($locks[$month]) && $end < $now) {
+            if (!(isset($locks[$month]) && $locks[$month]->isLocked()) && $end < $now) {
                 $unlocked[] = \sprintf('%d-%02d', $year, $month);
             }
         }

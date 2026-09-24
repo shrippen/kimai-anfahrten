@@ -11,7 +11,7 @@
         {route: 'mileage_history', key: 'history', label: 'logbook.history', icon: 'fas fa-clock-rotate-left'},
         {route: 'mileage_overview', key: 'overview', label: 'overview.title', icon: 'fas fa-users'},
         {route: 'mileage_tax_report', key: 'tax', label: 'menu.mileage_tax', icon: 'fas fa-file-invoice'},
-    ] %}
+    ]|merge(is_granted('approve_mileage') or is_granted('approve_other_mileage') or is_granted('view_other_mileage') or is_granted('view_team_mileage') ? [{route: 'mileage_team', key: 'team', label: 'approval.team', icon: 'fas fa-people-group'}] : []) %}
         <li class="nav-item">
             <a class="nav-link {{ active == item.key ? 'active' : '' }}" href="{{ path(item.route, nav_params) }}"><i class="{{ item.icon }} me-1"></i>{{ item.label|trans }}</a>
         </li>

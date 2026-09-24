@@ -231,7 +231,7 @@ class TripController extends AbstractController
     public function track(Trip $trip): Response
     {
         $user = $trip->getUser();
-        if ($user !== $this->getUser() && !$this->isGranted('view_other_mileage') && !$this->isGranted('edit_other_mileage')) {
+        if (!$this->canViewTripsOf($user)) {
             throw $this->createAccessDeniedException();
         }
 

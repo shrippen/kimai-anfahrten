@@ -54,7 +54,7 @@ class AttachmentController extends AbstractController
     public function download(Attachment $attachment): Response
     {
         $owner = $attachment->getUser();
-        if ($owner !== $this->getUser() && !$this->isGranted('view_other_mileage') && !$this->isGranted('edit_other_mileage')) {
+        if (!$this->canViewTripsOf($owner)) {
             throw $this->createAccessDeniedException();
         }
 

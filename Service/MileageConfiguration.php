@@ -38,6 +38,11 @@ class MileageConfiguration
         return $value === null || $value === '' ? null : (float) str_replace(',', '.', (string) $value);
     }
 
+    public function isApprovalEnabled(): bool
+    {
+        return (bool) ($this->configuration->find('mileage.approval_enabled') ?? false);
+    }
+
     public function getMealPartial(): float
     {
         return $this->float('mileage.meal_partial', 14.0);

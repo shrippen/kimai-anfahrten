@@ -53,7 +53,7 @@
                 <tbody>
                     {% for row in analysis.rows %}
                         {% set t = row.trip %}
-                        {% set month_locked = locks[t.date|date('n')] is defined %}
+                        {% set month_locked = locks[t.date|date('n')] is defined and locks[t.date|date('n')].locked %}
                         <tr class="{{ row.warnings|length > 0 ? 'table-warning' : '' }}">
                             <td class="text-nowrap">{{ t.date|date('Y-m-d') }}{% if t.departureAt %}<div class="small text-muted">{{ t.departureAt|date('H:i') }}–{{ t.arrivalAt ? t.arrivalAt|date('H:i') : '' }}</div>{% endif %}</td>
                             <td class="text-end">{{ t.odometerStart }}</td>

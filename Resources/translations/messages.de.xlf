@@ -1270,6 +1270,162 @@
         <source>overview.empty</source>
         <target>Keine Dienstreisen im Zeitraum.</target>
       </trans-unit>
+      <trans-unit id="m317" resname="mileage.approval_enabled">
+        <source>mileage.approval_enabled</source>
+        <target>Freigabe durch Teamleitung</target>
+      </trans-unit>
+      <trans-unit id="m318" resname="mileage.approval_enabled_help">
+        <source>mileage.approval_enabled_help</source>
+        <target>Nutzer reichen Monate zur Freigabe ein statt sie selbst abzuschließen.</target>
+      </trans-unit>
+      <trans-unit id="m319" resname="approval.team">
+        <source>approval.team</source>
+        <target>Fahrten Team</target>
+      </trans-unit>
+      <trans-unit id="m320" resname="approval.status.closed">
+        <source>approval.status.closed</source>
+        <target>Abgeschlossen</target>
+      </trans-unit>
+      <trans-unit id="m321" resname="approval.status.submitted">
+        <source>approval.status.submitted</source>
+        <target>Zur Freigabe eingereicht</target>
+      </trans-unit>
+      <trans-unit id="m322" resname="approval.status.approved">
+        <source>approval.status.approved</source>
+        <target>Freigegeben</target>
+      </trans-unit>
+      <trans-unit id="m323" resname="approval.status.rejected">
+        <source>approval.status.rejected</source>
+        <target>Zurückgewiesen</target>
+      </trans-unit>
+      <trans-unit id="m324" resname="approval.submit">
+        <source>approval.submit</source>
+        <target>Zur Freigabe einreichen</target>
+      </trans-unit>
+      <trans-unit id="m325" resname="approval.submit_confirm">
+        <source>approval.submit_confirm</source>
+        <target>Monat zur Freigabe einreichen? Bis zur Entscheidung sind keine Änderungen möglich.</target>
+      </trans-unit>
+      <trans-unit id="m326" resname="approval.submitted">
+        <source>approval.submitted</source>
+        <target>Monat %month% zur Freigabe eingereicht.</target>
+      </trans-unit>
+      <trans-unit id="m327" resname="approval.submitted_at">
+        <source>approval.submitted_at</source>
+        <target>eingereicht</target>
+      </trans-unit>
+      <trans-unit id="m328" resname="approval.pending">
+        <source>approval.pending</source>
+        <target>Wartet auf Freigabe</target>
+      </trans-unit>
+      <trans-unit id="m329" resname="approval.approve">
+        <source>approval.approve</source>
+        <target>Freigeben</target>
+      </trans-unit>
+      <trans-unit id="m330" resname="approval.reject">
+        <source>approval.reject</source>
+        <target>Zurückweisen</target>
+      </trans-unit>
+      <trans-unit id="m331" resname="approval.reason">
+        <source>approval.reason</source>
+        <target>Begründung (bei Zurückweisung Pflicht)</target>
+      </trans-unit>
+      <trans-unit id="m332" resname="approval.error.reason">
+        <source>approval.error.reason</source>
+        <target>Bitte eine Begründung für die Zurückweisung angeben.</target>
+      </trans-unit>
+      <trans-unit id="m333" resname="approval.approved">
+        <source>approval.approved</source>
+        <target>Fahrten von %user% für %month% freigegeben.</target>
+      </trans-unit>
+      <trans-unit id="m334" resname="approval.rejected">
+        <source>approval.rejected</source>
+        <target>Fahrten von %user% für %month% zurückgewiesen.</target>
+      </trans-unit>
+      <trans-unit id="m335" resname="approval.reviewed_by">
+        <source>approval.reviewed_by</source>
+        <target>Geprüft von</target>
+      </trans-unit>
+      <trans-unit id="m336" resname="approval.user">
+        <source>approval.user</source>
+        <target>Mitarbeiter</target>
+      </trans-unit>
+      <trans-unit id="m337" resname="approval.amount">
+        <source>approval.amount</source>
+        <target>Abziehbar (Schätzung)</target>
+      </trans-unit>
+      <trans-unit id="m338" resname="approval.disabled_hint">
+        <source>approval.disabled_hint</source>
+        <target>Die Freigabe durch die Teamleitung ist ausgeschaltet (System → Einstellungen). Die Übersicht funktioniert trotzdem.</target>
+      </trans-unit>
+      <trans-unit id="m339" resname="import.title">
+        <source>import.title</source>
+        <target>CSV-Import</target>
+      </trans-unit>
+      <trans-unit id="m340" resname="import.help">
+        <source>import.help</source>
+        <target>Alte Fahrtenbücher oder Exporte anderer Apps übernehmen. Trennzeichen, Zeichensatz und Spalten werden erkannt — auch der eigene CSV-Export.</target>
+      </trans-unit>
+      <trans-unit id="m341" resname="import.columns">
+        <source>import.columns</source>
+        <target>Erkannte Spalten u. a.: Datum, Abfahrt, Ankunft, Art der Fahrt, Fahrzeug, Kennzeichen, Start, Ziel, km/Entfernung, Hin- und Rückfahrt, Kosten, Bemerkung/Reisezweck, km-Stand Beginn/Ende. Pflicht: Datum und km (oder km-Stände).</target>
+      </trans-unit>
+      <trans-unit id="m342" resname="import.check">
+        <source>import.check</source>
+        <target>Prüfen</target>
+      </trans-unit>
+      <trans-unit id="m343" resname="import.preview">
+        <source>import.preview</source>
+        <target>Vorschau</target>
+      </trans-unit>
+      <trans-unit id="m344" resname="import.recognized">
+        <source>import.recognized</source>
+        <target>Zuordnung der Spalten</target>
+      </trans-unit>
+      <trans-unit id="m345" resname="import.ok">
+        <source>import.ok</source>
+        <target>%count% bereit</target>
+      </trans-unit>
+      <trans-unit id="m346" resname="import.duplicates">
+        <source>import.duplicates</source>
+        <target>%count% mögliche Duplikate</target>
+      </trans-unit>
+      <trans-unit id="m347" resname="import.errors">
+        <source>import.errors</source>
+        <target>%count% fehlerhaft</target>
+      </trans-unit>
+      <trans-unit id="m348" resname="import.duplicate">
+        <source>import.duplicate</source>
+        <target>existiert vermutlich schon</target>
+      </trans-unit>
+      <trans-unit id="m349" resname="import.skip_duplicates">
+        <source>import.skip_duplicates</source>
+        <target>Mögliche Duplikate überspringen</target>
+      </trans-unit>
+      <trans-unit id="m350" resname="import.run">
+        <source>import.run</source>
+        <target>Jetzt importieren</target>
+      </trans-unit>
+      <trans-unit id="m351" resname="import.done">
+        <source>import.done</source>
+        <target>%imported% Fahrten importiert, %skipped% übersprungen.</target>
+      </trans-unit>
+      <trans-unit id="m352" resname="import.error.file">
+        <source>import.error.file</source>
+        <target>Die Datei konnte nicht gelesen werden (max. 2 MB).</target>
+      </trans-unit>
+      <trans-unit id="m353" resname="import.error.date_missing">
+        <source>import.error.date_missing</source>
+        <target>Datum fehlt</target>
+      </trans-unit>
+      <trans-unit id="m354" resname="import.error.distance_missing">
+        <source>import.error.distance_missing</source>
+        <target>km fehlen</target>
+      </trans-unit>
+      <trans-unit id="m355" resname="trip.error.distance">
+        <source>trip.error.distance</source>
+        <target>Bitte die gefahrenen Kilometer angeben.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

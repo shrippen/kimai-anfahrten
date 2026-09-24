@@ -7,10 +7,12 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Utils\PageSetup;
 use KimaiPlugin\MileageBundle\Entity\Vehicle;
+use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
 use KimaiPlugin\MileageBundle\Repository\TripAuditRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Service\LogbookService;
+use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +37,7 @@ class LogbookController extends AbstractController
         private readonly LogbookService $logbookService,
         private readonly MonthLockService $lockService,
         private readonly TranslatorInterface $translator,
+        private readonly MileageConfiguration $configuration,
     ) {
     }
 
@@ -82,6 +85,7 @@ class LogbookController extends AbstractController
             'counts' => $counts,
             'can_lock' => $this->canLock($user),
             'can_unlock' => $this->isGranted('unlock_mileage'),
+            'approval_enabled' => $this->configuration->isApprovalEnabled(),
         ]);
     }
 
@@ -96,8 +100,9 @@ class LogbookController extends AbstractController
 
         /** @var User $current */
         $current = $this->getUser();
-        $this->lockService->lock($user, $year, $month, $current);
-        $this->flashSuccess($this->translator->trans('logbook.locked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
+        $approval = $this->configuration->isApprovalEnabled();
+        $this->lockService->lock($user, $year, $month, $current, $approval ? MonthStatus::SUBMITTED : MonthStatus::CLOSED);
+        $this->flashSuccess($this->translator->trans($approval ? 'approval.submitted' : 'logbook.locked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
 
         return $this->redirectToRoute('mileage_months', ['year' => $year, 'user' => $user->getId()]);
     }
@@ -140,7 +145,7 @@ class LogbookController extends AbstractController
 
     private function assertCanView(User $user): void
     {
-        if ($user !== $this->getUser() && !$this->isGranted('view_other_mileage') && !$this->isGranted('edit_other_mileage')) {
+        if (!$this->canViewTripsOf($user)) {
             throw $this->createAccessDeniedException();
         }
     }

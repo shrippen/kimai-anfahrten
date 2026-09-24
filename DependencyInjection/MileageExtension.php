@@ -29,9 +29,12 @@ class MileageExtension extends Extension implements PrependExtensionInterface
             'delete_own_mileage',
             'delete_other_mileage',
             'view_other_mileage',
+            'view_team_mileage',
             'lock_mileage',
             'unlock_mileage',
             'edit_locked_mileage',
+            'approve_mileage',
+            'approve_other_mileage',
         ];
 
         $container->prependExtensionConfig('kimai', [
@@ -43,8 +46,9 @@ class MileageExtension extends Extension implements PrependExtensionInterface
                         'mileage',
                         'edit_own_mileage',
                         'delete_own_mileage',
-                        'view_other_mileage',
+                        'view_team_mileage',
                         'lock_mileage',
+                        'approve_mileage',
                     ],
                     'ROLE_USER' => [
                         'mileage',

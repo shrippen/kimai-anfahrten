@@ -26,12 +26,13 @@
                         <a href="{{ path('mileage_commutes', {year: year, month: month}|merge(route_params)) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>{{ 'commute.generate'|trans }}</a>
                     {% endif %}
                 {% endif %}
+                {% if can_edit %}<a href="{{ path('mileage_import', route_params) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-import me-1"></i>{{ 'import.title'|trans }}</a>{% endif %}
                 <a href="{{ path('mileage_export', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }} ({{ year }})</a>
             </p>
             {% if open_suggestions > 0 %}
                 <div class="alert alert-info py-2"><a href="{{ path('mileage_suggestions', route_params) }}">{{ 'suggestion.open_hint'|trans({'%count%': open_suggestions}) }}</a></div>
             {% endif %}
-            {% if month and locks[month] is defined %}
+            {% if month and locks[month] is defined and locks[month].locked %}
                 <div class="alert alert-secondary py-2"><i class="fas fa-lock me-1"></i>{{ 'logbook.month_locked_hint'|trans }}</div>
             {% endif %}
             {% if not dawarich_configured %}
@@ -72,7 +73,7 @@
                 </thead>
                 <tbody>
                     {% for t in trips %}
-                        {% set locked = locks[t.date|date('n')] is defined and t.date|date('Y') == year ~ '' %}
+                        {% set locked = locks[t.date|date('n')] is defined and locks[t.date|date('n')].locked and t.date|date('Y') == year ~ '' %}
                         {% set changeable = not locked or edit_locked %}
                         <tr>
                             <td class="text-nowrap">
