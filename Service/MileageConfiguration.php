@@ -4,15 +4,14 @@ namespace KimaiPlugin\MileageBundle\Service;
 
 use App\Configuration\SystemConfiguration;
 use App\Entity\User;
+use KimaiPlugin\MileageBundle\Enum\TaxProfile;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
 
 /**
  * System settings (rates, Dawarich defaults) and per-user preferences.
  *
- * Default rates reflect German tax law as of 2026:
- * - Entfernungspauschale 0,38 €/km from the first km (Steueränderungsgesetz 2025)
- * - Dienstreise with own car 0,30 €/km, motorcycle/scooter 0,20 €/km (BRKG)
- * - annual cap of 4.500 € for commutes not done by car
+ * Per-year rates live in {@see TaxRateSchedule}; the settings here are the
+ * rates that did not change for years (and an optional commute override).
  */
 class MileageConfiguration
 {
@@ -23,14 +22,35 @@ class MileageConfiguration
     public const PREF_COMMUTE_KM = 'mileage_commute_km';
     public const PREF_DEFAULT_VEHICLE = 'mileage_default_vehicle';
     public const PREF_LICENSE_PLATE = 'mileage_license_plate';
+    public const PREF_TAX_PROFILE = 'mileage_tax_profile';
 
     public function __construct(private readonly SystemConfiguration $configuration)
     {
     }
 
-    public function getCommuteRate(): float
+    /**
+     * Only set when the admin deliberately deviates from the rates of {@see TaxRateSchedule}.
+     */
+    public function getCommuteRateOverride(): ?float
     {
-        return $this->float('mileage.rate_commute', 0.38);
+        $value = $this->configuration->find('mileage.rate_commute');
+
+        return $value === null || $value === '' ? null : (float) str_replace(',', '.', (string) $value);
+    }
+
+    public function getMealPartial(): float
+    {
+        return $this->float('mileage.meal_partial', 14.0);
+    }
+
+    public function getMealFull(): float
+    {
+        return $this->float('mileage.meal_full', 28.0);
+    }
+
+    public function getTaxProfile(User $user): TaxProfile
+    {
+        return TaxProfile::tryFrom((string) $user->getPreferenceValue(self::PREF_TAX_PROFILE, '')) ?? TaxProfile::SELF_EMPLOYED;
     }
 
     public function getBusinessCarRate(): float

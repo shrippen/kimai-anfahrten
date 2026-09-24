@@ -113,6 +113,11 @@ class TripForm extends AbstractType
                 'label' => 'trip.round_trip',
                 'required' => false,
             ])
+            ->add('overnight', CheckboxType::class, [
+                'label' => 'trip.overnight',
+                'help' => 'trip.overnight_help',
+                'required' => false,
+            ])
             ->add('costs', NumberType::class, [
                 'label' => 'trip.costs',
                 'help' => 'trip.costs_help',

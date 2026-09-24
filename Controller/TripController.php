@@ -84,7 +84,7 @@ class TripController extends AbstractController
             'month' => $month,
             'target_user' => $user,
             'trips' => $trips,
-            'summary' => $this->taxCalculator->summarize($trips),
+            'summary' => $this->taxCalculator->summarize($trips, $year, $this->configuration->getTaxProfile($user), $user->getDateTimezone()),
             'can_edit' => $this->canEditTripsOf($user),
             'can_delete' => $this->canDeleteTripsOf($user),
             'dawarich_configured' => $this->configuration->isDawarichConfigured($user),

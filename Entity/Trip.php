@@ -64,6 +64,10 @@ class Trip
     #[ORM\Column(name: 'round_trip', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $roundTrip = false;
 
+    /** Business trip: stayed away overnight, the journey continues with the next business trip. */
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $overnight = false;
+
     /** Actual costs in EUR (rental car, fuel for rental, tickets, …). */
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     #[Assert\PositiveOrZero]
@@ -237,6 +241,18 @@ class Trip
     public function setRoundTrip(bool $roundTrip): self
     {
         $this->roundTrip = $roundTrip;
+
+        return $this;
+    }
+
+    public function isOvernight(): bool
+    {
+        return $this->overnight;
+    }
+
+    public function setOvernight(bool $overnight): self
+    {
+        $this->overnight = $overnight;
 
         return $this;
     }

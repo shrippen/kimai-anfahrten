@@ -1,0 +1,118 @@
+<?php
+
+namespace KimaiPlugin\MileageBundle\Tests\Service;
+
+use App\Configuration\SystemConfiguration;
+use KimaiPlugin\MileageBundle\Entity\Trip;
+use KimaiPlugin\MileageBundle\Enum\TripPurpose;
+use KimaiPlugin\MileageBundle\Service\MealAllowanceCalculator;
+use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\TaxRates;
+use KimaiPlugin\MileageBundle\Service\TaxRateSchedule;
+use PHPUnit\Framework\TestCase;
+
+class MealAllowanceCalculatorTest extends TestCase
+{
+    private \DateTimeZone $tz;
+
+    protected function setUp(): void
+    {
+        $this->tz = new \DateTimeZone('Europe/Berlin');
+    }
+
+    private function rates(): TaxRates
+    {
+        return (new TaxRateSchedule(new MileageConfiguration(new SystemConfiguration())))->forYear(2026);
+    }
+
+    private function trip(string $from, string $to, string $destination = 'Kunde A', bool $overnight = false, TripPurpose $purpose = TripPurpose::BUSINESS): Trip
+    {
+        return (new Trip())
+            ->setDate(new \DateTimeImmutable(substr($from, 0, 10)))
+            ->setPurpose($purpose)
+            ->setDestination($destination)
+            ->setOvernight($overnight)
+            ->setDepartureAt(new \DateTimeImmutable($from, $this->tz))
+            // Kimai hands out UTC objects — the calculator must not depend on the object timezone
+            ->setArrivalAt((new \DateTimeImmutable($to, $this->tz))->setTimezone(new \DateTimeZone('UTC')));
+    }
+
+    public function testOneDayOverEightHours(): void
+    {
+        $result = (new MealAllowanceCalculator())->calculate([$this->trip('2026-03-02 07:00', '2026-03-02 15:30')], $this->rates(), $this->tz);
+
+        self::assertSame(1, $result['partial_days']);
+        self::assertSame(14.0, $result['amount']);
+        self::assertSame(8.5, $result['days'][0]['hours']);
+    }
+
+    public function testEightHoursExactlyIsNotEnough(): void
+    {
+        $result = (new MealAllowanceCalculator())->calculate([$this->trip('2026-03-02 08:00', '2026-03-02 16:00')], $this->rates(), $this->tz);
+
+        self::assertSame(0.0, $result['amount']);
+    }
+
+    public function testSeveralAbsencesOnOneDayAddUp(): void
+    {
+        $trips = [$this->trip('2026-03-02 07:00', '2026-03-02 11:30'), $this->trip('2026-03-02 13:00', '2026-03-02 17:00', 'Kunde B')];
+
+        self::assertSame(14.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testMultiDayJourneyOverOneEntry(): void
+    {
+        // Monday 08:00 to Wednesday 18:00: 14 + 28 + 14
+        $result = (new MealAllowanceCalculator())->calculate([$this->trip('2026-03-02 08:00', '2026-03-04 18:00')], $this->rates(), $this->tz);
+
+        self::assertSame(2, $result['partial_days']);
+        self::assertSame(1, $result['full_days']);
+        self::assertSame(56.0, $result['amount']);
+    }
+
+    public function testMultiDayJourneyWithOvernightFlag(): void
+    {
+        $trips = [
+            $this->trip('2026-03-02 15:00', '2026-03-02 19:00', 'Hamburg', true),
+            $this->trip('2026-03-03 09:00', '2026-03-03 10:00', 'Hamburg Kunde', true),
+            $this->trip('2026-03-04 16:00', '2026-03-04 20:00', 'Zuhause'),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['travel_day', 'full_day', 'travel_day'], array_column($result['days'], 'kind'));
+        self::assertSame(56.0, $result['amount']);
+    }
+
+    public function testThreeMonthRule(): void
+    {
+        $trips = [];
+        // weekly at the same customer from January to May
+        for ($day = new \DateTimeImmutable('2026-01-05'); $day < new \DateTimeImmutable('2026-05-31'); $day = $day->modify('+7 days')) {
+            $trips[] = $this->trip($day->format('Y-m-d') . ' 07:00', $day->format('Y-m-d') . ' 17:00', 'Baustelle Nord');
+        }
+        // break of more than four weeks, then again
+        $trips[] = $this->trip('2026-07-06 07:00', '2026-07-06 17:00', 'baustelle  nord');
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+        $byDate = array_column($result['days'], 'three_month', 'date');
+
+        self::assertFalse($byDate['2026-03-30']);
+        self::assertTrue($byDate['2026-04-06']);
+        self::assertFalse($byDate['2026-07-06']);
+        self::assertGreaterThan(0, $result['excluded_days']);
+    }
+
+    public function testIgnoresOtherPurposesAndCountsMissingTimes(): void
+    {
+        $trips = [
+            $this->trip('2026-03-02 07:00', '2026-03-02 18:00', 'Büro', false, TripPurpose::COMMUTE),
+            (new Trip())->setDate(new \DateTimeImmutable('2026-03-03'))->setPurpose(TripPurpose::BUSINESS),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame(1, $result['missing_times']);
+    }
+}

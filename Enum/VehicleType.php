@@ -42,11 +42,12 @@ enum VehicleType: string
 
     /**
      * Commute: the 4,500 € annual cap of the Entfernungspauschale does not apply
-     * to an own or provided car (§ 9 Abs. 2 Satz 2 Nr. 4 EStG).
+     * to an own or provided car (§ 9 Abs. 2 Satz 2 Nr. 4 EStG); a rental car is
+     * treated as a car provided for use.
      */
     public function isCarForCommuteCap(): bool
     {
-        return $this === self::OWN_CAR || $this === self::COMPANY_CAR;
+        return $this === self::OWN_CAR || $this === self::COMPANY_CAR || $this === self::RENTAL_CAR;
     }
 
     /** Actual costs are borne by the employer — nothing to deduct. */

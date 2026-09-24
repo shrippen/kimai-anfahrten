@@ -35,10 +35,18 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                 ->setTranslation('mileage.settings_section')
                 ->setTranslationDomain('messages')
                 ->setConfiguration([
-                    $rate('mileage.rate_commute', 0.38)->setOptions(['help' => 'mileage.rate_commute_help', 'scale' => 2, 'html5' => true]),
+                    // no default: empty means "use the legal rate of the trip's year"
+                    (new Configuration('mileage.rate_commute'))
+                        ->setLabel('mileage.rate_commute')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(NumberType::class)
+                        ->setOptions(['help' => 'mileage.rate_commute_help', 'scale' => 2, 'html5' => true, 'attr' => ['min' => 0, 'step' => 0.01]]),
                     $rate('mileage.rate_business_car', 0.30),
                     $rate('mileage.rate_business_motorcycle', 0.20),
                     $rate('mileage.commute_cap', 4500.0),
+                    $rate('mileage.meal_partial', 14.0),
+                    $rate('mileage.meal_full', 28.0),
                     (new Configuration('mileage.dawarich_url'))
                         ->setLabel('mileage.dawarich_url')
                         ->setTranslationDomain('messages')

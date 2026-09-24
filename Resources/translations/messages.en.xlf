@@ -24,11 +24,11 @@
       </trans-unit>
       <trans-unit id="m005" resname="mileage.rate_commute">
         <source>mileage.rate_commute</source>
-        <target>Commuting allowance (€/km one-way)</target>
+        <target>Commuting allowance override (€/km)</target>
       </trans-unit>
       <trans-unit id="m006" resname="mileage.rate_commute_help">
         <source>mileage.rate_commute_help</source>
-        <target>Since 2026: €0.38 from the first kilometre (Germany).</target>
+        <target>Leave empty = legal rate of the respective year (until 2025: €0.30 up to km 20, €0.38 from km 21; from 2026: €0.38 from km 1).</target>
       </trans-unit>
       <trans-unit id="m007" resname="mileage.rate_business_car">
         <source>mileage.rate_business_car</source>
@@ -352,7 +352,7 @@
       </trans-unit>
       <trans-unit id="m087" resname="tax.commute_car">
         <source>tax.commute_car</source>
-        <target>thereof by own / company car</target>
+        <target>thereof by car (own, company or rental)</target>
       </trans-unit>
       <trans-unit id="m088" resname="tax.commute_other">
         <source>tax.commute_other</source>
@@ -1021,6 +1021,254 @@
       <trans-unit id="m254" resname="logbook.action.delete">
         <source>logbook.action.delete</source>
         <target>Deleted</target>
+      </trans-unit>
+      <trans-unit id="m255" resname="mileage.meal_partial">
+        <source>mileage.meal_partial</source>
+        <target>Meal allowance &gt; 8 h / travel day (€)</target>
+      </trans-unit>
+      <trans-unit id="m256" resname="mileage.meal_full">
+        <source>mileage.meal_full</source>
+        <target>Meal allowance full day (€)</target>
+      </trans-unit>
+      <trans-unit id="m257" resname="mileage_tax_profile">
+        <source>mileage_tax_profile</source>
+        <target>Tax profile</target>
+      </trans-unit>
+      <trans-unit id="m258" resname="mileage_tax_profile_help">
+        <source>mileage_tax_profile_help</source>
+        <target>Self-employed: business expenses. Employee: income-related expenses.</target>
+      </trans-unit>
+      <trans-unit id="m259" resname="tax.profile.self_employed">
+        <source>tax.profile.self_employed</source>
+        <target>Self-employed</target>
+      </trans-unit>
+      <trans-unit id="m260" resname="tax.profile.employee">
+        <source>tax.profile.employee</source>
+        <target>Employee</target>
+      </trans-unit>
+      <trans-unit id="m261" resname="tax.rate_split">
+        <source>tax.rate_split</source>
+        <target>%first% €/km up to km 20, %from21% €/km from km 21</target>
+      </trans-unit>
+      <trans-unit id="m262" resname="tax.se.commute">
+        <source>tax.se.commute</source>
+        <target>Home – business premises</target>
+      </trans-unit>
+      <trans-unit id="m263" resname="tax.se.commute_hint">
+        <source>tax.se.commute_hint</source>
+        <target>commuting allowance as business expense</target>
+      </trans-unit>
+      <trans-unit id="m264" resname="tax.emp.commute">
+        <source>tax.emp.commute</source>
+        <target>Commuting allowance</target>
+      </trans-unit>
+      <trans-unit id="m265" resname="tax.emp.commute_hint">
+        <source>tax.emp.commute_hint</source>
+        <target>home ↔ regular place of work</target>
+      </trans-unit>
+      <trans-unit id="m266" resname="tax.se.business">
+        <source>tax.se.business</source>
+        <target>Business trips</target>
+      </trans-unit>
+      <trans-unit id="m267" resname="tax.se.business_hint">
+        <source>tax.se.business_hint</source>
+        <target>business trips with private vehicles (per km) or actual costs</target>
+      </trans-unit>
+      <trans-unit id="m268" resname="tax.emp.business">
+        <source>tax.emp.business</source>
+        <target>Business travel costs</target>
+      </trans-unit>
+      <trans-unit id="m269" resname="tax.emp.business_hint">
+        <source>tax.emp.business_hint</source>
+        <target>travel away from the regular place of work</target>
+      </trans-unit>
+      <trans-unit id="m270" resname="tax.se.meal_hint">
+        <source>tax.se.meal_hint</source>
+        <target>business expense</target>
+      </trans-unit>
+      <trans-unit id="m271" resname="tax.emp.meal_hint">
+        <source>tax.emp.meal_hint</source>
+        <target>income-related expense</target>
+      </trans-unit>
+      <trans-unit id="m272" resname="tax.se.total">
+        <source>tax.se.total</source>
+        <target>Business expenses travel</target>
+      </trans-unit>
+      <trans-unit id="m273" resname="tax.emp.total">
+        <source>tax.emp.total</source>
+        <target>Income-related expenses travel</target>
+      </trans-unit>
+      <trans-unit id="m274" resname="tax.method.business_asset">
+        <source>tax.method.business_asset</source>
+        <target>Costs are booked in the accounts (business asset)</target>
+      </trans-unit>
+      <trans-unit id="m275" resname="tax.se.private_use">
+        <source>tax.se.private_use</source>
+        <target>Private use of business vehicles</target>
+      </trans-unit>
+      <trans-unit id="m276" resname="tax.se.private_use_hint">
+        <source>tax.se.private_use_hint</source>
+        <target>withdrawal / non-deductible expenses</target>
+      </trans-unit>
+      <trans-unit id="m277" resname="tax.se.withdrawal">
+        <source>tax.se.withdrawal</source>
+        <target>1 % withdrawal / year</target>
+      </trans-unit>
+      <trans-unit id="m278" resname="tax.se.commute_addition">
+        <source>tax.se.commute_addition</source>
+        <target>Non-deductible home–business</target>
+      </trans-unit>
+      <trans-unit id="m279" resname="tax.se.private_use_footer">
+        <source>tax.se.private_use_footer</source>
+        <target>1 % rule: 1 % of the list price (rounded down to 100 €) per month. Home–business: 0.03 % × list price × km × months minus commuting allowance. Logbook method: apply the private share to the total vehicle costs.</target>
+      </trans-unit>
+      <trans-unit id="m280" resname="tax.months">
+        <source>tax.months</source>
+        <target>Months</target>
+      </trans-unit>
+      <trans-unit id="m281" resname="tax.private_share">
+        <source>tax.private_share</source>
+        <target>Private share</target>
+      </trans-unit>
+      <trans-unit id="m282" resname="trip.overnight">
+        <source>trip.overnight</source>
+        <target>Stayed overnight</target>
+      </trans-unit>
+      <trans-unit id="m283" resname="trip.overnight_help">
+        <source>trip.overnight_help</source>
+        <target>Multi-day business trip: the journey continues with the next business trip (for the meal allowance).</target>
+      </trans-unit>
+      <trans-unit id="m284" resname="meal.title">
+        <source>meal.title</source>
+        <target>Meal allowance</target>
+      </trans-unit>
+      <trans-unit id="m285" resname="meal.partial_days">
+        <source>meal.partial_days</source>
+        <target>%count% days at €%rate%</target>
+      </trans-unit>
+      <trans-unit id="m286" resname="meal.full_days">
+        <source>meal.full_days</source>
+        <target>%count% full days at €%rate%</target>
+      </trans-unit>
+      <trans-unit id="m287" resname="meal.excluded_days">
+        <source>meal.excluded_days</source>
+        <target>%count% days after the three-month limit</target>
+      </trans-unit>
+      <trans-unit id="m288" resname="meal.missing_times">
+        <source>meal.missing_times</source>
+        <target>%count% business trips without departure/arrival time could not be considered.</target>
+      </trans-unit>
+      <trans-unit id="m289" resname="meal.details">
+        <source>meal.details</source>
+        <target>Show days</target>
+      </trans-unit>
+      <trans-unit id="m290" resname="meal.kind">
+        <source>meal.kind</source>
+        <target>Type</target>
+      </trans-unit>
+      <trans-unit id="m291" resname="meal.kind.absence">
+        <source>meal.kind.absence</source>
+        <target>Absence over 8 h</target>
+      </trans-unit>
+      <trans-unit id="m292" resname="meal.kind.travel_day">
+        <source>meal.kind.travel_day</source>
+        <target>Travel day</target>
+      </trans-unit>
+      <trans-unit id="m293" resname="meal.kind.full_day">
+        <source>meal.kind.full_day</source>
+        <target>Full day</target>
+      </trans-unit>
+      <trans-unit id="m294" resname="meal.three_month">
+        <source>meal.three_month</source>
+        <target>three-month limit</target>
+      </trans-unit>
+      <trans-unit id="m295" resname="plausibility.title">
+        <source>plausibility.title</source>
+        <target>Plausibility check</target>
+      </trans-unit>
+      <trans-unit id="m296" resname="plausibility.level.danger">
+        <source>plausibility.level.danger</source>
+        <target>Error</target>
+      </trans-unit>
+      <trans-unit id="m297" resname="plausibility.level.warning">
+        <source>plausibility.level.warning</source>
+        <target>Check</target>
+      </trans-unit>
+      <trans-unit id="m298" resname="plausibility.level.info">
+        <source>plausibility.level.info</source>
+        <target>Note</target>
+      </trans-unit>
+      <trans-unit id="m299" resname="plausibility.more_commutes_than_workdays">
+        <source>plausibility.more_commutes_than_workdays</source>
+        <target>%count% more commutes than days with recorded working time.</target>
+      </trans-unit>
+      <trans-unit id="m300" resname="plausibility.commute_without_timesheet">
+        <source>plausibility.commute_without_timesheet</source>
+        <target>%count% commutes on days without recorded working time.</target>
+      </trans-unit>
+      <trans-unit id="m301" resname="plausibility.commute_on_absence">
+        <source>plausibility.commute_on_absence</source>
+        <target>%count% commutes on vacation/sick days (HolidayBundle).</target>
+      </trans-unit>
+      <trans-unit id="m302" resname="plausibility.rental_without_costs">
+        <source>plausibility.rental_without_costs</source>
+        <target>%count% rental-car trips without rental and without costs.</target>
+      </trans-unit>
+      <trans-unit id="m303" resname="plausibility.business_without_purpose">
+        <source>plausibility.business_without_purpose</source>
+        <target>%count% business trips without purpose and without project.</target>
+      </trans-unit>
+      <trans-unit id="m304" resname="plausibility.commute_on_weekend">
+        <source>plausibility.commute_on_weekend</source>
+        <target>%count% commutes on weekends.</target>
+      </trans-unit>
+      <trans-unit id="m305" resname="plausibility.multiple_commutes">
+        <source>plausibility.multiple_commutes</source>
+        <target>%count% days with several commutes — the allowance counts once per day.</target>
+      </trans-unit>
+      <trans-unit id="m306" resname="plausibility.commute_distance_deviates">
+        <source>plausibility.commute_distance_deviates</source>
+        <target>%count% commutes deviate from the stored distance.</target>
+      </trans-unit>
+      <trans-unit id="m307" resname="plausibility.business_without_times">
+        <source>plausibility.business_without_times</source>
+        <target>%count% business trips without times — meal allowance cannot be calculated.</target>
+      </trans-unit>
+      <trans-unit id="m308" resname="plausibility.no_absence_data">
+        <source>plausibility.no_absence_data</source>
+        <target>No check against vacation/sickness (HolidayBundle not installed).</target>
+      </trans-unit>
+      <trans-unit id="m309" resname="plausibility.open_suggestions">
+        <source>plausibility.open_suggestions</source>
+        <target>%count% detected trips of this year are not confirmed yet.</target>
+      </trans-unit>
+      <trans-unit id="m310" resname="plausibility.months_not_closed">
+        <source>plausibility.months_not_closed</source>
+        <target>%count% past months with trips are not closed.</target>
+      </trans-unit>
+      <trans-unit id="m311" resname="overview.title">
+        <source>overview.title</source>
+        <target>Customer overview</target>
+      </trans-unit>
+      <trans-unit id="m312" resname="overview.help">
+        <source>overview.help</source>
+        <target>Business trips per customer for copying into an invoice by hand (e.g. Invoice Ninja). Nothing is billed here.</target>
+      </trans-unit>
+      <trans-unit id="m313" resname="overview.all_customers">
+        <source>overview.all_customers</source>
+        <target>All customers</target>
+      </trans-unit>
+      <trans-unit id="m314" resname="overview.no_customer">
+        <source>overview.no_customer</source>
+        <target>No customer</target>
+      </trans-unit>
+      <trans-unit id="m315" resname="overview.show">
+        <source>overview.show</source>
+        <target>Show</target>
+      </trans-unit>
+      <trans-unit id="m316" resname="overview.empty">
+        <source>overview.empty</source>
+        <target>No business trips in this period.</target>
       </trans-unit>
     </body>
   </file>
