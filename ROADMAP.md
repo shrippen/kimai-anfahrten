@@ -17,14 +17,14 @@ Leitlinien:
 
 ---
 
-## Offene Grundsatzfragen (vor 0.2 klären)
+## Grundsatzentscheidungen (geklärt)
 
-| Frage | Warum wichtig | Vorschlag |
-|---|---|---|
-| **Arbeitnehmer oder selbstständig (oder beides)?** | Arbeitnehmer: Werbungskosten, Anlage N. Selbstständige: Betriebsausgaben, EÜR, Privatnutzung des Betriebs-PKW (1-%-Regel vs. Fahrtenbuch). Die Berechnung und der Bericht unterscheiden sich. | Beides über eine Einstellung „Steuerprofil" pro Nutzer. Umsetzen zuerst den eigenen Fall. |
-| **Plugin-Name** | Repo heißt `kimai-anfahrten`, Bundle heißt aktuell `MileageBundle`. Später umzubenennen ist teuer (Tabellen, Rechte, Routen). | Entscheiden vor dem ersten Release, z. B. `AnfahrtenBundle` oder bei `MileageBundle` bleiben. |
-| **Anfahrten an Kunden weiterberechnen?** | Neben dem Finanzamt oft der zweite Zweck: Anfahrtspauschale oder km-Satz auf der Rechnung. | Als eigene Phase (0.6) einplanen. |
-| **Eine Dawarich-Instanz oder eine pro Nutzer?** | Bestimmt, wo URL und Schlüssel liegen. | Bereits umgesetzt: Standard-URL im System, eigene URL und API-Key pro Nutzer. |
+| Frage | Entscheidung |
+|---|---|
+| **Arbeitnehmer oder selbstständig?** | Selbstständig, aber **beides soll gehen** — über ein „Steuerprofil" pro Nutzer (Arbeitnehmer: Werbungskosten/Anlage N; Selbstständig: Betriebsausgaben/EÜR). Selbstständig ist der primäre, zuerst umgesetzte Fall. |
+| **Plugin-Name** | Bundle bleibt vorerst **`MileageBundle`** (Repo heißt `kimai-anfahrten`). Umbenennen ist jederzeit möglich, aber nicht dringend. |
+| **Anfahrten an Kunden weiterberechnen?** | **Nein**, nicht in diesem Plugin. Die eigentliche Rechnungsstellung läuft über Invoice Ninja. Das Plugin liefert stattdessen nur eine **Übersicht innerhalb von Kimai** (z. B. Fahrten nach Projekt/Kunde gefiltert, mit km und Kosten) zur **manuellen Übernahme** — siehe 0.5. |
+| **Eine Dawarich-Instanz oder eine pro Nutzer?** | Bereits umgesetzt: Standard-URL im System, eigene URL und API-Key pro Nutzer. |
 
 ---
 
@@ -82,24 +82,23 @@ Ziel: finanzamtstaugliches Fahrtenbuch, z. B. für einen Firmenwagen statt 1-%-R
       Protokoll
 - [ ] Belege als Dateianhänge (Mietvertrag, Tankquittung, Bahnticket)
 
-## 0.5 — Steuer vollständig
+## 0.5 — Steuer vollständig (Fokus Selbstständige)
 
+- [ ] **Steuerprofil pro Nutzer**: Selbstständig (EÜR) zuerst, Arbeitnehmer (Anlage N) danach — steuert, welcher
+      Bericht und welche Feldbezeichnungen angezeigt werden
+- [ ] **Selbstständig / EÜR:** betriebliche Fahrten als Betriebsausgabe; bei einem privat mitgenutzten Fahrzeug
+      Privatanteil (Fahrtenbuch- oder 1-%-Methode) und Abgrenzung zum Home-Office/Betriebssitz statt „Arbeitgeber"
 - [ ] **Sätze nach Jahr versioniert**, z. B. 2021–2025: 0,30 €/0,38 € ab km 21; ab 2026: 0,38 € ab km 1. Berechnet
       wird immer mit dem Satz des Fahrtjahres
-- [ ] Steuerprofil Arbeitnehmer (Anlage N) / Selbstständig (EÜR: betriebliche Fahrten, Privatanteil)
 - [ ] Verpflegungsmehraufwand bei Dienstreisen (14 € ab 8 h, 28 € ab 24 h) inkl. Dreimonatsfrist, abgeleitet aus
       Abwesenheitszeiten
 - [ ] Sonderfälle: Sammelpunkt / weiträumiges Tätigkeitsgebiet, Familienheimfahrten, mehrere Tätigkeitsstätten
 - [ ] Plausibilitätsprüfung: Arbeitswege > Arbeitstage? Arbeitsweg an Urlaubs-/Krankheitstagen (Anbindung an HolidayBundle)?
 - [ ] PDF-Bericht mit Zuordnung zu den Formularzeilen, zum Beilegen für Finanzamt bzw. Steuerberater
+- [ ] **Kunden-/Projektübersicht zur manuellen Übernahme** (kein Rechnungsversand aus Kimai heraus): Fahrten nach
+      Kunde/Projekt und Zeitraum gefiltert, mit km, Kosten und Anlass — exportierbar, zum Abtippen z. B. in Invoice Ninja
 
-## 0.6 — Anfahrten an Kunden abrechnen
-
-- [ ] Anfahrtspauschale oder km-Satz pro Kunde/Projekt (Kimai-Meta-Felder)
-- [ ] Fahrten als Positionen auf Kimai-Rechnungen (Rechnungsvorlagen-Variablen oder eigener Rechnungs-Datenlieferant)
-- [ ] Kennzeichnung „abgerechnet", damit nichts doppelt berechnet wird
-
-## 0.7 — Team und Schnittstellen
+## 0.6 — Team und Schnittstellen
 
 - [ ] Freigabe-Workflow für Fahrten (Teamleitung), Teambericht
 - [ ] REST-API `/api/mileage/...` (z. B. für Kurzbefehle auf dem Handy)
@@ -119,3 +118,5 @@ Ziel: finanzamtstaugliches Fahrtenbuch, z. B. für einen Firmenwagen statt 1-%-R
 2. **0.3** ist der eigentliche Mehrwert gegenüber einem normalen Fahrtenbuch.
 3. **0.4 / 0.5** nach Bedarf: Firmenwagen mit Fahrtenbuch → 0.4 vorziehen. Viele Dienstreisen → Verpflegung aus 0.5
    vorziehen.
+4. Eine echte **Kundenrechnungsstellung** (Anfahrtspauschale auf der Rechnung) ist bewusst **nicht** Teil dieser
+   Roadmap — das übernimmt Invoice Ninja. Nur die Übersicht zur manuellen Übernahme (0.5) gehört dazu.
