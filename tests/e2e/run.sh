@@ -34,7 +34,8 @@ DIFF="$($CONSOLE doctrine:schema:update --dump-sql 2>/dev/null | grep -i mileage
 if [ -n "$DIFF" ]; then echo "Schema differs from migrations:"; echo "$DIFF"; exit 1; fi
 
 echo "== Starting Kimai (8001) and fake Dawarich (8002)"
-php -S 127.0.0.1:8001 -t "$KIMAI/public" > "$SHOTS/kimai.log" 2>&1 &
+# several workers: the browser loads assets in parallel, a single-threaded server can drop connections
+PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8001 -t "$KIMAI/public" > "$SHOTS/kimai.log" 2>&1 &
 KIMAI_PID=$!
 php -S 127.0.0.1:8002 "$E2E/fake-dawarich/index.php" > "$SHOTS/dawarich.log" 2>&1 &
 DAWARICH_PID=$!
@@ -42,4 +43,9 @@ trap 'kill $KIMAI_PID $DAWARICH_PID 2>/dev/null || true' EXIT
 for _ in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8001/de/login && break; sleep 1; done
 
 echo "== Running browser tests"
-node "$E2E/e2e.js"
+if ! node "$E2E/e2e.js"; then
+    echo "== Last lines of the Kimai server log"
+    grep -v " \[200\]: \| \[302\]: \|Accepted\|Closing" "$SHOTS/kimai.log" | tail -40 || true
+    tail -40 "$KIMAI/var/log/prod.log" 2>/dev/null || true
+    exit 1
+fi
