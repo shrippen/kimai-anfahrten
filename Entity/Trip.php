@@ -86,6 +86,24 @@ class Trip
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Project $project = null;
 
+    /** The concrete vehicle (logbook); {@see $vehicle} keeps the tax category. */
+    #[ORM\ManyToOne(targetEntity: Vehicle::class)]
+    #[ORM\JoinColumn(name: 'assigned_vehicle_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Vehicle $assignedVehicle = null;
+
+    #[ORM\ManyToOne(targetEntity: Rental::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Rental $rental = null;
+
+    #[ORM\Column(name: 'odometer_start', type: Types::INTEGER, nullable: true)]
+    #[Assert\PositiveOrZero]
+    private ?int $odometerStart = null;
+
+    #[ORM\Column(name: 'odometer_end', type: Types::INTEGER, nullable: true)]
+    #[Assert\PositiveOrZero]
+    #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'odometer.error.order')]
+    private ?int $odometerEnd = null;
+
     #[ORM\ManyToOne(targetEntity: Timesheet::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Timesheet $timesheet = null;
@@ -304,6 +322,61 @@ class Trip
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+
+        return $this;
+    }
+
+    public function getAssignedVehicle(): ?Vehicle
+    {
+        return $this->assignedVehicle;
+    }
+
+    /**
+     * Also takes over tax category and license plate of the vehicle.
+     */
+    public function setAssignedVehicle(?Vehicle $assignedVehicle): self
+    {
+        $this->assignedVehicle = $assignedVehicle;
+        if ($assignedVehicle !== null) {
+            $this->vehicle = $assignedVehicle->getType();
+            $this->licensePlate = $assignedVehicle->getLicensePlate() ?? $this->licensePlate;
+        }
+
+        return $this;
+    }
+
+    public function getRental(): ?Rental
+    {
+        return $this->rental;
+    }
+
+    public function setRental(?Rental $rental): self
+    {
+        $this->rental = $rental;
+
+        return $this;
+    }
+
+    public function getOdometerStart(): ?int
+    {
+        return $this->odometerStart;
+    }
+
+    public function setOdometerStart(?int $odometerStart): self
+    {
+        $this->odometerStart = $odometerStart;
+
+        return $this;
+    }
+
+    public function getOdometerEnd(): ?int
+    {
+        return $this->odometerEnd;
+    }
+
+    public function setOdometerEnd(?int $odometerEnd): self
+    {
+        $this->odometerEnd = $odometerEnd;
 
         return $this;
     }

@@ -1,0 +1,30 @@
+{# Params: attachments, upload_url, can_edit, can_delete #}
+<div class="card mb-3">
+    <div class="card-header"><h3 class="card-title"><i class="fas fa-paperclip me-1"></i>{{ 'attachment.list'|trans }}</h3></div>
+    <ul class="list-group list-group-flush">
+        {% for a in attachments %}
+            <li class="list-group-item d-flex align-items-center">
+                <a href="{{ path('mileage_attachment_download', {id: a.id}) }}" target="_blank" rel="noopener" class="me-auto">{{ a.originalName }}</a>
+                <span class="text-muted small me-2">{{ (a.size / 1024)|number_format(0, ',', '.') }} KB</span>
+                {% if can_delete %}
+                    <form method="post" action="{{ path('mileage_attachment_delete', {id: a.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_delete' ~ a.id) }}">
+                        <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>
+                    </form>
+                {% endif %}
+            </li>
+        {% else %}
+            <li class="list-group-item text-muted">{{ 'attachment.empty'|trans }}</li>
+        {% endfor %}
+    </ul>
+    {% if can_edit %}
+        <div class="card-body">
+            <form method="post" action="{{ upload_url }}" enctype="multipart/form-data" class="d-flex gap-2">
+                <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_upload') }}">
+                <input type="file" name="file" class="form-control" accept="application/pdf,image/*" required>
+                <button type="submit" class="btn btn-outline-primary text-nowrap">{{ 'attachment.upload'|trans }}</button>
+            </form>
+            <div class="form-text">{{ 'attachment.help'|trans }}</div>
+        </div>
+    {% endif %}
+</div>

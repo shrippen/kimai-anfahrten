@@ -5,7 +5,6 @@ namespace KimaiPlugin\MileageBundle\Service;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 
@@ -19,6 +18,7 @@ class CommuteGenerator
         private readonly EntityManagerInterface $entityManager,
         private readonly TripRepository $tripRepository,
         private readonly MileageConfiguration $configuration,
+        private readonly TripService $tripService,
     ) {
     }
 
@@ -82,16 +82,13 @@ class CommuteGenerator
                 continue;
             }
 
-            $trip = (new Trip())
-                ->setUser($user)
-                ->setDate($day)
+            $trip = $this->tripService->createTrip($user, $day)
                 ->setPurpose(TripPurpose::COMMUTE)
-                ->setVehicle($this->configuration->getDefaultVehicle($user))
-                ->setLicensePlate($this->configuration->getLicensePlate($user))
                 ->setStartLocation($this->configuration->getHomeAddress($user))
                 ->setDestination($this->configuration->getWorkAddress($user))
                 ->setDistanceKm($distanceKm);
 
+            $this->tripService->prepare($trip);
             $this->tripRepository->save($trip, false);
             $count++;
         }

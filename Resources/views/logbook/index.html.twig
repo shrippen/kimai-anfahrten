@@ -1,0 +1,81 @@
+{% extends print ? '@Mileage/_print.html.twig' : 'base.html.twig' %}
+
+{% block page_content %}
+    {% if not print %}{% include '@Mileage/_nav.html.twig' with {active: 'vehicles'} %}{% endif %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <h2 class="me-auto mb-0">{{ 'logbook.title'|trans }} {{ year }} — {{ vehicle.label }}</h2>
+        {% if not print %}
+            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year - 1}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year + 1}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year, format: 'csv'}) }}" class="btn btn-sm btn-outline-success">CSV</a>
+            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year, print: 1}) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="fas fa-print me-1"></i>{{ 'logbook.print'|trans }}</a>
+        {% endif %}
+    </div>
+    <p class="small text-muted">
+        {{ 'trip.license_plate'|trans }}: {{ vehicle.licensePlate|default('–') }} · {{ 'vehicle.holder'|trans }}: {{ vehicle.holder|default(target_user.displayName) }}
+        · {{ 'odometer.start'|trans }}: {{ analysis.odometer_start|default('–') }} · {{ 'odometer.end'|trans }}: {{ analysis.odometer_end|default('–') }}
+    </p>
+
+    {% set km = analysis.km %}
+    {% set total = km.business + km.commute + km.private + km.unrecorded %}
+    <div class="row mb-3 g-2">
+        {% for key, value in {business: km.business, commute: km.commute, private: km.private, unrecorded: km.unrecorded} %}
+            <div class="col-6 col-md-3">
+                <div class="card"><div class="card-body py-2">
+                    <div class="small text-muted">{{ ('logbook.km.' ~ key)|trans }}</div>
+                    <div class="fs-3">{{ value|number_format(0, ',', '.') }} km</div>
+                    {% if total > 0 %}<div class="small text-muted">{{ (100 * value / total)|number_format(1, ',', '.') }} %</div>{% endif %}
+                </div></div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if analysis.gaps|length > 0 %}
+        <div class="alert alert-warning">{{ 'logbook.gaps'|trans({'%count%': analysis.gaps|length}) }}</div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-sm table-vcenter mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'trip.date'|trans }}</th>
+                        <th class="text-end">{{ 'odometer.start'|trans }}</th>
+                        <th class="text-end">{{ 'odometer.end'|trans }}</th>
+                        <th class="text-end">km</th>
+                        <th>{{ 'trip.purpose'|trans }}</th>
+                        <th>{{ 'trip.destination'|trans }}</th>
+                        <th>{{ 'logbook.reason'|trans }}</th>
+                        <th>{{ 'logbook.partner'|trans }}</th>
+                        {% if not print %}<th></th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in analysis.rows %}
+                        {% set t = row.trip %}
+                        {% set month_locked = locks[t.date|date('n')] is defined %}
+                        <tr class="{{ row.warnings|length > 0 ? 'table-warning' : '' }}">
+                            <td class="text-nowrap">{{ t.date|date('Y-m-d') }}{% if t.departureAt %}<div class="small text-muted">{{ t.departureAt|date('H:i') }}–{{ t.arrivalAt ? t.arrivalAt|date('H:i') : '' }}</div>{% endif %}</td>
+                            <td class="text-end">{{ t.odometerStart }}</td>
+                            <td class="text-end">{{ t.odometerEnd }}</td>
+                            <td class="text-end">{{ (t.odometerStart is not null and t.odometerEnd is not null ? t.odometerEnd - t.odometerStart : t.totalDistanceKm)|number_format(0, ',', '.') }}</td>
+                            <td>{{ t.purpose.label|trans }}</td>
+                            <td>{{ t.destination }}</td>
+                            <td>{{ t.comment|default(t.project ? t.project.name : '') }}</td>
+                            <td>{{ t.project and t.project.customer ? t.project.customer.name : '' }}</td>
+                            {% if not print %}
+                                <td class="text-nowrap small">
+                                    {% if month_locked %}<i class="fas fa-lock text-muted me-1" title="{{ 'logbook.month_locked'|trans }}"></i>{% endif %}
+                                    {% for w in row.warnings %}<div class="text-warning">{{ w|trans }}</div>{% endfor %}
+                                    <a href="{{ path('mileage_trip_edit', {id: t.id}) }}"><i class="fas fa-pen"></i></a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="9" class="text-muted">{{ 'logbook.empty'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

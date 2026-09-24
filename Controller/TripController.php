@@ -12,15 +12,23 @@ use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
 use KimaiPlugin\MileageBundle\Form\TripForm;
+use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
+use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
+use KimaiPlugin\MileageBundle\Repository\RentalRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
+use KimaiPlugin\MileageBundle\Repository\VehicleRepository;
+use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\CommuteGenerator;
 use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\TaxCalculator;
 use KimaiPlugin\MileageBundle\Service\TripCsvExporter;
+use KimaiPlugin\MileageBundle\Service\TripService;
 use Symfony\Component\Form\ClickableInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -44,6 +52,13 @@ class TripController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
         private readonly TripSuggestionRepository $suggestionRepository,
+        private readonly TripService $tripService,
+        private readonly VehicleRepository $vehicleRepository,
+        private readonly RentalRepository $rentalRepository,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly AttachmentStorage $attachmentStorage,
+        private readonly MonthLockService $lockService,
+        private readonly MonthLockRepository $lockRepository,
     ) {
     }
 
@@ -74,6 +89,8 @@ class TripController extends AbstractController
             'can_delete' => $this->canDeleteTripsOf($user),
             'dawarich_configured' => $this->configuration->isDawarichConfigured($user),
             'open_suggestions' => $this->suggestionRepository->countOpen($user),
+            'locks' => $this->lockRepository->findByUserAndYear($user, $year),
+            'edit_locked' => $this->isGranted('edit_locked_mileage'),
         ]);
     }
 
@@ -117,7 +134,8 @@ class TripController extends AbstractController
             ->setDestination($original->getDestination())
             ->setDistanceKm($original->getDistanceKm())
             ->setRoundTrip($original->isRoundTrip())
-            ->setProject($original->getProject());
+            ->setProject($original->getProject())
+            ->setAssignedVehicle($original->getAssignedVehicle());
 
         return $this->handleForm($request, $trip, 'trip.create');
     }
@@ -133,6 +151,14 @@ class TripController extends AbstractController
         }
 
         $redirect = $this->listRoute($trip);
+        if (!$this->mayChangeLocked($trip)) {
+            $this->flashError($this->translator->trans('logbook.error.locked'));
+
+            return $this->redirectToRoute('mileage_trips', $redirect);
+        }
+        foreach ($this->attachmentRepository->findByTrip($trip) as $attachment) {
+            $this->attachmentStorage->delete($attachment);
+        }
         $this->tripRepository->remove($trip);
         $this->flashSuccess('action.delete.success');
 
@@ -251,7 +277,20 @@ class TripController extends AbstractController
         $owner = $trip->getUser();
         $dawarich = $this->configuration->isDawarichConfigured($owner);
 
-        $form = $this->createForm(TripForm::class, $trip, ['dawarich' => $dawarich]);
+        if ($trip->getId() !== null && !$this->mayChangeLocked($trip)) {
+            $this->flashError($this->translator->trans('logbook.error.locked'));
+
+            return $this->redirectToRoute('mileage_trips', $this->listRoute($trip));
+        }
+
+        $year = (int) ($trip->getDate() ?? new \DateTimeImmutable())->format('Y');
+        $options = [
+            'dawarich' => $dawarich,
+            'vehicles' => $this->vehicleRepository->findByUser($owner),
+            'rentals' => array_merge($this->rentalRepository->findByUserAndYear($owner, $year - 1), $this->rentalRepository->findByUserAndYear($owner, $year)),
+        ];
+
+        $form = $this->createForm(TripForm::class, $trip, $options);
         $form->handleRequest($request);
 
         $lookup = $dawarich ? $form->get('dawarich') : null;
@@ -259,12 +298,19 @@ class TripController extends AbstractController
             $this->lookupDistance($trip);
 
             // Re-create the form so the measured distance replaces the submitted value.
-            $form = $this->createForm(TripForm::class, $trip, ['dawarich' => $dawarich]);
+            $form = $this->createForm(TripForm::class, $trip, $options);
         } elseif ($form->isSubmitted() && $form->isValid()) {
-            $this->tripRepository->save($trip);
-            $this->flashSuccess('action.update.success');
+            if (!$this->mayChangeLocked($trip)) {
+                $form->get('date')->addError(new FormError($this->translator->trans('logbook.error.locked')));
+            } else {
+                // Take over tax category and plate when a concrete vehicle was picked.
+                $trip->setAssignedVehicle($trip->getAssignedVehicle());
+                $this->tripService->prepare($trip);
+                $this->tripRepository->save($trip);
+                $this->flashSuccess('action.update.success');
 
-            return $this->redirectToRoute('mileage_trips', $this->listRoute($trip));
+                return $this->redirectToRoute('mileage_trips', $this->listRoute($trip));
+            }
         }
 
         return $this->render('@Mileage/trip/edit.html.twig', [
@@ -274,7 +320,15 @@ class TripController extends AbstractController
             'form' => $form->createView(),
             'target_user' => $owner,
             'dawarich_configured' => $dawarich,
+            'attachments' => $trip->getId() !== null ? $this->attachmentRepository->findByTrip($trip) : [],
+            'can_edit' => $this->canEditTripsOf($owner),
+            'can_delete' => $this->canDeleteTripsOf($owner),
         ]);
+    }
+
+    private function mayChangeLocked(Trip $trip): bool
+    {
+        return !$this->lockService->isTripLocked($trip) || $this->isGranted('edit_locked_mileage');
     }
 
     private function lookupDistance(Trip $trip): void
@@ -319,17 +373,9 @@ class TripController extends AbstractController
 
     private function prefill(Request $request, User $user): Trip
     {
-        $trip = (new Trip())
-            ->setUser($user)
-            ->setDate(new \DateTimeImmutable('today'))
-            ->setVehicle($this->configuration->getDefaultVehicle($user))
-            ->setLicensePlate($this->configuration->getLicensePlate($user))
-            ->setStartLocation($this->configuration->getHomeAddress($user));
-
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->query->get('date'));
-        if ($date !== false) {
-            $trip->setDate($date);
-        }
+        $trip = $this->tripService->createTrip($user, $date !== false ? $date : new \DateTimeImmutable('today'))
+            ->setStartLocation($this->configuration->getHomeAddress($user));
 
         $purpose = TripPurpose::tryFrom((string) $request->query->get('purpose'));
         if ($purpose !== null) {

@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'trips'} %}
     <h2>{{ title|trans }} — {{ target_user.displayName }}</h2>
     <p>
         <a href="{{ path('mileage_trips', {year: trip.date ? trip.date|date('Y') : 'now'|date('Y'), month: trip.date ? trip.date|date('n') : 'now'|date('n'), user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
@@ -27,9 +28,15 @@
                         {{ form_errors(form.purpose) }}
                         {% do form.purpose.setRendered() %}
                     </div>
+                    {% if form.assignedVehicle.vars.choices|length > 0 %}{{ form_row(form.assignedVehicle) }}{% else %}{% do form.assignedVehicle.setRendered() %}{% endif %}
                     <div class="row">
                         <div class="col-sm-7">{{ form_row(form.vehicle) }}</div>
                         <div class="col-sm-5">{{ form_row(form.licensePlate) }}</div>
+                    </div>
+                    {% if form.rental.vars.choices|length > 0 %}{{ form_row(form.rental) }}{% else %}{% do form.rental.setRendered() %}{% endif %}
+                    <div class="row">
+                        <div class="col-sm-6">{{ form_row(form.odometerStart) }}</div>
+                        <div class="col-sm-6">{{ form_row(form.odometerEnd) }}</div>
                     </div>
                     {{ form_row(form.startLocation) }}
                     {{ form_row(form.destination) }}
@@ -65,9 +72,17 @@
                 </div>
             </div>
             {{ form_widget(form.save) }}
+            {% if trip.id %}
+                <a href="{{ path('mileage_history', {user: target_user.id, trip: trip.id}) }}" class="btn btn-link"><i class="fas fa-clock-rotate-left me-1"></i>{{ 'logbook.history'|trans }}</a>
+            {% endif %}
             {{ form_end(form) }}
         </div>
     </div>
+    {% if trip.id %}
+        <div style="max-width: 48rem">
+            {% include '@Mileage/_attachments.html.twig' with {upload_url: path('mileage_attachment_trip', {id: trip.id})} %}
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}

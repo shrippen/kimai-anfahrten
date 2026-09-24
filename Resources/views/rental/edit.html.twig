@@ -1,0 +1,5 @@
+{% extends '@Mileage/_simple_form.html.twig' %}
+{% set nav_active = 'rentals' %}
+{% set title = rental.id ? 'rental.edit' : 'rental.create' %}
+{% set back_url = rental.id ? path('mileage_rental_show', {id: rental.id}) : path('mileage_rentals', {user: target_user.id}) %}
+{% set back_label = 'rental.list' %}

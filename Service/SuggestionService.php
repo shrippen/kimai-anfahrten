@@ -33,6 +33,7 @@ class SuggestionService
         private readonly TripSuggestionRepository $suggestionRepository,
         private readonly TripRepository $tripRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly TripService $tripService,
     ) {
     }
 
@@ -154,14 +155,17 @@ class SuggestionService
             $distance = $commuteKm;
         }
 
-        $trip = (new Trip())
-            ->setUser($user)
-            ->setDate($suggestion->getDate())
+        $trip = $this->tripService->createTrip($user, $suggestion->getDate());
+        if ($trip->getAssignedVehicle()?->getType() !== $vehicle) {
+            // The user picked another kind of vehicle than the default one.
+            $trip->setAssignedVehicle(null);
+            $trip->setVehicle($vehicle);
+        }
+
+        $trip
             ->setDepartureAt($suggestion->getStartAt())
             ->setArrivalAt($suggestion->getEndAt())
             ->setPurpose($purpose)
-            ->setVehicle($vehicle)
-            ->setLicensePlate($this->configuration->getLicensePlate($user))
             ->setStartLocation($suggestion->getStartLabel())
             ->setDestination($suggestion->getEndLabel())
             ->setDistanceKm($distance)
@@ -170,6 +174,7 @@ class SuggestionService
             ->setProject($suggestion->getProject())
             ->setTimesheet($suggestion->getTimesheet());
 
+        $this->tripService->prepare($trip);
         $this->tripRepository->save($trip, false);
         $suggestion->setStatus(SuggestionStatus::ACCEPTED)->setTrip($trip);
         $this->entityManager->flush();

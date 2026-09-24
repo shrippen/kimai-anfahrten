@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'suggestions'} %}
     <h2>{{ 'suggestion.list'|trans }} — {{ target_user.displayName }}</h2>
     <p class="text-muted">{{ 'suggestion.help'|trans }}</p>
     <p class="d-flex flex-wrap gap-1">

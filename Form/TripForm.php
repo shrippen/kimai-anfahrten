@@ -4,13 +4,17 @@ namespace KimaiPlugin\MileageBundle\Form;
 
 use App\Form\Type\DatePickerType;
 use App\Form\Type\ProjectType;
+use KimaiPlugin\MileageBundle\Entity\Rental;
 use KimaiPlugin\MileageBundle\Entity\Trip;
+use KimaiPlugin\MileageBundle\Entity\Vehicle;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -40,6 +44,34 @@ class TripForm extends AbstractType
                 'label' => 'trip.vehicle',
                 'help' => 'trip.vehicle_help',
                 'choice_label' => fn (VehicleType $vehicle) => $vehicle->label(),
+            ])
+            ->add('assignedVehicle', EntityType::class, [
+                'class' => Vehicle::class,
+                'label' => 'vehicle.assigned',
+                'help' => 'vehicle.assigned_help',
+                'required' => false,
+                'choices' => $options['vehicles'],
+                'choice_label' => fn (Vehicle $vehicle) => $vehicle->getLabel(),
+                'placeholder' => '',
+            ])
+            ->add('rental', EntityType::class, [
+                'class' => Rental::class,
+                'label' => 'rental.label',
+                'help' => 'rental.trip_help',
+                'required' => false,
+                'choices' => $options['rentals'],
+                'choice_label' => fn (Rental $rental) => $rental->getLabel(),
+                'placeholder' => '',
+            ])
+            ->add('odometerStart', IntegerType::class, [
+                'label' => 'odometer.start',
+                'required' => false,
+                'attr' => ['min' => 0],
+            ])
+            ->add('odometerEnd', IntegerType::class, [
+                'label' => 'odometer.end',
+                'required' => false,
+                'attr' => ['min' => 0],
             ])
             ->add('licensePlate', TextType::class, [
                 'label' => 'trip.license_plate',
@@ -119,7 +151,11 @@ class TripForm extends AbstractType
             'translation_domain' => 'messages',
             'choice_translation_domain' => 'messages',
             'dawarich' => false,
+            'vehicles' => [],
+            'rentals' => [],
         ]);
         $resolver->setAllowedTypes('dawarich', 'bool');
+        $resolver->setAllowedTypes('vehicles', 'array');
+        $resolver->setAllowedTypes('rentals', 'array');
     }
 }

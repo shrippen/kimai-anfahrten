@@ -4,6 +4,7 @@
 {% import _self as m %}
 
 {% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'tax'} %}
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
         <h2 class="mb-0 me-auto">{{ 'menu.mileage_tax'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
         <a href="{{ path('mileage_tax_report', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>

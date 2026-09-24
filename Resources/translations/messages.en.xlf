@@ -634,6 +634,394 @@
         <source>place.save_end</source>
         <target>Save destination as place</target>
       </trans-unit>
+      <trans-unit id="m158" resname="trip.label">
+        <source>trip.label</source>
+        <target>Trip</target>
+      </trans-unit>
+      <trans-unit id="m159" resname="suggestion.open_hint">
+        <source>suggestion.open_hint</source>
+        <target>%count% detected trips are waiting for your confirmation.</target>
+      </trans-unit>
+      <trans-unit id="m160" resname="vehicle.list">
+        <source>vehicle.list</source>
+        <target>Vehicles</target>
+      </trans-unit>
+      <trans-unit id="m161" resname="vehicle.help">
+        <source>vehicle.help</source>
+        <target>Vehicles for the logbook: own car, company car, long-term rentals. Single rentals are better recorded as rental.</target>
+      </trans-unit>
+      <trans-unit id="m162" resname="vehicle.create">
+        <source>vehicle.create</source>
+        <target>Add vehicle</target>
+      </trans-unit>
+      <trans-unit id="m163" resname="vehicle.edit">
+        <source>vehicle.edit</source>
+        <target>Edit vehicle</target>
+      </trans-unit>
+      <trans-unit id="m164" resname="vehicle.empty">
+        <source>vehicle.empty</source>
+        <target>No vehicles yet.</target>
+      </trans-unit>
+      <trans-unit id="m165" resname="vehicle.name">
+        <source>vehicle.name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="m166" resname="vehicle.holder">
+        <source>vehicle.holder</source>
+        <target>Registered owner</target>
+      </trans-unit>
+      <trans-unit id="m167" resname="vehicle.valid_from">
+        <source>vehicle.valid_from</source>
+        <target>In use from</target>
+      </trans-unit>
+      <trans-unit id="m168" resname="vehicle.valid_to">
+        <source>vehicle.valid_to</source>
+        <target>In use until</target>
+      </trans-unit>
+      <trans-unit id="m169" resname="vehicle.initial_odometer">
+        <source>vehicle.initial_odometer</source>
+        <target>Odometer when added</target>
+      </trans-unit>
+      <trans-unit id="m170" resname="vehicle.business_asset">
+        <source>vehicle.business_asset</source>
+        <target>Business asset</target>
+      </trans-unit>
+      <trans-unit id="m171" resname="vehicle.business_asset_help">
+        <source>vehicle.business_asset_help</source>
+        <target>Self-employed only: the vehicle is a business asset (more than 50 % business use).</target>
+      </trans-unit>
+      <trans-unit id="m172" resname="vehicle.private_use">
+        <source>vehicle.private_use</source>
+        <target>Private use</target>
+      </trans-unit>
+      <trans-unit id="m173" resname="vehicle.private_use_help">
+        <source>vehicle.private_use_help</source>
+        <target>How private use of a business vehicle is taxed.</target>
+      </trans-unit>
+      <trans-unit id="m174" resname="vehicle.private_use.none">
+        <source>vehicle.private_use.none</source>
+        <target>None / not applicable</target>
+      </trans-unit>
+      <trans-unit id="m175" resname="vehicle.private_use.one_percent">
+        <source>vehicle.private_use.one_percent</source>
+        <target>1 % rule</target>
+      </trans-unit>
+      <trans-unit id="m176" resname="vehicle.private_use.logbook">
+        <source>vehicle.private_use.logbook</source>
+        <target>Logbook method</target>
+      </trans-unit>
+      <trans-unit id="m177" resname="vehicle.list_price">
+        <source>vehicle.list_price</source>
+        <target>Gross list price (€)</target>
+      </trans-unit>
+      <trans-unit id="m178" resname="vehicle.list_price_help">
+        <source>vehicle.list_price_help</source>
+        <target>Domestic list price incl. extras and VAT, for the 1 % rule.</target>
+      </trans-unit>
+      <trans-unit id="m179" resname="vehicle.list_price_factor">
+        <source>vehicle.list_price_factor</source>
+        <target>Drive (assessment base)</target>
+      </trans-unit>
+      <trans-unit id="m180" resname="vehicle.factor.full">
+        <source>vehicle.factor.full</source>
+        <target>Combustion (100 %)</target>
+      </trans-unit>
+      <trans-unit id="m181" resname="vehicle.factor.hybrid">
+        <source>vehicle.factor.hybrid</source>
+        <target>Plug-in hybrid (50 %)</target>
+      </trans-unit>
+      <trans-unit id="m182" resname="vehicle.factor.electric">
+        <source>vehicle.factor.electric</source>
+        <target>Electric (25 %)</target>
+      </trans-unit>
+      <trans-unit id="m183" resname="vehicle.active">
+        <source>vehicle.active</source>
+        <target>Active</target>
+      </trans-unit>
+      <trans-unit id="m184" resname="vehicle.inactive">
+        <source>vehicle.inactive</source>
+        <target>inactive</target>
+      </trans-unit>
+      <trans-unit id="m185" resname="vehicle.assigned">
+        <source>vehicle.assigned</source>
+        <target>Vehicle (logbook)</target>
+      </trans-unit>
+      <trans-unit id="m186" resname="vehicle.assigned_help">
+        <source>vehicle.assigned_help</source>
+        <target>Takes over vehicle type and license plate.</target>
+      </trans-unit>
+      <trans-unit id="m187" resname="vehicle.error.period">
+        <source>vehicle.error.period</source>
+        <target>The end must be after the start.</target>
+      </trans-unit>
+      <trans-unit id="m188" resname="rental.list">
+        <source>rental.list</source>
+        <target>Rentals</target>
+      </trans-unit>
+      <trans-unit id="m189" resname="rental.label">
+        <source>rental.label</source>
+        <target>Rental</target>
+      </trans-unit>
+      <trans-unit id="m190" resname="rental.help">
+        <source>rental.help</source>
+        <target>A rental bundles rental and fuel costs. All rental-car trips in the period are linked and share the costs by kilometres.</target>
+      </trans-unit>
+      <trans-unit id="m191" resname="rental.create">
+        <source>rental.create</source>
+        <target>Add rental</target>
+      </trans-unit>
+      <trans-unit id="m192" resname="rental.edit">
+        <source>rental.edit</source>
+        <target>Edit rental</target>
+      </trans-unit>
+      <trans-unit id="m193" resname="rental.empty">
+        <source>rental.empty</source>
+        <target>No rentals this year.</target>
+      </trans-unit>
+      <trans-unit id="m194" resname="rental.provider">
+        <source>rental.provider</source>
+        <target>Rental company</target>
+      </trans-unit>
+      <trans-unit id="m195" resname="rental.start">
+        <source>rental.start</source>
+        <target>Pick-up</target>
+      </trans-unit>
+      <trans-unit id="m196" resname="rental.end">
+        <source>rental.end</source>
+        <target>Return</target>
+      </trans-unit>
+      <trans-unit id="m197" resname="rental.costs">
+        <source>rental.costs</source>
+        <target>Rental costs (€)</target>
+      </trans-unit>
+      <trans-unit id="m198" resname="rental.costs_help">
+        <source>rental.costs_help</source>
+        <target>Rent incl. insurance and fees.</target>
+      </trans-unit>
+      <trans-unit id="m199" resname="rental.fuel_costs">
+        <source>rental.fuel_costs</source>
+        <target>Fuel / charging costs (€)</target>
+      </trans-unit>
+      <trans-unit id="m200" resname="rental.total">
+        <source>rental.total</source>
+        <target>Total costs</target>
+      </trans-unit>
+      <trans-unit id="m201" resname="rental.share">
+        <source>rental.share</source>
+        <target>Cost share</target>
+      </trans-unit>
+      <trans-unit id="m202" resname="rental.business_share">
+        <source>rental.business_share</source>
+        <target>Thereof business trips (deductible)</target>
+      </trans-unit>
+      <trans-unit id="m203" resname="rental.no_trips">
+        <source>rental.no_trips</source>
+        <target>No rental-car trips in this period yet.</target>
+      </trans-unit>
+      <trans-unit id="m204" resname="rental.linked">
+        <source>rental.linked</source>
+        <target>Saved — %count% trips linked.</target>
+      </trans-unit>
+      <trans-unit id="m205" resname="rental.trip_help">
+        <source>rental.trip_help</source>
+        <target>Linked automatically by date for rental-car trips. The trip's costs are then extras only (tolls, parking).</target>
+      </trans-unit>
+      <trans-unit id="m206" resname="odometer.start">
+        <source>odometer.start</source>
+        <target>Odometer start</target>
+      </trans-unit>
+      <trans-unit id="m207" resname="odometer.end">
+        <source>odometer.end</source>
+        <target>Odometer end</target>
+      </trans-unit>
+      <trans-unit id="m208" resname="odometer.error.order">
+        <source>odometer.error.order</source>
+        <target>The end reading must be greater than the start reading.</target>
+      </trans-unit>
+      <trans-unit id="m209" resname="attachment.list">
+        <source>attachment.list</source>
+        <target>Receipts</target>
+      </trans-unit>
+      <trans-unit id="m210" resname="attachment.empty">
+        <source>attachment.empty</source>
+        <target>No receipts.</target>
+      </trans-unit>
+      <trans-unit id="m211" resname="attachment.upload">
+        <source>attachment.upload</source>
+        <target>Upload</target>
+      </trans-unit>
+      <trans-unit id="m212" resname="attachment.help">
+        <source>attachment.help</source>
+        <target>PDF or photo, at most 10 MB.</target>
+      </trans-unit>
+      <trans-unit id="m213" resname="attachment.error.upload">
+        <source>attachment.error.upload</source>
+        <target>The upload failed.</target>
+      </trans-unit>
+      <trans-unit id="m214" resname="attachment.error.size">
+        <source>attachment.error.size</source>
+        <target>The file is too large (max. %max% MB).</target>
+      </trans-unit>
+      <trans-unit id="m215" resname="attachment.error.type">
+        <source>attachment.error.type</source>
+        <target>Only PDF and image files are allowed.</target>
+      </trans-unit>
+      <trans-unit id="m216" resname="logbook.title">
+        <source>logbook.title</source>
+        <target>Logbook</target>
+      </trans-unit>
+      <trans-unit id="m217" resname="logbook.print">
+        <source>logbook.print</source>
+        <target>Print / PDF</target>
+      </trans-unit>
+      <trans-unit id="m218" resname="logbook.reason">
+        <source>logbook.reason</source>
+        <target>Purpose of trip</target>
+      </trans-unit>
+      <trans-unit id="m219" resname="logbook.partner">
+        <source>logbook.partner</source>
+        <target>Business partner</target>
+      </trans-unit>
+      <trans-unit id="m220" resname="logbook.empty">
+        <source>logbook.empty</source>
+        <target>No trips with this vehicle this year.</target>
+      </trans-unit>
+      <trans-unit id="m221" resname="logbook.gaps">
+        <source>logbook.gaps</source>
+        <target>%count% gaps or overlaps in the odometer readings — tax offices reject incomplete logbooks.</target>
+      </trans-unit>
+      <trans-unit id="m222" resname="logbook.km.business">
+        <source>logbook.km.business</source>
+        <target>Business</target>
+      </trans-unit>
+      <trans-unit id="m223" resname="logbook.km.commute">
+        <source>logbook.km.commute</source>
+        <target>Commute</target>
+      </trans-unit>
+      <trans-unit id="m224" resname="logbook.km.private">
+        <source>logbook.km.private</source>
+        <target>Private</target>
+      </trans-unit>
+      <trans-unit id="m225" resname="logbook.km.unrecorded">
+        <source>logbook.km.unrecorded</source>
+        <target>Unrecorded (gaps)</target>
+      </trans-unit>
+      <trans-unit id="m226" resname="logbook.warning.odometer_missing">
+        <source>logbook.warning.odometer_missing</source>
+        <target>Odometer missing</target>
+      </trans-unit>
+      <trans-unit id="m227" resname="logbook.warning.odometer_gap">
+        <source>logbook.warning.odometer_gap</source>
+        <target>Gap to previous odometer</target>
+      </trans-unit>
+      <trans-unit id="m228" resname="logbook.warning.odometer_overlap">
+        <source>logbook.warning.odometer_overlap</source>
+        <target>Overlaps previous trip</target>
+      </trans-unit>
+      <trans-unit id="m229" resname="logbook.warning.distance_mismatch">
+        <source>logbook.warning.distance_mismatch</source>
+        <target>Odometer does not match distance</target>
+      </trans-unit>
+      <trans-unit id="m230" resname="logbook.warning.purpose_missing">
+        <source>logbook.warning.purpose_missing</source>
+        <target>Purpose missing</target>
+      </trans-unit>
+      <trans-unit id="m231" resname="logbook.warning.destination_missing">
+        <source>logbook.warning.destination_missing</source>
+        <target>Destination missing</target>
+      </trans-unit>
+      <trans-unit id="m232" resname="logbook.months">
+        <source>logbook.months</source>
+        <target>Month closing</target>
+      </trans-unit>
+      <trans-unit id="m233" resname="logbook.months_help">
+        <source>logbook.months_help</source>
+        <target>Closed months cannot be changed any more (only with a special permission, and every change is logged). This keeps the logbook contemporaneous and tamper-evident.</target>
+      </trans-unit>
+      <trans-unit id="m234" resname="logbook.month">
+        <source>logbook.month</source>
+        <target>Month</target>
+      </trans-unit>
+      <trans-unit id="m235" resname="logbook.status">
+        <source>logbook.status</source>
+        <target>Status</target>
+      </trans-unit>
+      <trans-unit id="m236" resname="logbook.month_locked">
+        <source>logbook.month_locked</source>
+        <target>Closed</target>
+      </trans-unit>
+      <trans-unit id="m237" resname="logbook.month_open">
+        <source>logbook.month_open</source>
+        <target>Open</target>
+      </trans-unit>
+      <trans-unit id="m238" resname="logbook.month_locked_hint">
+        <source>logbook.month_locked_hint</source>
+        <target>This month is closed.</target>
+      </trans-unit>
+      <trans-unit id="m239" resname="logbook.lock">
+        <source>logbook.lock</source>
+        <target>Close</target>
+      </trans-unit>
+      <trans-unit id="m240" resname="logbook.unlock">
+        <source>logbook.unlock</source>
+        <target>Reopen</target>
+      </trans-unit>
+      <trans-unit id="m241" resname="logbook.lock_confirm">
+        <source>logbook.lock_confirm</source>
+        <target>Close this month? No more changes are possible afterwards.</target>
+      </trans-unit>
+      <trans-unit id="m242" resname="logbook.locked">
+        <source>logbook.locked</source>
+        <target>Month %month% closed.</target>
+      </trans-unit>
+      <trans-unit id="m243" resname="logbook.unlocked">
+        <source>logbook.unlocked</source>
+        <target>Month %month% reopened.</target>
+      </trans-unit>
+      <trans-unit id="m244" resname="logbook.error.locked">
+        <source>logbook.error.locked</source>
+        <target>This month is closed and cannot be changed.</target>
+      </trans-unit>
+      <trans-unit id="m245" resname="logbook.history">
+        <source>logbook.history</source>
+        <target>Change history</target>
+      </trans-unit>
+      <trans-unit id="m246" resname="logbook.history_help">
+        <source>logbook.history_help</source>
+        <target>Every creation, change and deletion of a trip is logged.</target>
+      </trans-unit>
+      <trans-unit id="m247" resname="logbook.history_empty">
+        <source>logbook.history_empty</source>
+        <target>No entries.</target>
+      </trans-unit>
+      <trans-unit id="m248" resname="logbook.changed_at">
+        <source>logbook.changed_at</source>
+        <target>Time</target>
+      </trans-unit>
+      <trans-unit id="m249" resname="logbook.changed_by">
+        <source>logbook.changed_by</source>
+        <target>By</target>
+      </trans-unit>
+      <trans-unit id="m250" resname="logbook.action">
+        <source>logbook.action</source>
+        <target>Action</target>
+      </trans-unit>
+      <trans-unit id="m251" resname="logbook.changes">
+        <source>logbook.changes</source>
+        <target>Changes</target>
+      </trans-unit>
+      <trans-unit id="m252" resname="logbook.action.create">
+        <source>logbook.action.create</source>
+        <target>Created</target>
+      </trans-unit>
+      <trans-unit id="m253" resname="logbook.action.update">
+        <source>logbook.action.update</source>
+        <target>Changed</target>
+      </trans-unit>
+      <trans-unit id="m254" resname="logbook.action.delete">
+        <source>logbook.action.delete</source>
+        <target>Deleted</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

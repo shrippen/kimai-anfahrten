@@ -3,6 +3,7 @@
 {% set route_params = {user: target_user.id} %}
 
 {% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'trips'} %}
     {% set prev = month ? (month == 1 ? {year: year - 1, month: 12} : {year: year, month: month - 1}) : {year: year - 1} %}
     {% set next = month ? (month == 12 ? {year: year + 1, month: 1} : {year: year, month: month + 1}) : {year: year + 1} %}
 
@@ -25,11 +26,14 @@
                         <a href="{{ path('mileage_commutes', {year: year, month: month}|merge(route_params)) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>{{ 'commute.generate'|trans }}</a>
                     {% endif %}
                 {% endif %}
-                <a href="{{ path('mileage_suggestions', route_params) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-satellite-dish me-1"></i>{{ 'suggestion.list'|trans }}{% if open_suggestions > 0 %} <span class="badge bg-red text-white ms-1">{{ open_suggestions }}</span>{% endif %}</a>
-                <a href="{{ path('mileage_places', route_params) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-location-dot me-1"></i>{{ 'place.list'|trans }}</a>
                 <a href="{{ path('mileage_export', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }} ({{ year }})</a>
-                <a href="{{ path('mileage_tax_report', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-info">{{ 'menu.mileage_tax'|trans }}</a>
             </p>
+            {% if open_suggestions > 0 %}
+                <div class="alert alert-info py-2"><a href="{{ path('mileage_suggestions', route_params) }}">{{ 'suggestion.open_hint'|trans({'%count%': open_suggestions}) }}</a></div>
+            {% endif %}
+            {% if month and locks[month] is defined %}
+                <div class="alert alert-secondary py-2"><i class="fas fa-lock me-1"></i>{{ 'logbook.month_locked_hint'|trans }}</div>
+            {% endif %}
             {% if not dawarich_configured %}
                 <div class="alert alert-info py-2">{{ 'dawarich.not_configured_hint'|trans }}</div>
             {% else %}
@@ -68,6 +72,8 @@
                 </thead>
                 <tbody>
                     {% for t in trips %}
+                        {% set locked = locks[t.date|date('n')] is defined and t.date|date('Y') == year ~ '' %}
+                        {% set changeable = not locked or edit_locked %}
                         <tr>
                             <td class="text-nowrap">
                                 {{ t.date|date('Y-m-d') }}
@@ -93,11 +99,12 @@
                             <td class="text-end text-nowrap">{{ t.costs is not null ? t.costs|number_format(2, ',', '.') ~ ' €' : '' }}</td>
                             <td>{{ t.project ? t.project.name : '' }}</td>
                             <td class="text-end text-nowrap">
-                                {% if can_edit %}
+                                {% if locked %}<i class="fas fa-lock text-muted me-1" title="{{ 'logbook.month_locked'|trans }}"></i>{% endif %}
+                                {% if can_edit and changeable %}
                                     <a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_trip_edit', {id: t.id}) }}" title="{{ 'action.edit'|trans }}"><i class="fas fa-pen"></i></a>
                                     <a class="btn btn-sm btn-outline-secondary" href="{{ path('mileage_trip_duplicate', {id: t.id}) }}" title="{{ 'action.duplicate'|trans }}"><i class="fas fa-copy"></i></a>
                                 {% endif %}
-                                {% if can_delete %}
+                                {% if can_delete and changeable %}
                                     <form class="d-inline" method="post" action="{{ path('mileage_trip_delete', {id: t.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
                                         <input type="hidden" name="_token" value="{{ csrf_token('mileage_trip_delete' ~ t.id) }}">
                                         <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>

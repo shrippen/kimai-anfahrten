@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'months'} %}
+    <h2>{{ 'logbook.months'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
+    <p class="text-muted">{{ 'logbook.months_help'|trans }}</p>
+    <p class="d-flex gap-1">
+        <a href="{{ path('mileage_months', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+        <a href="{{ path('mileage_months', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+    </p>
+    <div class="card" style="max-width: 48rem">
+        <div class="card-body p-0">
+            <table class="table table-vcenter mb-0">
+                <thead><tr><th>{{ 'logbook.month'|trans }}</th><th class="text-end">{{ 'tax.trips'|trans }}</th><th>{{ 'logbook.status'|trans }}</th><th></th></tr></thead>
+                <tbody>
+                    {% for m in 1..12 %}
+                        {% set lock = locks[m] ?? null %}
+                        <tr>
+                            <td><a href="{{ path('mileage_trips', {year: year, month: m, user: target_user.id}) }}">{{ '%02d/%d'|format(m, year) }}</a></td>
+                            <td class="text-end">{{ counts[m] }}</td>
+                            <td>
+                                {% if lock %}
+                                    <i class="fas fa-lock me-1"></i>{{ 'logbook.month_locked'|trans }}
+                                    <div class="small text-muted">{{ lock.lockedAt|date('Y-m-d H:i') }}{% if lock.lockedBy %} · {{ lock.lockedBy.displayName }}{% endif %}</div>
+                                {% else %}
+                                    <span class="text-muted"><i class="fas fa-lock-open me-1"></i>{{ 'logbook.month_open'|trans }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="post" action="{{ path(lock ? 'mileage_month_unlock' : 'mileage_month_lock', {year: year, month: m, user: target_user.id}) }}" {% if not lock %}onsubmit="return confirm('{{ 'logbook.lock_confirm'|trans|e('js') }}');"{% endif %}>
+                                    <input type="hidden" name="_token" value="{{ csrf_token('mileage_month_lock') }}">
+                                    {% if lock and can_unlock %}
+                                        <button class="btn btn-sm btn-outline-warning" type="submit">{{ 'logbook.unlock'|trans }}</button>
+                                    {% elseif not lock and can_lock %}
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">{{ 'logbook.lock'|trans }}</button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

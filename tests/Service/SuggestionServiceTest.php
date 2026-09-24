@@ -24,6 +24,7 @@ use KimaiPlugin\MileageBundle\Service\PlaceMatcher;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use KimaiPlugin\MileageBundle\Service\TimesheetMatcher;
 use KimaiPlugin\MileageBundle\Service\TripDetector;
+use KimaiPlugin\MileageBundle\Service\TripService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 
@@ -46,6 +47,7 @@ class SuggestionServiceTest extends TestCase
             $this->createMock(TripSuggestionRepository::class),
             $this->createMock(TripRepository::class),
             $this->createMock(EntityManagerInterface::class),
+            $this->createMock(TripService::class),
         );
     }
 

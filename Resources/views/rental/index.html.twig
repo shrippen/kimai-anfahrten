@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    {% include '@Mileage/_nav.html.twig' with {active: 'rentals'} %}
+    <h2>{{ 'rental.list'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
+    <p class="text-muted">{{ 'rental.help'|trans }}</p>
+    <p class="d-flex gap-1">
+        <a href="{{ path('mileage_rentals', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+        <a href="{{ path('mileage_rentals', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+        {% if can_edit %}<a href="{{ path('mileage_rental_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'rental.create'|trans }}</a>{% endif %}
+    </p>
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-vcenter mb-0">
+                <thead><tr><th>{{ 'rental.provider'|trans }}</th><th>{{ 'rental.start'|trans }} – {{ 'rental.end'|trans }}</th><th>{{ 'trip.license_plate'|trans }}</th><th class="text-end">{{ 'rental.total'|trans }}</th><th></th></tr></thead>
+                <tbody>
+                    {% for r in rentals %}
+                        <tr>
+                            <td><a href="{{ path('mileage_rental_show', {id: r.id}) }}">{{ r.provider }}</a></td>
+                            <td>{{ r.startDate|date('Y-m-d') }} – {{ r.endDate|date('Y-m-d') }}</td>
+                            <td>{{ r.licensePlate }}</td>
+                            <td class="text-end">{{ r.totalCosts|number_format(2, ',', '.') }} €</td>
+                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_rental_show', {id: r.id}) }}"><i class="fas fa-eye"></i></a></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="5" class="text-muted">{{ 'rental.empty'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
