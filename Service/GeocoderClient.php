@@ -11,8 +11,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class GeocoderClient
 {
+    /** Public Nominatim/Photon servers allow one request per second. */
+    private const MIN_INTERVAL_MICROSECONDS = 1_000_000;
+
     /** @var array<string, ?string> */
     private array $cache = [];
+    private float $lastRequest = 0.0;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -37,6 +41,12 @@ class GeocoderClient
         if (\array_key_exists($key, $this->cache)) {
             return $this->cache[$key];
         }
+
+        $wait = (int) (self::MIN_INTERVAL_MICROSECONDS - (microtime(true) - $this->lastRequest) * 1_000_000);
+        if ($wait > 0) {
+            usleep($wait);
+        }
+        $this->lastRequest = microtime(true);
 
         try {
             $response = $this->httpClient->request('GET', $baseUrl . '/reverse', [
