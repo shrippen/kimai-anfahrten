@@ -59,3 +59,78 @@ jobs:
 
       - name: PHP-CS-Fixer
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  e2e:
+    name: Kimai end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KIMAI_VERSION: '2.67.0'
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: kimai
+          MARIADB_USER: kimai
+          MARIADB_PASSWORD: kimai
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, gd, zip, xsl, pdo_mysql, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Checkout Kimai
+        run: git clone --depth 1 --branch "$KIMAI_VERSION" https://github.com/kimai/kimai.git kimai
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-kimai-${{ env.KIMAI_VERSION }}
+
+      - name: Install Kimai
+        working-directory: kimai
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+          cat > .env.local <<'ENV'
+          APP_ENV=prod
+          APP_SECRET=e2e-secret-not-for-production
+          DATABASE_URL=mysql://kimai:kimai@127.0.0.1:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB
+          MAILER_URL=null://null
+          MAILER_FROM=kimai@example.com
+          ENV
+
+      - name: HolidayBundle (optional absence check)
+        run: git clone --depth 1 https://github.com/shrippen/kimai-holiday-bundle.git kimai/var/plugins/HolidayBundle || echo "HolidayBundle not available, skipping"
+
+      - name: Install Playwright
+        working-directory: plugin
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: plugin/tests/e2e/run.sh kimai
+
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: plugin/tests/e2e/screenshots/
+          if-no-files-found: ignore

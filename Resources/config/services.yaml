@@ -15,6 +15,7 @@ services:
             - '../../tests/'
             - '../../vendor/'
             - '../../tools/'
+            - '../../node_modules/'
             - '../../.kimai/'
             - '../../.php-cs-fixer.dist.php'
 

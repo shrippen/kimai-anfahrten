@@ -26,3 +26,5 @@ composer.lock
 composer.local.json
 /.kimai
 .phpunit.cache/
+/tests/e2e/screenshots/
+/node_modules/
