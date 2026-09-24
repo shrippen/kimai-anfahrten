@@ -25,6 +25,8 @@
                         <a href="{{ path('mileage_commutes', {year: year, month: month}|merge(route_params)) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>{{ 'commute.generate'|trans }}</a>
                     {% endif %}
                 {% endif %}
+                <a href="{{ path('mileage_suggestions', route_params) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-satellite-dish me-1"></i>{{ 'suggestion.list'|trans }}{% if open_suggestions > 0 %} <span class="badge bg-red text-white ms-1">{{ open_suggestions }}</span>{% endif %}</a>
+                <a href="{{ path('mileage_places', route_params) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-location-dot me-1"></i>{{ 'place.list'|trans }}</a>
                 <a href="{{ path('mileage_export', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }} ({{ year }})</a>
                 <a href="{{ path('mileage_tax_report', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-info">{{ 'menu.mileage_tax'|trans }}</a>
             </p>

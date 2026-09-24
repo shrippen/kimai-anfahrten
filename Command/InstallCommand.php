@@ -15,6 +15,11 @@ class InstallCommand extends AbstractBundleInstallerCommand
         return 'mileage';
     }
 
+    protected function hasAssets(): bool
+    {
+        return true;
+    }
+
     protected function getMigrationConfigFilename(): ?string
     {
         return __DIR__ . '/../Migrations/doctrine_migrations.yaml';

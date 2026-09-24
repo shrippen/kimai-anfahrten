@@ -13,6 +13,7 @@ use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
 use KimaiPlugin\MileageBundle\Form\TripForm;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
+use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 use KimaiPlugin\MileageBundle\Service\CommuteGenerator;
 use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
@@ -42,6 +43,7 @@ class TripController extends AbstractController
         private readonly CommuteGenerator $commuteGenerator,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly TripSuggestionRepository $suggestionRepository,
     ) {
     }
 
@@ -71,6 +73,7 @@ class TripController extends AbstractController
             'can_edit' => $this->canEditTripsOf($user),
             'can_delete' => $this->canDeleteTripsOf($user),
             'dawarich_configured' => $this->configuration->isDawarichConfigured($user),
+            'open_suggestions' => $this->suggestionRepository->countOpen($user),
         ]);
     }
 
@@ -193,6 +196,41 @@ class TripController extends AbstractController
         }
 
         return $this->redirectToRoute('mileage_trips', ['user' => $user->getId()]);
+    }
+
+    /**
+     * GPS track of a trip's time window for the map preview (not stored anywhere).
+     */
+    #[Route(path: '/trip/{id}/track', name: 'mileage_trip_track', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function track(Trip $trip): Response
+    {
+        $user = $trip->getUser();
+        if ($user !== $this->getUser() && !$this->isGranted('view_other_mileage') && !$this->isGranted('edit_other_mileage')) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $from = $trip->getDepartureAt();
+        $to = $trip->getArrivalAt();
+        if ($user === null || $from === null || $to === null || !$this->configuration->isDawarichConfigured($user)) {
+            return $this->json(['points' => []]);
+        }
+
+        try {
+            $points = $this->dawarichClient->fetchPoints($user, $from, $to);
+        } catch (DawarichException $e) {
+            return $this->json(['error' => $this->translator->trans($e->getMessage(), $e->getParameters())], 502);
+        }
+
+        // Thin out long tracks; the preview does not need every point.
+        $step = max(1, (int) ceil(\count($points) / 2000));
+        $coords = [];
+        foreach ($points as $i => $point) {
+            if ($i % $step === 0) {
+                $coords[] = [round($point->latitude, 6), round($point->longitude, 6)];
+            }
+        }
+
+        return $this->json(['points' => $coords]);
     }
 
     #[Route(path: '/export/{year}', name: 'mileage_export', requirements: ['year' => '\d{4}'], methods: ['GET'])]

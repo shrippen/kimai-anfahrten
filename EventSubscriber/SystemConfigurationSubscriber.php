@@ -8,6 +8,7 @@ use App\Form\Model\SystemConfiguration as SystemConfigurationModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 
 class SystemConfigurationSubscriber implements EventSubscriberInterface
@@ -44,6 +45,25 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(UrlType::class)
                         ->setOptions(['help' => 'mileage.dawarich_url_help']),
+                    (new Configuration('mileage.geocoder_url'))
+                        ->setLabel('mileage.geocoder_url')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(UrlType::class)
+                        ->setOptions(['help' => 'mileage.geocoder_url_help']),
+                    (new Configuration('mileage.map_tiles_url'))
+                        ->setLabel('mileage.map_tiles_url')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(TextType::class)
+                        ->setValue('https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+                        ->setOptions(['help' => 'mileage.map_tiles_url_help']),
+                    (new Configuration('mileage.map_attribution'))
+                        ->setLabel('mileage.map_attribution')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(TextType::class)
+                        ->setValue('© OpenStreetMap contributors'),
                     (new Configuration('mileage.dawarich_max_accuracy'))
                         ->setLabel('mileage.dawarich_max_accuracy')
                         ->setTranslationDomain('messages')
@@ -51,6 +71,28 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setType(IntegerType::class)
                         ->setValue(100)
                         ->setOptions(['help' => 'mileage.dawarich_max_accuracy_help']),
+                ])
+        );
+
+        $event->addConfiguration(
+            (new SystemConfigurationModel('mileage_detection'))
+                ->setTranslation('mileage.detection_section')
+                ->setTranslationDomain('messages')
+                ->setConfiguration([
+                    (new Configuration('mileage.detect_stop_minutes'))
+                        ->setLabel('mileage.detect_stop_minutes')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(IntegerType::class)
+                        ->setValue(5)
+                        ->setOptions(['help' => 'mileage.detect_stop_minutes_help']),
+                    (new Configuration('mileage.detect_stop_radius'))
+                        ->setLabel('mileage.detect_stop_radius')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(IntegerType::class)
+                        ->setValue(200),
+                    $rate('mileage.detect_min_km', 1.0),
                 ])
         );
     }

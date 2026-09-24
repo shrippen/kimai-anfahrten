@@ -54,6 +54,46 @@ class MileageConfiguration
         return (int) $this->float('mileage.dawarich_max_accuracy', 100);
     }
 
+    public function getGeocoderUrl(): ?string
+    {
+        $url = $this->nonEmpty($this->configuration->find('mileage.geocoder_url'));
+
+        return $url !== null ? rtrim($url, '/') : null;
+    }
+
+    /**
+     * Tile server for the map previews; an empty setting disables all maps.
+     */
+    public function getMapTilesUrl(): ?string
+    {
+        $value = $this->configuration->find('mileage.map_tiles_url');
+        if ($value === null) {
+            return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+        }
+
+        return $this->nonEmpty($value);
+    }
+
+    public function getMapAttribution(): string
+    {
+        return $this->nonEmpty($this->configuration->find('mileage.map_attribution')) ?? '© OpenStreetMap contributors';
+    }
+
+    public function getDetectStopMinutes(): int
+    {
+        return max(1, (int) $this->float('mileage.detect_stop_minutes', 5));
+    }
+
+    public function getDetectMinKm(): float
+    {
+        return max(0.1, $this->float('mileage.detect_min_km', 1.0));
+    }
+
+    public function getDetectStopRadius(): float
+    {
+        return max(20.0, $this->float('mileage.detect_stop_radius', 200));
+    }
+
     public function getDawarichUrl(User $user): ?string
     {
         $url = $this->userString($user, self::PREF_DAWARICH_URL)

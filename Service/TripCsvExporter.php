@@ -43,8 +43,8 @@ class TripCsvExporter
         foreach ($trips as $trip) {
             fputcsv($handle, [
                 $trip->getDate()?->format('Y-m-d'),
-                $trip->getDepartureAt()?->format('H:i'),
-                $trip->getArrivalAt()?->format('H:i'),
+                $this->time($trip, $trip->getDepartureAt()),
+                $this->time($trip, $trip->getArrivalAt()),
                 $this->translator->trans($trip->getPurpose()->label()),
                 $this->translator->trans($trip->getVehicle()->label()),
                 $trip->getLicensePlate(),
@@ -65,6 +65,19 @@ class TripCsvExporter
         fclose($handle);
 
         return $csv;
+    }
+
+    /**
+     * Kimai loads datetimes as UTC, the logbook shows the user's local time.
+     */
+    private function time(Trip $trip, ?\DateTimeImmutable $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        $timezone = $trip->getUser()?->getDateTimezone();
+
+        return ($timezone !== null ? $value->setTimezone($timezone) : $value)->format('H:i');
     }
 
     private function number(float $value): string

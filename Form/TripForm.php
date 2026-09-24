@@ -47,12 +47,16 @@ class TripForm extends AbstractType
             ])
             ->add('departureAt', DateTimeType::class, [
                 'label' => 'trip.departure',
+                // Kimai loads datetimes as UTC; the view uses the user's timezone.
+                'model_timezone' => 'UTC',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
             ->add('arrivalAt', DateTimeType::class, [
                 'label' => 'trip.arrival',
+                // Kimai loads datetimes as UTC; the view uses the user's timezone.
+                'model_timezone' => 'UTC',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,

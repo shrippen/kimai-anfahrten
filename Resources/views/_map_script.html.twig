@@ -1,0 +1,35 @@
+{# Leaflet ships with the plugin (bin/console kimai:bundle:mileage:install copies it to public/bundles/mileage) #}
+<link rel="stylesheet" href="{{ asset('bundles/mileage/leaflet/leaflet.css') }}">
+<script src="{{ asset('bundles/mileage/leaflet/leaflet.js') }}"></script>
+<script>
+(function () {
+    function init(el) {
+        if (el.dataset.ready || typeof L === 'undefined') { return; }
+        el.dataset.ready = '1';
+        var map = L.map(el);
+        L.tileLayer(el.dataset.tiles, {maxZoom: 19, attribution: el.dataset.attribution}).addTo(map);
+        var bounds = [];
+        JSON.parse(el.dataset.markers || '[]').forEach(function (m) {
+            L.marker([m[0], m[1]]).addTo(map).bindTooltip(m[2] || '');
+            bounds.push([m[0], m[1]]);
+        });
+        function fit() {
+            if (bounds.length) { map.fitBounds(bounds, {padding: [20, 20], maxZoom: 15}); }
+            else { map.setView([51.16, 10.45], 5); el.insertAdjacentHTML('beforeend', '<div class="position-absolute top-50 start-50 translate-middle bg-white px-2 rounded small" style="z-index:500">' + el.dataset.empty + '</div>'); }
+        }
+        if (!el.dataset.trackUrl) { fit(); return; }
+        fetch(el.dataset.trackUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.points && data.points.length > 1) {
+                    L.polyline(data.points, {color: '#206bc4', weight: 4}).addTo(map);
+                    bounds = bounds.concat(data.points);
+                }
+                fit();
+            })
+            .catch(fit);
+    }
+    function run() { document.querySelectorAll('.mileage-map').forEach(init); }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', run); } else { run(); }
+})();
+</script>

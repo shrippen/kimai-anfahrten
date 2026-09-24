@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ 'place.list'|trans }} — {{ target_user.displayName }}</h2>
+    <p class="text-muted">{{ 'place.help'|trans }}</p>
+    <p class="d-flex flex-wrap gap-1">
+        <a href="{{ path('mileage_trips', {user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
+        {% if can_edit %}
+            <a href="{{ path('mileage_place_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'place.create'|trans }}</a>
+            <form method="post" action="{{ path('mileage_place_import', {user: target_user.id}) }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('mileage_place_import') }}">
+                <button type="submit" class="btn btn-sm btn-outline-info"><i class="fas fa-download me-1"></i>{{ 'place.import'|trans }}</button>
+            </form>
+        {% endif %}
+    </p>
+
+    {% if places|length > 0 and mileage_map_enabled() %}
+        <div class="mb-3">
+            {% include '@Mileage/_map.html.twig' with {map_id: 'places-map', markers: places|map(p => [p.latitude, p.longitude, p.name])} %}
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-vcenter mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'place.name'|trans }}</th>
+                        <th>{{ 'place.type'|trans }}</th>
+                        <th>{{ 'place.address'|trans }}</th>
+                        <th class="text-end">{{ 'place.radius'|trans }}</th>
+                        <th>{{ 'place.customer'|trans }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in places %}
+                        <tr>
+                            <td>{{ p.name }}{% if p.dawarichAreaId %} <span class="badge bg-info-lt">Dawarich</span>{% endif %}</td>
+                            <td><i class="{{ p.type.icon }} me-1"></i>{{ p.type.label|trans }}</td>
+                            <td>{{ p.address }}</td>
+                            <td class="text-end">{{ p.radius }} m</td>
+                            <td>{{ p.customer ? p.customer.name : '' }}</td>
+                            <td class="text-end text-nowrap">
+                                {% if can_edit %}
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_place_edit', {id: p.id}) }}" title="{{ 'action.edit'|trans }}"><i class="fas fa-pen"></i></a>
+                                    <form class="d-inline" method="post" action="{{ path('mileage_place_delete', {id: p.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_place_delete' ~ p.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="text-muted">{{ 'place.empty'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include '@Mileage/_map_script.html.twig' %}
+{% endblock %}

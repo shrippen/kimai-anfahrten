@@ -57,7 +57,7 @@ class Trip
      * Commute: the one-way distance (einfache Entfernung) used for the Entfernungspauschale.
      * Business/private: the driven distance; doubled when {@see $roundTrip} is set.
      */
-    #[ORM\Column(name: 'distance_km', type: Types::FLOAT)]
+    #[ORM\Column(name: 'distance_km', type: Types::FLOAT, options: ['default' => 0])]
     #[Assert\PositiveOrZero]
     private float $distanceKm = 0.0;
 

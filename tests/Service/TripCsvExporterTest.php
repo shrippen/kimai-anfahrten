@@ -31,4 +31,20 @@ class TripCsvExporterTest extends TestCase
         self::assertStringContainsString('"Kunde; ""A"""', $lines[1]);
         self::assertStringContainsString(';12,50;x;25,00;3,20;', $lines[1]);
     }
+
+    public function testTimesAreShownInUserTimezone(): void
+    {
+        $user = new \App\Entity\User(1);
+        $user->setPreferenceValue('timezone', 'Europe/Berlin');
+        $utc = new \DateTimeZone('UTC');
+        $trip = (new Trip())
+            ->setUser($user)
+            ->setDate(new \DateTimeImmutable('2026-07-01'))
+            ->setDepartureAt(new \DateTimeImmutable('2026-07-01 06:15', $utc))
+            ->setArrivalAt(new \DateTimeImmutable('2026-07-01 07:00', $utc));
+
+        $csv = (new TripCsvExporter(new IdentityTranslator()))->export([$trip]);
+
+        self::assertStringContainsString('2026-07-01;08:15;09:00;', $csv);
+    }
 }

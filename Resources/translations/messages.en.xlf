@@ -426,6 +426,214 @@
         <source>dawarich.test_ok</source>
         <target>Dawarich connection OK — %count% GPS points in the last 30 days.</target>
       </trans-unit>
+      <trans-unit id="m106" resname="mileage.geocoder_url">
+        <source>mileage.geocoder_url</source>
+        <target>Geocoding server (optional)</target>
+      </trans-unit>
+      <trans-unit id="m107" resname="mileage.geocoder_url_help">
+        <source>mileage.geocoder_url_help</source>
+        <target>Nominatim or Photon compatible, e.g. https://nominatim.openstreetmap.org (mind the usage policy) or your own instance. Empty = coordinates instead of addresses.</target>
+      </trans-unit>
+      <trans-unit id="m108" resname="mileage.map_tiles_url">
+        <source>mileage.map_tiles_url</source>
+        <target>Map tiles (URL template)</target>
+      </trans-unit>
+      <trans-unit id="m109" resname="mileage.map_tiles_url_help">
+        <source>mileage.map_tiles_url_help</source>
+        <target>Leave empty to disable all maps. Default: OpenStreetMap.</target>
+      </trans-unit>
+      <trans-unit id="m110" resname="mileage.map_attribution">
+        <source>mileage.map_attribution</source>
+        <target>Map attribution</target>
+      </trans-unit>
+      <trans-unit id="m111" resname="mileage.detection_section">
+        <source>mileage.detection_section</source>
+        <target>Automatic trip detection (Dawarich)</target>
+      </trans-unit>
+      <trans-unit id="m112" resname="mileage.detect_stop_minutes">
+        <source>mileage.detect_stop_minutes</source>
+        <target>Minimum stop duration (minutes)</target>
+      </trans-unit>
+      <trans-unit id="m113" resname="mileage.detect_stop_minutes_help">
+        <source>mileage.detect_stop_minutes_help</source>
+        <target>Staying this long at one place ends a trip.</target>
+      </trans-unit>
+      <trans-unit id="m114" resname="mileage.detect_stop_radius">
+        <source>mileage.detect_stop_radius</source>
+        <target>Stop radius (m)</target>
+      </trans-unit>
+      <trans-unit id="m115" resname="mileage.detect_min_km">
+        <source>mileage.detect_min_km</source>
+        <target>Shortest detected trip (km)</target>
+      </trans-unit>
+      <trans-unit id="m116" resname="trip.map_empty">
+        <source>trip.map_empty</source>
+        <target>No GPS data for this time window</target>
+      </trans-unit>
+      <trans-unit id="m117" resname="suggestion.list">
+        <source>suggestion.list</source>
+        <target>Detected trips</target>
+      </trans-unit>
+      <trans-unit id="m118" resname="suggestion.help">
+        <source>suggestion.help</source>
+        <target>Trips found in your Dawarich history. Choose type and vehicle and accept — only then a trip is created.</target>
+      </trans-unit>
+      <trans-unit id="m119" resname="suggestion.from">
+        <source>suggestion.from</source>
+        <target>From</target>
+      </trans-unit>
+      <trans-unit id="m120" resname="suggestion.to">
+        <source>suggestion.to</source>
+        <target>To</target>
+      </trans-unit>
+      <trans-unit id="m121" resname="suggestion.detect">
+        <source>suggestion.detect</source>
+        <target>Detect trips</target>
+      </trans-unit>
+      <trans-unit id="m122" resname="suggestion.detect_help">
+        <source>suggestion.detect_help</source>
+        <target>At most 3 months at once. Trips already detected are not duplicated.</target>
+      </trans-unit>
+      <trans-unit id="m123" resname="suggestion.detected">
+        <source>suggestion.detected</source>
+        <target>%count% new trips detected.</target>
+      </trans-unit>
+      <trans-unit id="m124" resname="suggestion.error.range">
+        <source>suggestion.error.range</source>
+        <target>Invalid date range (at most 3 months).</target>
+      </trans-unit>
+      <trans-unit id="m125" resname="suggestion.open">
+        <source>suggestion.open</source>
+        <target>Open suggestions</target>
+      </trans-unit>
+      <trans-unit id="m126" resname="suggestion.empty">
+        <source>suggestion.empty</source>
+        <target>No open suggestions.</target>
+      </trans-unit>
+      <trans-unit id="m127" resname="suggestion.accept">
+        <source>suggestion.accept</source>
+        <target>Accept</target>
+      </trans-unit>
+      <trans-unit id="m128" resname="suggestion.accept_edit">
+        <source>suggestion.accept_edit</source>
+        <target>Accept and edit</target>
+      </trans-unit>
+      <trans-unit id="m129" resname="suggestion.dismiss">
+        <source>suggestion.dismiss</source>
+        <target>Dismiss</target>
+      </trans-unit>
+      <trans-unit id="m130" resname="suggestion.accept_all">
+        <source>suggestion.accept_all</source>
+        <target>Accept all business-related</target>
+      </trans-unit>
+      <trans-unit id="m131" resname="suggestion.accept_all_confirm">
+        <source>suggestion.accept_all_confirm</source>
+        <target>Accept all suggestions except private trips with the default vehicle?</target>
+      </trans-unit>
+      <trans-unit id="m132" resname="suggestion.accepted_all">
+        <source>suggestion.accepted_all</source>
+        <target>%count% trips accepted.</target>
+      </trans-unit>
+      <trans-unit id="m133" resname="suggestion.status.open">
+        <source>suggestion.status.open</source>
+        <target>Open</target>
+      </trans-unit>
+      <trans-unit id="m134" resname="suggestion.status.accepted">
+        <source>suggestion.status.accepted</source>
+        <target>Accepted</target>
+      </trans-unit>
+      <trans-unit id="m135" resname="suggestion.status.dismissed">
+        <source>suggestion.status.dismissed</source>
+        <target>Dismissed</target>
+      </trans-unit>
+      <trans-unit id="m136" resname="place.list">
+        <source>place.list</source>
+        <target>Places</target>
+      </trans-unit>
+      <trans-unit id="m137" resname="place.help">
+        <source>place.help</source>
+        <target>Named places make detected trips readable: home ↔ office is suggested as commute, customer sites as business trip.</target>
+      </trans-unit>
+      <trans-unit id="m138" resname="place.create">
+        <source>place.create</source>
+        <target>Add place</target>
+      </trans-unit>
+      <trans-unit id="m139" resname="place.edit">
+        <source>place.edit</source>
+        <target>Edit place</target>
+      </trans-unit>
+      <trans-unit id="m140" resname="place.empty">
+        <source>place.empty</source>
+        <target>No places yet.</target>
+      </trans-unit>
+      <trans-unit id="m141" resname="place.import">
+        <source>place.import</source>
+        <target>Import Dawarich areas</target>
+      </trans-unit>
+      <trans-unit id="m142" resname="place.imported">
+        <source>place.imported</source>
+        <target>%count% places imported from Dawarich.</target>
+      </trans-unit>
+      <trans-unit id="m143" resname="place.name">
+        <source>place.name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="m144" resname="place.type">
+        <source>place.type</source>
+        <target>Type</target>
+      </trans-unit>
+      <trans-unit id="m145" resname="place.type.home">
+        <source>place.type.home</source>
+        <target>Home</target>
+      </trans-unit>
+      <trans-unit id="m146" resname="place.type.work">
+        <source>place.type.work</source>
+        <target>Work / business premises</target>
+      </trans-unit>
+      <trans-unit id="m147" resname="place.type.customer">
+        <source>place.type.customer</source>
+        <target>Customer</target>
+      </trans-unit>
+      <trans-unit id="m148" resname="place.type.other">
+        <source>place.type.other</source>
+        <target>Other</target>
+      </trans-unit>
+      <trans-unit id="m149" resname="place.address">
+        <source>place.address</source>
+        <target>Address</target>
+      </trans-unit>
+      <trans-unit id="m150" resname="place.latitude">
+        <source>place.latitude</source>
+        <target>Latitude</target>
+      </trans-unit>
+      <trans-unit id="m151" resname="place.longitude">
+        <source>place.longitude</source>
+        <target>Longitude</target>
+      </trans-unit>
+      <trans-unit id="m152" resname="place.radius">
+        <source>place.radius</source>
+        <target>Radius</target>
+      </trans-unit>
+      <trans-unit id="m153" resname="place.radius_help">
+        <source>place.radius_help</source>
+        <target>Metres. A start or end point within this radius counts as this place.</target>
+      </trans-unit>
+      <trans-unit id="m154" resname="place.customer">
+        <source>place.customer</source>
+        <target>Customer</target>
+      </trans-unit>
+      <trans-unit id="m155" resname="place.map_help">
+        <source>place.map_help</source>
+        <target>Take coordinates e.g. from OpenStreetMap or Google Maps (right click).</target>
+      </trans-unit>
+      <trans-unit id="m156" resname="place.save_start">
+        <source>place.save_start</source>
+        <target>Save start as place</target>
+      </trans-unit>
+      <trans-unit id="m157" resname="place.save_end">
+        <source>place.save_end</source>
+        <target>Save destination as place</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

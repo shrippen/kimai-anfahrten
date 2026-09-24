@@ -50,6 +50,16 @@ namespace App\Entity {
                 return 'User ' . $this->id;
             }
 
+            public function getTimezone(): string
+            {
+                return (string) $this->getPreferenceValue('timezone', 'Europe/Berlin', false);
+            }
+
+            public function getDateTimezone(): \DateTimeZone
+            {
+                return new \DateTimeZone($this->getTimezone());
+            }
+
             public function setPreferenceValue(string $name, mixed $value = null): void
             {
                 $this->preferences[$name] = $value;

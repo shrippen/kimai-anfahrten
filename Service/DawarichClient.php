@@ -50,6 +50,31 @@ class DawarichClient
     }
 
     /**
+     * Named areas the user drew in Dawarich.
+     *
+     * @return array<int, array{id: int, name: string, latitude: float, longitude: float, radius: int}>
+     * @throws DawarichException
+     */
+    public function fetchAreas(User $user): array
+    {
+        $areas = [];
+        foreach ($this->get($user, '/api/v1/areas', [])[0] as $row) {
+            if (!\is_array($row) || !isset($row['id'], $row['name']) || !is_numeric($row['latitude'] ?? null) || !is_numeric($row['longitude'] ?? null)) {
+                continue;
+            }
+            $areas[] = [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['name'],
+                'latitude' => (float) $row['latitude'],
+                'longitude' => (float) $row['longitude'],
+                'radius' => is_numeric($row['radius'] ?? null) ? (int) $row['radius'] : 100,
+            ];
+        }
+
+        return $areas;
+    }
+
+    /**
      * @return GpsPoint[]
      * @throws DawarichException
      */
@@ -85,6 +110,22 @@ class DawarichClient
      */
     private function request(User $user, \DateTimeInterface $from, \DateTimeInterface $to, int $page, int $perPage): array
     {
+        return $this->get($user, '/api/v1/points', [
+            'start_at' => $from->format(\DateTimeInterface::ATOM),
+            'end_at' => $to->format(\DateTimeInterface::ATOM),
+            'page' => $page,
+            'per_page' => $perPage,
+            'order' => 'asc',
+        ]);
+    }
+
+    /**
+     * @param array<string, string|int> $query
+     * @return array{0: array<mixed>, 1: array<string, list<string>>, 2: int}
+     * @throws DawarichException
+     */
+    private function get(User $user, string $path, array $query): array
+    {
         $baseUrl = $this->configuration->getDawarichUrl($user);
         $apiKey = $this->configuration->getDawarichApiKey($user);
 
@@ -93,18 +134,12 @@ class DawarichClient
         }
 
         try {
-            $response = $this->httpClient->request('GET', $baseUrl . '/api/v1/points', [
+            $response = $this->httpClient->request('GET', $baseUrl . $path, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $apiKey,
                     'Accept' => 'application/json',
                 ],
-                'query' => [
-                    'start_at' => $from->format(\DateTimeInterface::ATOM),
-                    'end_at' => $to->format(\DateTimeInterface::ATOM),
-                    'page' => $page,
-                    'per_page' => $perPage,
-                    'order' => 'asc',
-                ],
+                'query' => $query,
                 'timeout' => 20,
             ]);
 

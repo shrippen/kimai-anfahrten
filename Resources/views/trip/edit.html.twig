@@ -51,6 +51,11 @@
                         </div>
                     </div>
                     {{ form_row(form.distanceKm) }}
+                    {% if trip.id and dawarich_configured and trip.departureAt and trip.arrivalAt and mileage_map_enabled() %}
+                        <div class="mb-3">
+                            {% include '@Mileage/_map.html.twig' with {map_id: 'trip-map', track_url: path('mileage_trip_track', {id: trip.id})} %}
+                        </div>
+                    {% endif %}
                     {% if trip.source.value == 'dawarich' %}
                         <p class="small text-info"><i class="fas fa-satellite-dish me-1"></i>{{ 'trip.source.dawarich'|trans }} ({{ trip.pointCount }} GPS)</p>
                     {% endif %}
@@ -63,4 +68,11 @@
             {{ form_end(form) }}
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if trip.id and dawarich_configured and trip.departureAt and trip.arrivalAt and mileage_map_enabled() %}
+        {% include '@Mileage/_map_script.html.twig' %}
+    {% endif %}
 {% endblock %}

@@ -11,6 +11,11 @@ services:
             - '../../Resources/'
             - '../../DependencyInjection/'
             - '../../Controller/'
+            - '../../tests/'
+            - '../../vendor/'
+            - '../../tools/'
+            - '../../.kimai/'
+            - '../../.php-cs-fixer.dist.php'
 
     KimaiPlugin\MileageBundle\Controller\:
         resource: '../../Controller'
