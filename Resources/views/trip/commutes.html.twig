@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ 'commute.generate'|trans }} — {{ target_user.displayName }} — {{ '%d-%02d'|format(year, month) }}</h2>
+    <p class="text-muted">{{ 'commute.generate_help'|trans }}</p>
+    <p>
+        <a href="{{ path('mileage_trips', {year: year, month: month, user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
+    </p>
+
+    <form method="post" class="card">
+        <input type="hidden" name="_token" value="{{ csrf_token('mileage_commutes') }}">
+        <div class="card-body">
+            <div class="mb-3" style="max-width: 20rem">
+                <label class="form-label" for="commute-distance">{{ 'trip.distance'|trans }} (km)</label>
+                <input type="number" min="0" step="0.1" class="form-control" id="commute-distance" name="distance" value="{{ distance }}" required>
+                <div class="form-text">{{ 'mileage_commute_km_help'|trans }}</div>
+            </div>
+            <table class="table table-sm mb-3">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>{{ 'trip.date'|trans }}</th>
+                        <th class="text-end">{{ 'commute.hours'|trans }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, day in days %}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input" name="dates[]" value="{{ key }}" id="d-{{ key }}" {% if not day.has_commute %}checked{% else %}disabled{% endif %}></td>
+                            <td><label for="d-{{ key }}">{{ day.date|date('D, Y-m-d') }}</label></td>
+                            <td class="text-end">{{ day.hours|number_format(2, ',', '.') }}</td>
+                            <td class="small text-muted">{% if day.has_commute %}{{ 'commute.already_recorded'|trans }}{% endif %}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-muted">{{ 'commute.no_days'|trans }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">{{ 'commute.create'|trans }}</button>
+        </div>
+    </form>
+{% endblock %}

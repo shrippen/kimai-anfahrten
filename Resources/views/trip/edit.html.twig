@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ title|trans }} — {{ target_user.displayName }}</h2>
+    <p>
+        <a href="{{ path('mileage_trips', {year: trip.date ? trip.date|date('Y') : 'now'|date('Y'), month: trip.date ? trip.date|date('n') : 'now'|date('n'), user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
+    </p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            {{ form_start(form) }}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(form.date) }}
+                    <div class="mb-3">
+                        {{ form_label(form.purpose) }}
+                        <div class="mt-1">
+                            {% for child in form.purpose %}
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" id="{{ child.vars.id }}" name="{{ child.vars.full_name }}" class="form-check-input" value="{{ child.vars.value }}" {% if child.vars.checked %}checked="checked"{% endif %} required="required">
+                                    <label class="form-check-label" for="{{ child.vars.id }}"><i class="{{ child.vars.attr['data-icon']|default('') }} me-1"></i>{{ child.vars.label|trans }}</label>
+                                </div>
+                                {% do child.setRendered() %}
+                            {% endfor %}
+                        </div>
+                        {{ form_help(form.purpose) }}
+                        {{ form_errors(form.purpose) }}
+                        {% do form.purpose.setRendered() %}
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-7">{{ form_row(form.vehicle) }}</div>
+                        <div class="col-sm-5">{{ form_row(form.licensePlate) }}</div>
+                    </div>
+                    {{ form_row(form.startLocation) }}
+                    {{ form_row(form.destination) }}
+                    {{ form_row(form.project) }}
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">{{ form_row(form.departureAt) }}</div>
+                                <div class="col-sm-6">{{ form_row(form.arrivalAt) }}</div>
+                            </div>
+                            {% if form.dawarich is defined %}
+                                {{ form_widget(form.dawarich) }}
+                                <div class="form-text">{{ 'dawarich.lookup_help'|trans }}</div>
+                            {% else %}
+                                <div class="form-text">{{ 'dawarich.not_configured_hint'|trans }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_row(form.distanceKm) }}
+                    {% if trip.source.value == 'dawarich' %}
+                        <p class="small text-info"><i class="fas fa-satellite-dish me-1"></i>{{ 'trip.source.dawarich'|trans }} ({{ trip.pointCount }} GPS)</p>
+                    {% endif %}
+                    {{ form_row(form.roundTrip) }}
+                    {{ form_row(form.costs) }}
+                    {{ form_row(form.comment) }}
+                </div>
+            </div>
+            {{ form_widget(form.save) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,23 @@
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Composer (installed into Kimai; no local vendor needed for the plugin itself)
+/vendor/
+composer.lock
+
+# Local / env
+.env
+.env.*
+!.env.example
+*.local
+
+# PHP / tooling
+.phpunit.result.cache
+.php-cs-fixer.cache
+.phpstan.cache
+/coverage/

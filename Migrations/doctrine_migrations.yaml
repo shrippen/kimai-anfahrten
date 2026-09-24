@@ -1,0 +1,10 @@
+# Generate a new migration with:
+# bin/console doctrine:migrations:diff --em=default --configuration=var/plugins/MileageBundle/Migrations/doctrine_migrations.yaml
+#
+# Execute all migrations with:
+# bin/console kimai:bundle:mileage:install
+
+table_storage:
+    table_name: 'bundle_migration_mileage'
+migrations_paths:
+    'MileageBundle\Migrations': 'var/plugins/MileageBundle/Migrations'

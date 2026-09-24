@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% macro eur(value) %}{{ value|number_format(2, ',', '.') }} €{% endmacro %}
+{% import _self as m %}
+
+{% block page_content %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <h2 class="mb-0 me-auto">{{ 'menu.mileage_tax'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
+        <a href="{{ path('mileage_tax_report', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
+        <a href="{{ path('mileage_tax_report', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
+        <a href="{{ path('mileage_trips', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-primary">{{ 'menu.mileage'|trans }} ({{ trip_count }})</a>
+        <a href="{{ path('mileage_export', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }}</a>
+    </div>
+
+    <div class="alert alert-warning">{{ 'tax.disclaimer'|trans }}</div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ 'tax.commute'|trans }} <span class="text-muted small">— {{ 'tax.commute_hint'|trans }}</span></h3></div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <tbody>
+                    <tr><td>{{ 'tax.commute_days'|trans }}</td><td class="text-end">{{ summary.commute.days }}</td></tr>
+                    <tr><td>{{ 'tax.commute_km'|trans }}</td><td class="text-end">{{ summary.commute.km|number_format(0, ',', '.') }} km</td></tr>
+                    <tr><td>{{ 'tax.rate'|trans }}</td><td class="text-end">{{ summary.commute.rate|number_format(2, ',', '.') }} €/km</td></tr>
+                    <tr><td>{{ 'tax.commute_car'|trans }}</td><td class="text-end">{{ m.eur(summary.commute.amount_car) }}</td></tr>
+                    <tr>
+                        <td>
+                            {{ 'tax.commute_other'|trans }}
+                            {% if summary.commute.capped %}<span class="badge bg-warning ms-1">{{ 'tax.capped'|trans({'%cap%': summary.commute.cap|number_format(0, ',', '.')}) }}</span>{% endif %}
+                            {% if summary.commute.public_transport_costs > 0 %}<div class="small text-muted">{{ 'tax.public_transport_costs'|trans }}: {{ m.eur(summary.commute.public_transport_costs) }}</div>{% endif %}
+                        </td>
+                        <td class="text-end">{{ m.eur(summary.commute.amount_other_capped) }}</td>
+                    </tr>
+                    <tr class="fw-bold"><td>{{ 'tax.commute_total'|trans }}</td><td class="text-end">{{ m.eur(summary.commute.amount) }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header"><h3 class="card-title">{{ 'tax.business'|trans }} <span class="text-muted small">— {{ 'tax.business_hint'|trans }}</span></h3></div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ 'trip.vehicle'|trans }}</th>
+                        <th class="text-end">{{ 'tax.trips'|trans }}</th>
+                        <th class="text-end">km</th>
+                        <th class="text-end">{{ 'tax.rate'|trans }}</th>
+                        <th class="text-end">{{ 'trip.costs'|trans }}</th>
+                        <th class="text-end">{{ 'tax.deductible'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in summary.business %}
+                        <tr>
+                            <td>
+                                <i class="{{ row.vehicle.icon }} me-1"></i>{{ row.vehicle.label|trans }}
+                                <div class="small text-muted">
+                                    {% if row.vehicle.employerProvided %}{{ 'tax.method.employer'|trans }}
+                                    {% elseif row.rate is not null %}{{ 'tax.method.km'|trans }}
+                                    {% else %}{{ 'tax.method.costs'|trans }}{% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end">{{ row.trips }}</td>
+                            <td class="text-end">{{ row.km|number_format(1, ',', '.') }}</td>
+                            <td class="text-end">{{ row.rate is not null ? row.rate|number_format(2, ',', '.') ~ ' €/km' : '–' }}</td>
+                            <td class="text-end">{{ m.eur(row.costs) }}</td>
+                            <td class="text-end">{{ m.eur(row.amount) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="text-muted">{{ 'trip.empty'|trans }}</td></tr>
+                    {% endfor %}
+                    <tr class="fw-bold"><td colspan="5">{{ 'tax.business_total'|trans }}</td><td class="text-end">{{ m.eur(summary.business_total) }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    {{ 'trip.purpose.private'|trans }}: {{ summary.private.trips }} {{ 'tax.trips'|trans }}, {{ summary.private.km|number_format(1, ',', '.') }} km
+                    <div class="small text-muted">{{ 'tax.private_hint'|trans }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3 border-primary">
+                <div class="card-body fs-3 fw-bold text-end">{{ 'tax.total'|trans }}: {{ m.eur(summary.total) }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="MileageBundle">
+    <body>
+      <trans-unit id="m000" resname="menu.mileage">
+        <source>menu.mileage</source>
+        <target>Trips</target>
+      </trans-unit>
+      <trans-unit id="m001" resname="menu.mileage_tax">
+        <source>menu.mileage_tax</source>
+        <target>Travel costs (tax)</target>
+      </trans-unit>
+      <trans-unit id="m002" resname="mileage">
+        <source>mileage</source>
+        <target>Trips &amp; Dawarich</target>
+      </trans-unit>
+      <trans-unit id="m003" resname="mileage.permission_section">
+        <source>mileage.permission_section</source>
+        <target>Trips</target>
+      </trans-unit>
+      <trans-unit id="m004" resname="mileage.settings_section">
+        <source>mileage.settings_section</source>
+        <target>Trips &amp; travel costs</target>
+      </trans-unit>
+      <trans-unit id="m005" resname="mileage.rate_commute">
+        <source>mileage.rate_commute</source>
+        <target>Commuting allowance (€/km one-way)</target>
+      </trans-unit>
+      <trans-unit id="m006" resname="mileage.rate_commute_help">
+        <source>mileage.rate_commute_help</source>
+        <target>Since 2026: €0.38 from the first kilometre (Germany).</target>
+      </trans-unit>
+      <trans-unit id="m007" resname="mileage.rate_business_car">
+        <source>mileage.rate_business_car</source>
+        <target>Business trip own car (€/km)</target>
+      </trans-unit>
+      <trans-unit id="m008" resname="mileage.rate_business_motorcycle">
+        <source>mileage.rate_business_motorcycle</source>
+        <target>Business trip motorcycle/scooter (€/km)</target>
+      </trans-unit>
+      <trans-unit id="m009" resname="mileage.commute_cap">
+        <source>mileage.commute_cap</source>
+        <target>Annual cap for commutes without a car (€)</target>
+      </trans-unit>
+      <trans-unit id="m010" resname="mileage.dawarich_url">
+        <source>mileage.dawarich_url</source>
+        <target>Dawarich URL (default)</target>
+      </trans-unit>
+      <trans-unit id="m011" resname="mileage.dawarich_url_help">
+        <source>mileage.dawarich_url_help</source>
+        <target>e.g. https://dawarich.example.org — users can override it in their preferences.</target>
+      </trans-unit>
+      <trans-unit id="m012" resname="mileage.dawarich_max_accuracy">
+        <source>mileage.dawarich_max_accuracy</source>
+        <target>Maximum GPS inaccuracy (m)</target>
+      </trans-unit>
+      <trans-unit id="m013" resname="mileage.dawarich_max_accuracy_help">
+        <source>mileage.dawarich_max_accuracy_help</source>
+        <target>Less accurate points are ignored when measuring distances.</target>
+      </trans-unit>
+      <trans-unit id="m014" resname="mileage_dawarich_url">
+        <source>mileage_dawarich_url</source>
+        <target>Dawarich URL</target>
+      </trans-unit>
+      <trans-unit id="m015" resname="mileage_dawarich_url_help">
+        <source>mileage_dawarich_url_help</source>
+        <target>Leave empty to use the system default.</target>
+      </trans-unit>
+      <trans-unit id="m016" resname="mileage_dawarich_api_key">
+        <source>mileage_dawarich_api_key</source>
+        <target>Dawarich API key</target>
+      </trans-unit>
+      <trans-unit id="m017" resname="mileage_dawarich_api_key_help">
+        <source>mileage_dawarich_api_key_help</source>
+        <target>Found in Dawarich under Account → API key.</target>
+      </trans-unit>
+      <trans-unit id="m018" resname="mileage_home_address">
+        <source>mileage_home_address</source>
+        <target>Home address</target>
+      </trans-unit>
+      <trans-unit id="m019" resname="mileage_work_address">
+        <source>mileage_work_address</source>
+        <target>Regular place of work</target>
+      </trans-unit>
+      <trans-unit id="m020" resname="mileage_commute_km">
+        <source>mileage_commute_km</source>
+        <target>Distance home – work (km)</target>
+      </trans-unit>
+      <trans-unit id="m021" resname="mileage_commute_km_help">
+        <source>mileage_commute_km_help</source>
+        <target>One-way distance, shortest road connection, full kilometres.</target>
+      </trans-unit>
+      <trans-unit id="m022" resname="mileage_default_vehicle">
+        <source>mileage_default_vehicle</source>
+        <target>Default vehicle</target>
+      </trans-unit>
+      <trans-unit id="m023" resname="mileage_license_plate">
+        <source>mileage_license_plate</source>
+        <target>License plate</target>
+      </trans-unit>
+      <trans-unit id="m024" resname="trip.create">
+        <source>trip.create</source>
+        <target>Add trip</target>
+      </trans-unit>
+      <trans-unit id="m025" resname="trip.create_commute">
+        <source>trip.create_commute</source>
+        <target>Add commute</target>
+      </trans-unit>
+      <trans-unit id="m026" resname="trip.create_from_timesheet">
+        <source>trip.create_from_timesheet</source>
+        <target>Add trip</target>
+      </trans-unit>
+      <trans-unit id="m027" resname="trip.edit">
+        <source>trip.edit</source>
+        <target>Edit trip</target>
+      </trans-unit>
+      <trans-unit id="m028" resname="trip.empty">
+        <source>trip.empty</source>
+        <target>No trips recorded.</target>
+      </trans-unit>
+      <trans-unit id="m029" resname="trip.whole_year">
+        <source>trip.whole_year</source>
+        <target>Whole year</target>
+      </trans-unit>
+      <trans-unit id="m030" resname="trip.date">
+        <source>trip.date</source>
+        <target>Date</target>
+      </trans-unit>
+      <trans-unit id="m031" resname="trip.departure">
+        <source>trip.departure</source>
+        <target>Departure</target>
+      </trans-unit>
+      <trans-unit id="m032" resname="trip.arrival">
+        <source>trip.arrival</source>
+        <target>Arrival</target>
+      </trans-unit>
+      <trans-unit id="m033" resname="trip.time_window_help">
+        <source>trip.time_window_help</source>
+        <target>Time window used to measure the distance with Dawarich.</target>
+      </trans-unit>
+      <trans-unit id="m034" resname="trip.purpose">
+        <source>trip.purpose</source>
+        <target>Trip type</target>
+      </trans-unit>
+      <trans-unit id="m035" resname="trip.purpose_help">
+        <source>trip.purpose_help</source>
+        <target>Commute = home ↔ regular place of work. Business = travel away from the regular place of work, e.g. to a customer.</target>
+      </trans-unit>
+      <trans-unit id="m036" resname="trip.purpose.commute">
+        <source>trip.purpose.commute</source>
+        <target>Commute</target>
+      </trans-unit>
+      <trans-unit id="m037" resname="trip.purpose.business">
+        <source>trip.purpose.business</source>
+        <target>Business trip</target>
+      </trans-unit>
+      <trans-unit id="m038" resname="trip.purpose.private">
+        <source>trip.purpose.private</source>
+        <target>Private</target>
+      </trans-unit>
+      <trans-unit id="m039" resname="trip.vehicle">
+        <source>trip.vehicle</source>
+        <target>Vehicle</target>
+      </trans-unit>
+      <trans-unit id="m040" resname="trip.vehicle_help">
+        <source>trip.vehicle_help</source>
+        <target>Own car/motorcycle: per-km allowance. Rental car, public transport, bicycle: enter actual costs. Company car: not deductible.</target>
+      </trans-unit>
+      <trans-unit id="m041" resname="trip.vehicle.own_car">
+        <source>trip.vehicle.own_car</source>
+        <target>Own car</target>
+      </trans-unit>
+      <trans-unit id="m042" resname="trip.vehicle.rental_car">
+        <source>trip.vehicle.rental_car</source>
+        <target>Rental car</target>
+      </trans-unit>
+      <trans-unit id="m043" resname="trip.vehicle.company_car">
+        <source>trip.vehicle.company_car</source>
+        <target>Company car</target>
+      </trans-unit>
+      <trans-unit id="m044" resname="trip.vehicle.motorcycle">
+        <source>trip.vehicle.motorcycle</source>
+        <target>Motorcycle / scooter</target>
+      </trans-unit>
+      <trans-unit id="m045" resname="trip.vehicle.bicycle">
+        <source>trip.vehicle.bicycle</source>
+        <target>Bicycle</target>
+      </trans-unit>
+      <trans-unit id="m046" resname="trip.vehicle.public_transport">
+        <source>trip.vehicle.public_transport</source>
+        <target>Public transport</target>
+      </trans-unit>
+      <trans-unit id="m047" resname="trip.vehicle.other">
+        <source>trip.vehicle.other</source>
+        <target>Other</target>
+      </trans-unit>
+      <trans-unit id="m048" resname="trip.license_plate">
+        <source>trip.license_plate</source>
+        <target>License plate</target>
+      </trans-unit>
+      <trans-unit id="m049" resname="trip.start_location">
+        <source>trip.start_location</source>
+        <target>From</target>
+      </trans-unit>
+      <trans-unit id="m050" resname="trip.destination">
+        <source>trip.destination</source>
+        <target>To</target>
+      </trans-unit>
+      <trans-unit id="m051" resname="trip.route">
+        <source>trip.route</source>
+        <target>Route</target>
+      </trans-unit>
+      <trans-unit id="m052" resname="trip.distance">
+        <source>trip.distance</source>
+        <target>Distance (km)</target>
+      </trans-unit>
+      <trans-unit id="m053" resname="trip.distance_help">
+        <source>trip.distance_help</source>
+        <target>Commute: one-way distance. Business trip: driven kilometres (one direction if round trip is ticked).</target>
+      </trans-unit>
+      <trans-unit id="m054" resname="trip.round_trip">
+        <source>trip.round_trip</source>
+        <target>Round trip (double the distance)</target>
+      </trans-unit>
+      <trans-unit id="m055" resname="trip.total_distance">
+        <source>trip.total_distance</source>
+        <target>Total km</target>
+      </trans-unit>
+      <trans-unit id="m056" resname="trip.costs">
+        <source>trip.costs</source>
+        <target>Costs</target>
+      </trans-unit>
+      <trans-unit id="m057" resname="trip.costs_help">
+        <source>trip.costs_help</source>
+        <target>Actual costs in €, e.g. rental car incl. fuel, train ticket.</target>
+      </trans-unit>
+      <trans-unit id="m058" resname="trip.project">
+        <source>trip.project</source>
+        <target>Project</target>
+      </trans-unit>
+      <trans-unit id="m059" resname="trip.comment">
+        <source>trip.comment</source>
+        <target>Purpose / comment</target>
+      </trans-unit>
+      <trans-unit id="m060" resname="trip.source">
+        <source>trip.source</source>
+        <target>Source</target>
+      </trans-unit>
+      <trans-unit id="m061" resname="trip.source.manual">
+        <source>trip.source.manual</source>
+        <target>Manual</target>
+      </trans-unit>
+      <trans-unit id="m062" resname="trip.source.dawarich">
+        <source>trip.source.dawarich</source>
+        <target>Measured with Dawarich</target>
+      </trans-unit>
+      <trans-unit id="m063" resname="trip.error.arrival_before_departure">
+        <source>trip.error.arrival_before_departure</source>
+        <target>Arrival must be after departure.</target>
+      </trans-unit>
+      <trans-unit id="m064" resname="trip.error.commute_distance">
+        <source>trip.error.commute_distance</source>
+        <target>Please enter a distance greater than 0.</target>
+      </trans-unit>
+      <trans-unit id="m065" resname="dawarich.lookup">
+        <source>dawarich.lookup</source>
+        <target>Measure distance with Dawarich</target>
+      </trans-unit>
+      <trans-unit id="m066" resname="dawarich.lookup_help">
+        <source>dawarich.lookup_help</source>
+        <target>Loads the GPS points of the time window from Dawarich and fills in the driven distance. Save afterwards.</target>
+      </trans-unit>
+      <trans-unit id="m067" resname="dawarich.measured">
+        <source>dawarich.measured</source>
+        <target>Dawarich: measured %km% km from %points% GPS points. Please review and save.</target>
+      </trans-unit>
+      <trans-unit id="m068" resname="dawarich.no_points">
+        <source>dawarich.no_points</source>
+        <target>Dawarich returned no usable GPS points for this time window.</target>
+      </trans-unit>
+      <trans-unit id="m069" resname="dawarich.not_configured_hint">
+        <source>dawarich.not_configured_hint</source>
+        <target>Tip: add your Dawarich URL and API key under Profile → Preferences to measure distances automatically.</target>
+      </trans-unit>
+      <trans-unit id="m070" resname="dawarich.error.not_configured">
+        <source>dawarich.error.not_configured</source>
+        <target>Dawarich is not configured (URL or API key missing).</target>
+      </trans-unit>
+      <trans-unit id="m071" resname="dawarich.error.time_window">
+        <source>dawarich.error.time_window</source>
+        <target>Please enter departure and arrival to measure with Dawarich.</target>
+      </trans-unit>
+      <trans-unit id="m072" resname="dawarich.error.unauthorized">
+        <source>dawarich.error.unauthorized</source>
+        <target>Dawarich rejected the API key.</target>
+      </trans-unit>
+      <trans-unit id="m073" resname="dawarich.error.http">
+        <source>dawarich.error.http</source>
+        <target>Dawarich error (HTTP %status%).</target>
+      </trans-unit>
+      <trans-unit id="m074" resname="dawarich.error.connection">
+        <source>dawarich.error.connection</source>
+        <target>Could not reach Dawarich: %message%</target>
+      </trans-unit>
+      <trans-unit id="m075" resname="commute.generate">
+        <source>commute.generate</source>
+        <target>Commutes from timesheets</target>
+      </trans-unit>
+      <trans-unit id="m076" resname="commute.generate_help">
+        <source>commute.generate_help</source>
+        <target>All days with recorded times this month. Untick home-office days — only days with a trip to the regular place of work count.</target>
+      </trans-unit>
+      <trans-unit id="m077" resname="commute.hours">
+        <source>commute.hours</source>
+        <target>Hours</target>
+      </trans-unit>
+      <trans-unit id="m078" resname="commute.already_recorded">
+        <source>commute.already_recorded</source>
+        <target>Commute already recorded</target>
+      </trans-unit>
+      <trans-unit id="m079" resname="commute.no_days">
+        <source>commute.no_days</source>
+        <target>No timesheets in this month.</target>
+      </trans-unit>
+      <trans-unit id="m080" resname="commute.create">
+        <source>commute.create</source>
+        <target>Create commutes</target>
+      </trans-unit>
+      <trans-unit id="m081" resname="commute.created">
+        <source>commute.created</source>
+        <target>%count% commutes created.</target>
+      </trans-unit>
+      <trans-unit id="m082" resname="tax.disclaimer">
+        <source>tax.disclaimer</source>
+        <target>Calculation aid only, no tax advice. Check the rates in the system settings.</target>
+      </trans-unit>
+      <trans-unit id="m083" resname="tax.commute">
+        <source>tax.commute</source>
+        <target>Commuting allowance</target>
+      </trans-unit>
+      <trans-unit id="m084" resname="tax.commute_hint">
+        <source>tax.commute_hint</source>
+        <target>Home ↔ regular place of work</target>
+      </trans-unit>
+      <trans-unit id="m085" resname="tax.commute_days">
+        <source>tax.commute_days</source>
+        <target>Workdays with commute</target>
+      </trans-unit>
+      <trans-unit id="m086" resname="tax.commute_km">
+        <source>tax.commute_km</source>
+        <target>Sum of one-way distances</target>
+      </trans-unit>
+      <trans-unit id="m087" resname="tax.commute_car">
+        <source>tax.commute_car</source>
+        <target>thereof by own / company car</target>
+      </trans-unit>
+      <trans-unit id="m088" resname="tax.commute_other">
+        <source>tax.commute_other</source>
+        <target>thereof by other means of transport</target>
+      </trans-unit>
+      <trans-unit id="m089" resname="tax.commute_total">
+        <source>tax.commute_total</source>
+        <target>Commuting allowance total</target>
+      </trans-unit>
+      <trans-unit id="m090" resname="tax.capped">
+        <source>tax.capped</source>
+        <target>capped at €%cap%</target>
+      </trans-unit>
+      <trans-unit id="m091" resname="tax.public_transport_costs">
+        <source>tax.public_transport_costs</source>
+        <target>Actual public transport costs (used if higher)</target>
+      </trans-unit>
+      <trans-unit id="m092" resname="tax.business">
+        <source>tax.business</source>
+        <target>Business travel costs</target>
+      </trans-unit>
+      <trans-unit id="m093" resname="tax.business_hint">
+        <source>tax.business_hint</source>
+        <target>travel away from the regular place of work</target>
+      </trans-unit>
+      <trans-unit id="m094" resname="tax.business_total">
+        <source>tax.business_total</source>
+        <target>Business travel total</target>
+      </trans-unit>
+      <trans-unit id="m095" resname="tax.method.km">
+        <source>tax.method.km</source>
+        <target>Per-km allowance</target>
+      </trans-unit>
+      <trans-unit id="m096" resname="tax.method.costs">
+        <source>tax.method.costs</source>
+        <target>Actual costs</target>
+      </trans-unit>
+      <trans-unit id="m097" resname="tax.method.employer">
+        <source>tax.method.employer</source>
+        <target>Provided by employer — not deductible</target>
+      </trans-unit>
+      <trans-unit id="m098" resname="tax.trips">
+        <source>tax.trips</source>
+        <target>trips</target>
+      </trans-unit>
+      <trans-unit id="m099" resname="tax.days">
+        <source>tax.days</source>
+        <target>days</target>
+      </trans-unit>
+      <trans-unit id="m100" resname="tax.rate">
+        <source>tax.rate</source>
+        <target>Rate</target>
+      </trans-unit>
+      <trans-unit id="m101" resname="tax.deductible">
+        <source>tax.deductible</source>
+        <target>Deductible</target>
+      </trans-unit>
+      <trans-unit id="m102" resname="tax.private_hint">
+        <source>tax.private_hint</source>
+        <target>Private trips are not deductible and only kept for the logbook.</target>
+      </trans-unit>
+      <trans-unit id="m103" resname="tax.total">
+        <source>tax.total</source>
+        <target>Deductible travel costs</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
