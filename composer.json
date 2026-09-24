@@ -1,7 +1,7 @@
 {
-    "name": "shrippen/kimai-mileage-bundle",
+    "name": "shrippen/kimai-anfahrten",
     "description": "Open-source Kimai plugin: trips, commutes and business travel with Dawarich integration for German tax (Entfernungspauschale / Reisekosten)",
-    "homepage": "https://github.com/shrippen/kimai-mileage-bundle",
+    "homepage": "https://github.com/shrippen/kimai-anfahrten",
     "type": "kimai-plugin",
     "version": "0.1.0",
     "keywords": [
@@ -21,8 +21,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/shrippen/kimai-mileage-bundle/issues",
-        "source": "https://github.com/shrippen/kimai-mileage-bundle"
+        "issues": "https://github.com/shrippen/kimai-anfahrten/issues",
+        "source": "https://github.com/shrippen/kimai-anfahrten"
     },
     "require": {
         "php": "^8.1"

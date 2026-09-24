@@ -47,7 +47,7 @@ For **business trips** an own car gets the per-km rate, a rental car is deducted
 
 ```bash
 cd /path/to/kimai/var/plugins
-git clone https://github.com/shrippen/kimai-mileage-bundle.git MileageBundle
+git clone https://github.com/shrippen/kimai-anfahrten.git MileageBundle
 bin/console kimai:reload -n
 bin/console kimai:bundle:mileage:install
 ```
@@ -78,12 +78,9 @@ Kimai must be able to reach your Dawarich instance over HTTP(S).
 | `delete_own_mileage` / `delete_other_mileage` | Delete trips |
 | `view_other_mileage` | View other users' trips (`?user=ID`) |
 
-## Roadmap / ideas
+## Roadmap
 
-- Detect trips automatically from Dawarich (visits / tracks) and suggest them per day
-- Vehicle entity (several cars, odometer readings for a proper Fahrtenbuch)
-- Verpflegungsmehraufwand (per diem) for business trips
-- PDF export, REST API
+See [ROADMAP.md](ROADMAP.md).
 
 ## License
 
