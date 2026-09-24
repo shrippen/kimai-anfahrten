@@ -334,14 +334,6 @@
         <source>tax.disclaimer</source>
         <target>Berechnungshilfe ohne Gewähr, keine Steuerberatung. Sätze in den Systemeinstellungen prüfen.</target>
       </trans-unit>
-      <trans-unit id="m083" resname="tax.commute">
-        <source>tax.commute</source>
-        <target>Entfernungspauschale</target>
-      </trans-unit>
-      <trans-unit id="m084" resname="tax.commute_hint">
-        <source>tax.commute_hint</source>
-        <target>Anlage N, Wege zwischen Wohnung und erster Tätigkeitsstätte</target>
-      </trans-unit>
       <trans-unit id="m085" resname="tax.commute_days">
         <source>tax.commute_days</source>
         <target>Arbeitstage mit Fahrt</target>
@@ -369,14 +361,6 @@
       <trans-unit id="m091" resname="tax.public_transport_costs">
         <source>tax.public_transport_costs</source>
         <target>Tatsächliche ÖPNV-Kosten (angesetzt, falls höher)</target>
-      </trans-unit>
-      <trans-unit id="m092" resname="tax.business">
-        <source>tax.business</source>
-        <target>Reisekosten (Fahrtkosten)</target>
-      </trans-unit>
-      <trans-unit id="m093" resname="tax.business_hint">
-        <source>tax.business_hint</source>
-        <target>Anlage N, Auswärtstätigkeit</target>
       </trans-unit>
       <trans-unit id="m094" resname="tax.business_total">
         <source>tax.business_total</source>
@@ -413,10 +397,6 @@
       <trans-unit id="m102" resname="tax.private_hint">
         <source>tax.private_hint</source>
         <target>Privatfahrten sind nicht abziehbar und nur für das Fahrtenbuch erfasst.</target>
-      </trans-unit>
-      <trans-unit id="m103" resname="tax.total">
-        <source>tax.total</source>
-        <target>Werbungskosten Fahrten</target>
       </trans-unit>
       <trans-unit id="m104" resname="dawarich.test">
         <source>dawarich.test</source>

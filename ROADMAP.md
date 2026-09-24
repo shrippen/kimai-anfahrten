@@ -28,95 +28,92 @@ Leitlinien:
 
 ---
 
-## 0.1 — Grundgerüst ✅ (aktueller Stand, ungetestet)
+## Stand
+
+Die Phasen 0.1–0.6 sind umgesetzt, bis auf die unten offen markierten Punkte. Geprüft wird automatisch:
+Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes Kimai 2.67 mit simuliertem Dawarich
+(GitHub Actions). **Noch nicht geprüft: eine echte Dawarich-Instanz** — siehe 0.2.
+
+## 0.1 — Grundgerüst ✅
 
 - [x] Fahrten mit Art (Arbeitsweg / Dienstreise / Privat), Fahrzeug (eigener PKW, Mietwagen, Firmenwagen, Motorrad,
       Fahrrad, ÖPNV, Sonstiges), Kennzeichen, Start/Ziel, km, Hin- und Rückfahrt, Kosten, Projekt, Bemerkung
 - [x] Liste pro Monat/Jahr, anlegen / bearbeiten / duplizieren / löschen, CSV-Export
 - [x] Dawarich: Distanz für ein Zeitfenster aus GPS-Punkten (`/api/v1/points`), Filter für ungenaue Punkte und GPS-Sprünge
 - [x] „Fahrt erfassen" direkt am Zeiteintrag, Arbeitswege aus Tagen mit Arbeitszeit erzeugen
-- [x] Jahresbericht: Entfernungspauschale (0,38 €/km, Deckel 4.500 € ohne PKW, ÖPNV-Istkosten), Dienstreisen
-      (PKW 0,30 €/km, Motorrad 0,20 €/km, Mietwagen/ÖPNV mit Istkosten, Firmenwagen nicht abziehbar)
-- [x] Systemeinstellungen (Sätze), Nutzereinstellungen (Dawarich, Wohn-/Arbeitsadresse, Entfernung, Standardfahrzeug)
-- [x] Rechte, Übersetzungen de/en
+- [x] Jahresbericht, Systemeinstellungen, Nutzereinstellungen, Rechte, Übersetzungen de/en
 
-## 0.2 — Lauffähig und abgesichert
+## 0.2 — Lauffähig und abgesichert ✅ (bis auf echte Dawarich-Instanz)
 
-Ziel: Das Plugin läuft stabil in der eigenen Kimai-Instanz.
+- [x] Test gegen Kimai 2.67: Installation, Migrationen (gegen das Entity-Mapping geprüft), Menü, Rechte,
+      Profil-Einstellungen, Projektauswahl — ohne Docker mit MariaDB, als Browser-Tests auch in der CI
+- [ ] **Dawarich-API gegen eine echte Instanz prüfen** (Feldnamen, Seitenaufteilung, Zeitzonen, Rate-Limits).
+      Getestet ist nur gegen einen nachgebauten Server nach der Dawarich-Doku; bitte mit „Dawarich-Verbindung testen"
+      und einer Erkennung über ein paar Tage gegenprüfen
+- [x] Button „Dawarich-Verbindung testen" (auf der Fahrten-Seite)
+- [x] API-Key als Passwortfeld im Profilformular
+- [x] Unit-Tests (72 Tests), GitHub Actions: `php -l`, PHPStan Level 6, PHP-CS-Fixer, PHPUnit auf PHP 8.1–8.4, E2E
+- [x] Screenshots und README auf Deutsch
 
-- [ ] Test gegen Kimai ≥ 2.64 (Docker): Installation, Migration, Menü, Rechte, Profil-Einstellungen, Projektauswahl
-- [ ] Dawarich-API gegen eine echte Instanz prüfen (Feldnamen, Seitenaufteilung, Zeitzonen, Rate-Limits)
-- [ ] Button „Verbindung testen" in den Nutzereinstellungen
-- [ ] API-Key nicht im Klartext im Profilformular anzeigen
-- [ ] Unit-Tests für `DistanceCalculator`, `TaxCalculator`, `CommuteGenerator`
-- [ ] GitHub Actions: `php -l`, PHPStan, PHP-CS-Fixer, PHPUnit
-- [ ] Screenshots und README auf Deutsch
+## 0.3 — Dawarich richtig nutzen (Kernidee) ✅
 
-## 0.3 — Dawarich richtig nutzen (Kernidee)
+- [x] **Automatische Fahrterkennung pro Tag** über eigene Stopp-/Bewegungserkennung auf den GPS-Punkten
+      (Dawarich-*Visits*/*Tracks* werden nicht benötigt); Empfindlichkeit in den Systemeinstellungen
+- [x] **Vorschlagsliste** mit Art und Fahrzeug pro Vorschlag, übernehmen / bearbeiten / verwerfen, „alle
+      geschäftlichen übernehmen"; zweiter Arbeitsweg am selben Tag wird zusammengeführt
+- [x] **Orte**: eigene Orte und Import der Dawarich-*Areas*; Zuordnung über den Mittelpunkt des Stopps
+- [ ] Kundenadresse aus Kimai automatisch als Ort vorschlagen — *teilweise*: Orte können einem Kunden zugeordnet
+      werden, beim Erfassen aus einem Zeiteintrag wird der Kunde als Ziel übernommen; Kimai-Kundenadressen werden
+      nicht geokodiert
+- [x] **Abgleich mit Zeiteinträgen**: Fahrt vor/nach einem Zeiteintrag bekommt Projekt und Kunde
+- [x] Rückwärts-Geokodierung (Nominatim/Photon, abschaltbar)
+- [x] Kartenvorschau (Leaflet wird mit dem Plugin ausgeliefert, Kachelserver einstellbar/abschaltbar)
+- [x] `kimai:bundle:mileage:suggest` für den Cronjob
 
-Ziel: Fahrten nicht mehr eintippen, sondern bestätigen.
+## 0.4 — Fahrzeuge und Fahrtenbuch ✅
 
-- [ ] **Automatische Fahrterkennung pro Tag:** GPS-Punkte in Bewegung und Stopps aufteilen (Geschwindigkeit,
-      Standzeit) oder Dawarich-*Visits*/*Tracks* nutzen, wo verfügbar
-- [ ] **Vorschlagsliste:** „Diese Woche erkannt: 6 Fahrten". Pro Vorschlag Art und Fahrzeug wählen, dann übernehmen
-      oder verwerfen
-- [ ] **Orte zuordnen:** Dawarich-*Areas* bzw. eigene Orte (Zuhause, Büro, Kunde X) erkennen, Kundenadresse aus Kimai
-      als Ziel vorschlagen
-- [ ] **Abgleich mit Zeiteinträgen:** Die Fahrt vor oder nach einem Zeiteintrag beim Kunden wird automatisch mit
-      Projekt und Kunde verknüpft
-- [ ] Rückwärts-Geokodierung für Start und Ziel (über Dawarich bzw. Photon/Nominatim, abschaltbar)
-- [ ] Kartenvorschau der Strecke beim Bearbeiten (Leaflet, nur zur Anzeige, nicht gespeichert)
-- [ ] Monatsabgleich als Konsolenbefehl oder Cronjob: `kimai:bundle:mileage:suggest --month=2026-09`
+- [x] Fahrzeugverwaltung (Typ, Kennzeichen, Halter, gültig von–bis, mehrere Fahrzeuge pro Nutzer)
+- [x] **Mietwagen als Vorgang**: Zeitraum, Anbieter, Miet- und Tankkosten; Fahrten im Zeitraum werden zugeordnet,
+      Kosten nach km verteilt
+- [x] Kilometerstand Beginn/Ende mit Vorschlag und Lückenprüfung
+- [x] Pflichtangaben im Fahrtenbuch (Datum, km-Stand, Ziel, Reisezweck, Geschäftspartner) mit Warnungen
+- [x] **Unveränderbarkeit**: Monatsabschluss, Änderungen danach nur mit `edit_locked_mileage`, jede Änderung im
+      Protokoll (zentral durchgesetzt, gilt auch für API und Import)
+- [x] Belege als Dateianhänge (PDF/Bilder, Inhaltsprüfung, max. 10 MB)
 
-## 0.4 — Fahrzeuge und Fahrtenbuch
+## 0.5 — Steuer vollständig (Fokus Selbstständige) ✅ (ohne Sonderfälle)
 
-Ziel: finanzamtstaugliches Fahrtenbuch, z. B. für einen Firmenwagen statt 1-%-Regel.
+- [x] **Steuerprofil pro Nutzer**: Selbstständig (EÜR, Standard) oder Arbeitnehmer (Anlage N)
+- [x] **Selbstständig / EÜR**: Fahrzeuge im Betriebsvermögen ohne km-Pauschale; Privatnutzung per 1-%-Regel
+      (E-Auto 0,25 %, Plug-in-Hybrid 0,5 %, Listenpreis abgerundet) inkl. 0,03-%-Regel Wohnung–Betrieb, oder
+      Privatanteil nach Fahrtenbuch
+- [x] **Sätze nach Jahr** (2020–2026 hinterlegt, Einstellung überschreibt nur bei Bedarf)
+- [x] Verpflegungsmehraufwand (14 €/28 €), mehrtägige Reisen, Dreimonatsfrist mit 4-Wochen-Unterbrechung.
+      *Vereinfacht*: keine Kürzung für gestellte Mahlzeiten, Reiseziele werden über den Namen verglichen
+- [ ] Sonderfälle: Sammelpunkt / weiträumiges Tätigkeitsgebiet, Familienheimfahrten (doppelte Haushaltsführung),
+      mehrere Tätigkeitsstätten — *offen*, bei Bedarf als Dienstreise/Arbeitsweg manuell zuordnen
+- [x] Plausibilitätsprüfung inkl. Urlaub/Krankheit aus dem HolidayBundle (optional, ohne feste Abhängigkeit)
+- [x] PDF-Bericht — mit Bezeichnungen der Formularabschnitte statt Zeilennummern (die ändern sich jedes Jahr)
+- [x] **Kundenübersicht zur manuellen Übernahme** mit CSV (kein Rechnungsversand)
 
-- [ ] Eigene Fahrzeugverwaltung: Typ (eigen / Miete / Firma), Kennzeichen, Halter, gültig von–bis, mehrere Fahrzeuge
-      pro Nutzer
-- [ ] **Mietwagen als Vorgang:** Mietzeitraum, Anbieter, Kosten, Tankbelege. Fahrten im Zeitraum werden automatisch
-      diesem Mietwagen zugeordnet, die Kosten anteilig verteilt
-- [ ] Kilometerstand Beginn/Ende, Lückenprüfung
-- [ ] Pflichtangaben Fahrtenbuch: Datum, km-Stand, Reiseziel, Reisezweck, aufgesuchte Geschäftspartner
-- [ ] **Unveränderbarkeit:** Monate abschließen (wie die Monatssperre im HolidayBundle), Änderungen danach nur mit
-      Protokoll
-- [ ] Belege als Dateianhänge (Mietvertrag, Tankquittung, Bahnticket)
+## 0.6 — Team und Schnittstellen ✅
 
-## 0.5 — Steuer vollständig (Fokus Selbstständige)
-
-- [ ] **Steuerprofil pro Nutzer**: Selbstständig (EÜR) zuerst, Arbeitnehmer (Anlage N) danach — steuert, welcher
-      Bericht und welche Feldbezeichnungen angezeigt werden
-- [ ] **Selbstständig / EÜR:** betriebliche Fahrten als Betriebsausgabe; bei einem privat mitgenutzten Fahrzeug
-      Privatanteil (Fahrtenbuch- oder 1-%-Methode) und Abgrenzung zum Home-Office/Betriebssitz statt „Arbeitgeber"
-- [ ] **Sätze nach Jahr versioniert**, z. B. 2021–2025: 0,30 €/0,38 € ab km 21; ab 2026: 0,38 € ab km 1. Berechnet
-      wird immer mit dem Satz des Fahrtjahres
-- [ ] Verpflegungsmehraufwand bei Dienstreisen (14 € ab 8 h, 28 € ab 24 h) inkl. Dreimonatsfrist, abgeleitet aus
-      Abwesenheitszeiten
-- [ ] Sonderfälle: Sammelpunkt / weiträumiges Tätigkeitsgebiet, Familienheimfahrten, mehrere Tätigkeitsstätten
-- [ ] Plausibilitätsprüfung: Arbeitswege > Arbeitstage? Arbeitsweg an Urlaubs-/Krankheitstagen (Anbindung an HolidayBundle)?
-- [ ] PDF-Bericht mit Zuordnung zu den Formularzeilen, zum Beilegen für Finanzamt bzw. Steuerberater
-- [ ] **Kunden-/Projektübersicht zur manuellen Übernahme** (kein Rechnungsversand aus Kimai heraus): Fahrten nach
-      Kunde/Projekt und Zeitraum gefiltert, mit km, Kosten und Anlass — exportierbar, zum Abtippen z. B. in Invoice Ninja
-
-## 0.6 — Team und Schnittstellen
-
-- [ ] Freigabe-Workflow für Fahrten (Teamleitung), Teambericht
-- [ ] REST-API `/api/mileage/...` (z. B. für Kurzbefehle auf dem Handy)
-- [ ] CSV-Import (alte Fahrtenbücher, Exporte aus Auto-Apps)
+- [x] Freigabe-Workflow (Monat einreichen, freigeben, mit Begründung zurückweisen), Teambericht;
+      Teamleitungen sehen nur ihre Teammitglieder
+- [x] REST-API `/api/mileage/...` mit Kimai-API-Token
+- [x] CSV-Import mit Vorschau und Duplikaterkennung (Web und Konsole)
 
 ## 1.0 — Veröffentlichung
 
-- [ ] Landingpage via GitHub Pages (wie beim HolidayBundle), Screenshots, Doku
-- [ ] Eintrag im Kimai-Marketplace, Release-Archive
-- [ ] Übersetzungen prüfen, weitere Länder nur über konfigurierbare Sätze (keine länderspezifische Logik im Kern)
+- [ ] Landingpage via GitHub Pages — *bewusst zurückgestellt*
+- [ ] Eintrag im Kimai-Marketplace — *bewusst zurückgestellt*
+- [x] Release-Archive: beim Setzen eines Tags `v*` baut GitHub Actions ein installierbares ZIP
+- [x] Übersetzungen vollständig (per Test abgesichert), länderspezifisches nur über Sätze/Einstellungen
 
 ---
 
-## Priorisierung
+## Priorisierung (nächste Schritte)
 
-1. **0.2** zuerst: Ohne echten Test in Kimai und mit Dawarich bauen alle weiteren Schritte auf Annahmen.
-2. **0.3** ist der eigentliche Mehrwert gegenüber einem normalen Fahrtenbuch.
-3. **0.4 / 0.5** nach Bedarf: Firmenwagen mit Fahrtenbuch → 0.4 vorziehen. Viele Dienstreisen → Verpflegung aus 0.5
-   vorziehen.
-4. Eine echte **Kundenrechnungsstellung** (Anfahrtspauschale auf der Rechnung) ist bewusst **nicht** Teil dieser
-   Roadmap — das übernimmt Invoice Ninja. Nur die Übersicht zur manuellen Übernahme (0.5) gehört dazu.
+1. Mit der eigenen Dawarich-Instanz testen (0.2) — Verbindung testen, eine Woche erkennen lassen, Ergebnisse prüfen.
+2. Danach 1.0 (Landingpage, Marketplace) oder die offenen Sonderfälle aus 0.5, je nach Bedarf.
+3. Eine echte **Kundenrechnungsstellung** ist bewusst **nicht** Teil dieser Roadmap — das übernimmt Invoice Ninja.

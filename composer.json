@@ -3,7 +3,7 @@
     "description": "Open-source Kimai plugin: trips, commutes and business travel with Dawarich integration for German tax (Entfernungspauschale / Reisekosten)",
     "homepage": "https://github.com/shrippen/kimai-anfahrten",
     "type": "kimai-plugin",
-    "version": "0.1.0",
+    "version": "0.9.0",
     "keywords": [
         "kimai",
         "kimai-plugin",

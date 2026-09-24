@@ -1,87 +1,165 @@
-# Mileage & Trips (Fahrten)
+# Fahrten & Fahrtkosten für Kimai (MileageBundle)
 
-Open-source Kimai plugin to record trips — commutes, business trips and private trips — with optional
-[Dawarich](https://dawarich.app) integration to measure the driven distance from your GPS history, and a
-yearly summary for the German tax return (Entfernungspauschale + Reisekosten, Anlage N).
+Open-Source-Plugin für [Kimai](https://www.kimai.org/): Fahrten erfassen, **automatisch aus der GPS-Historie von
+[Dawarich](https://dawarich.app) erkennen** und am Jahresende eine Aufstellung für die Steuererklärung bekommen —
+für **Selbstständige (EÜR)** und **Arbeitnehmer (Anlage N)**. Eigenes Auto, Mietwagen, Firmenwagen, Bahn oder Fahrrad
+werden jeweils steuerlich passend behandelt.
 
-**Requires [Kimai](https://www.kimai.org/) ≥ 2.64.**
-
-> **Status:** early draft / not yet tested against a running Kimai. Tax rates are defaults for Germany 2026 and can be changed in the system settings. This is a calculation aid, not tax advice.
+**Voraussetzung: Kimai ≥ 2.64** (getestet mit 2.67). Berechnungshilfe ohne Gewähr, keine Steuerberatung.
 
 | | |
 |---|---|
-| **Kimai plugin id** | `MileageBundle` |
-| **License** | [GPL-3.0-or-later](LICENSE) |
+| **Plugin-ID** | `MileageBundle` |
+| **Lizenz** | [GPL-3.0-or-later](LICENSE) |
 | **PHP** | ≥ 8.1 |
+| **Roadmap** | [ROADMAP.md](ROADMAP.md) |
 
-## Features
+![Fahrten](docs/fahrten.png)
 
-- **Fahrten** (menu under Zeiterfassung): list per month/year, add / edit / duplicate / delete
-- Trip type: **Arbeitsweg** (commute), **Dienstreise** (business), **Privat**
-- Vehicle: **eigener PKW**, **Mietwagen**, **Firmenwagen**, Motorrad/Roller, Fahrrad, Bahn/ÖPNV, Sonstiges — plus license plate
-- Actual costs per trip (rental car incl. fuel, tickets, …)
-- **Dawarich**: enter departure/arrival, click *Strecke aus Dawarich berechnen* — GPS points of that window are loaded
-  (`GET /api/v1/points`), inaccurate points and GPS jumps are filtered, the distance is summed up
-- **Arbeitswege aus Arbeitszeiten**: suggests a commute for every day of a month with timesheets; untick home-office days
-- **Fahrt erfassen** action on every timesheet row (prefills date, project, customer, time window)
-- **Fahrtkosten (Steuer)** report per year:
-  - Entfernungspauschale: once per workday, one-way distance in full km, 4,500 € cap for non-car commutes,
-    higher actual public transport costs are used if applicable
-  - Dienstreisen: own car / motorcycle with per-km rate; rental car, public transport, bicycle with actual costs; company car not deductible
-- CSV export (logbook style, Excel-friendly)
-- Per-user preferences (Profil → Einstellungen): Dawarich URL + API key, home address, place of work, commute distance, default vehicle, license plate
+## Funktionen
 
-### Tax defaults (Germany, 2026)
+**Erfassen**
+- Fahrten mit Art (Arbeitsweg, Dienstreise, Privat), Fahrzeug, Kennzeichen, Start/Ziel, km, Hin- und Rückfahrt,
+  Übernachtung, Kosten, Projekt, Anlass
+- „Fahrt erfassen" direkt am Zeiteintrag, Arbeitswege aus Tagen mit Arbeitszeit erzeugen, Fahrten duplizieren
+- CSV-Import (erkennt Trennzeichen, Zeichensatz, deutsche/englische Spalten — auch den eigenen Export), REST-API
 
-| Setting | Default |
-|---|---|
-| Entfernungspauschale | 0.38 €/km from the first km |
-| Business trip, own car | 0.30 €/km |
-| Business trip, motorcycle/scooter | 0.20 €/km |
-| Cap for commutes without car | 4,500 €/year |
+**Dawarich**
+- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke
+- **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
+  Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
+  mit Projekt. Übernehmen, bearbeiten oder verwerfen.
+- Orte (Zuhause, Arbeit, Kunde) anlegen oder aus Dawarich-*Areas* übernehmen, optionale Adressauflösung
+  (Nominatim/Photon), nächtlicher Abgleich per Cronjob
 
-Rental car vs. own car: for **commutes** the vehicle does not change the Entfernungspauschale (only the cap).
-For **business trips** an own car gets the per-km rate, a rental car is deducted with its actual costs (enter them in *Kosten*).
+![Erkannte Fahrten](docs/erkannte-fahrten.png)
+
+**Fahrzeuge & Fahrtenbuch**
+- Fahrzeuge mit Kennzeichen, Halter, Nutzungszeitraum, km-Stand, Betriebsvermögen, 1-%-Regel/Fahrtenbuchmethode
+- **Mietvorgänge**: Miet- und Tankkosten werden auf alle Mietwagen-Fahrten im Zeitraum nach km verteilt —
+  abziehbar ist nur der Anteil der Dienstreisen
+- Fahrtenbuch pro Fahrzeug und Jahr mit Prüfung auf km-Stand-Lücken und fehlende Angaben, CSV und Druck/PDF
+- **Monatsabschluss** (danach nur mit Sonderrecht änderbar) und **Änderungsprotokoll** für jede Fahrt
+- Belege (PDF, Fotos) zu Fahrten und Mietvorgängen
+
+![Fahrtenbuch](docs/fahrtenbuch.png)
+
+**Steuer**
+- Steuerprofil pro Nutzer: **Selbstständig** (Betriebsausgaben/EÜR) oder **Arbeitnehmer** (Werbungskosten/Anlage N)
+- Entfernungspauschale mit den **Sätzen des jeweiligen Jahres** (bis 2025: 0,30 € bzw. 0,38 € ab km 21; ab 2026:
+  0,38 € ab km 1), einmal pro Tag, 4.500-€-Deckel ohne PKW, höhere ÖPNV-Kosten
+- Dienstreisen: eigener PKW 0,30 €/km, Motorrad 0,20 €/km, sonst tatsächliche Kosten; Firmenwagen bzw.
+  Betriebsvermögen ohne km-Pauschale
+- **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist
+- Selbstständige: **Privatnutzung** betrieblicher Fahrzeuge (1-%-Regel inkl. E-Auto/Hybrid-Faktor,
+  0,03-%-Zuschlag Wohnung–Betrieb, Privatanteil nach Fahrtenbuch)
+- **Plausibilitätsprüfung**: Arbeitswege ohne Arbeitszeit, am Wochenende, an Urlaubs-/Krankheitstagen
+  (mit dem [HolidayBundle](https://github.com/shrippen/kimai-holiday-bundle)), fehlende Angaben, offene Monate …
+- Jahresbericht im Browser und als **PDF**
+- **Kundenübersicht**: Dienstreisen je Kunde mit km und Kosten, zum Übertragen in eine Rechnung (z. B. Invoice Ninja)
+
+![Steuerbericht](docs/steuerbericht.png)
+
+**Team**
+- Optionale **Freigabe durch die Teamleitung**: Monat einreichen → freigeben oder mit Begründung zurückweisen
+- Teambericht pro Monat; Teamleitungen sehen nur ihre Teammitglieder
+
+![Team-Freigabe](docs/team-freigabe.png)
 
 ## Installation
 
 ```bash
-cd /path/to/kimai/var/plugins
+cd /pfad/zu/kimai/var/plugins
 git clone https://github.com/shrippen/kimai-anfahrten.git MileageBundle
+cd /pfad/zu/kimai
 bin/console kimai:reload -n
 bin/console kimai:bundle:mileage:install
 ```
 
-Docker (official image):
+`kimai:bundle:mileage:install` legt die Tabellen an und kopiert die Kartenbibliothek (Leaflet) nach
+`public/bundles/mileage`. Bei Updates: `git pull` im Plugin-Ordner und dieselben zwei Befehle.
+
+Docker (offizielles Image):
 
 ```bash
 docker exec -it CONTAINER /opt/kimai/bin/console kimai:reload -n
 docker exec -it CONTAINER /opt/kimai/bin/console kimai:bundle:mileage:install
 ```
 
-Then assign permissions under **System → Roles** (section *Fahrten*).
+Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
 
-## Dawarich setup
+## Einrichtung
 
-1. In Dawarich: *Account* → copy your **API key**.
-2. In Kimai: *Profil → Einstellungen* → **Dawarich-URL** (or set a default under *System → Einstellungen*) and **Dawarich-API-Key**.
-3. Add a trip, enter departure and arrival time, click **Strecke aus Dawarich berechnen**, check the value, save.
+1. **Profil → Einstellungen**: Steuerprofil, Wohn- und Arbeitsadresse, Entfernung Wohnung–Arbeit,
+   Standardfahrzeug, Kennzeichen, Dawarich-URL und API-Key (in Dawarich unter *Account*).
+2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
+3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
+4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
 
-Kimai must be able to reach your Dawarich instance over HTTP(S).
+   ```bash
+   # jede Nacht die letzten zwei Tage aller Nutzer mit Dawarich-Zugang
+   0 3 * * * /pfad/zu/kimai/bin/console kimai:bundle:mileage:suggest
+   ```
 
-## Permissions
+**System → Einstellungen** (Abschnitte *Fahrten & Fahrtkosten* und *Fahrten automatisch erkennen*): abweichende
+Sätze, Standard-Dawarich-URL, Geocoding-Server, Kartenkacheln (leer = keine Karten), Freigabe durch Teamleitung,
+Empfindlichkeit der Fahrterkennung.
 
-| Permission | Purpose |
-|---|---|
-| `mileage` | Access trips and tax report |
-| `edit_own_mileage` / `edit_other_mileage` | Create and edit trips |
-| `delete_own_mileage` / `delete_other_mileage` | Delete trips |
-| `view_other_mileage` | View other users' trips (`?user=ID`) |
+## Rechte
 
-## Roadmap
+| Recht | Zweck | Standard |
+|---|---|---|
+| `mileage` | Fahrten, Berichte, Einstellungen | alle |
+| `edit_own_mileage` / `delete_own_mileage` | eigene Fahrten | alle |
+| `lock_mileage` | eigene Monate abschließen bzw. einreichen | alle |
+| `view_team_mileage` | Fahrten der eigenen Teammitglieder sehen | Teamleitung |
+| `approve_mileage` | Monate der Teammitglieder freigeben | Teamleitung |
+| `view_other_mileage` / `edit_other_mileage` / `delete_other_mileage` | alle Nutzer | Admin |
+| `approve_other_mileage` | alle Monate freigeben | Admin |
+| `unlock_mileage` / `edit_locked_mileage` | Monate wieder öffnen / in abgeschlossenen Monaten ändern | Admin |
 
-See [ROADMAP.md](ROADMAP.md).
+## REST-API
 
-## License
+Authentifizierung mit einem Kimai-API-Token (`Authorization: Bearer …`, *Profil → API-Zugang*).
 
-GPL-3.0-or-later — see [LICENSE](LICENSE).
+| Methode | Pfad | |
+|---|---|---|
+| GET | `/api/mileage/meta` | Arten, Fahrzeugtypen, Steuerprofile |
+| GET | `/api/mileage/trips?year=2026&month=9` | Fahrten |
+| POST | `/api/mileage/trips` | Fahrt anlegen, z. B. `{"distanceKm": 12.5, "destination": "Kunde"}` oder `{"purpose": "commute"}` |
+| GET / PATCH / DELETE | `/api/mileage/trips/{id}` | einzelne Fahrt |
+| GET | `/api/mileage/vehicles` | Fahrzeuge |
+| GET | `/api/mileage/suggestions` | erkannte Fahrten |
+| POST | `/api/mileage/suggestions/{id}/accept` bzw. `/dismiss` | übernehmen (`{"purpose": "business", "vehicle": "own_car"}`) / verwerfen |
+| GET | `/api/mileage/tax/2026` | Jahreszusammenfassung |
+
+Beispiel für einen Handy-Kurzbefehl „Arbeitsweg heute":
+
+```bash
+curl -X POST https://kimai.example.com/api/mileage/trips \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"purpose": "commute"}'
+```
+
+## Konsolenbefehle
+
+```bash
+bin/console kimai:bundle:mileage:suggest [--month=2026-09] [--days=2] [--user=name]
+bin/console kimai:bundle:mileage:import fahrten.csv --user=name [--dry-run] [--keep-duplicates]
+```
+
+## Entwicklung
+
+```bash
+composer install
+git clone --depth 1 --branch 2.67.0 https://github.com/kimai/kimai.git .kimai   # für PHPStan
+composer check          # CS-Fixer (Prüfmodus), PHPStan Level 6, PHPUnit
+```
+
+Browser-Tests gegen ein echtes Kimai mit simuliertem Dawarich: [tests/e2e/README.md](tests/e2e/README.md).
+Alles läuft auch in GitHub Actions (PHP 8.1–8.4, PHPStan, E2E auf MariaDB).
+
+## Lizenz
+
+GPL-3.0-or-later — siehe [LICENSE](LICENSE). Enthält [Leaflet](https://leafletjs.com) (BSD-2-Clause,
+`Resources/public/leaflet/LICENSE`).

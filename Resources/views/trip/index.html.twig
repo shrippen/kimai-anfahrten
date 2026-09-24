@@ -48,9 +48,11 @@
             <div class="card">
                 <div class="card-body">
                     <div>{{ 'trip.total_distance'|trans }}: <strong>{{ summary.total_km|number_format(1, ',', '.') }} km</strong></div>
-                    <div>{{ 'tax.commute'|trans }}: {{ summary.commute.days }} {{ 'tax.days'|trans }} · {{ summary.commute.amount|number_format(2, ',', '.') }} €</div>
-                    <div>{{ 'tax.business'|trans }}: {{ summary.business_total|number_format(2, ',', '.') }} €</div>
-                    <div class="mt-1"><strong>{{ 'tax.total'|trans }}: {{ summary.total|number_format(2, ',', '.') }} €</strong></div>
+                    {% set p = summary.profile.value == 'self_employed' ? 'tax.se.' : 'tax.emp.' %}
+                    <div>{{ (p ~ 'commute')|trans }}: {{ summary.commute.days }} {{ 'tax.days'|trans }} · {{ summary.commute.amount|number_format(2, ',', '.') }} €</div>
+                    <div>{{ (p ~ 'business')|trans }}: {{ summary.business_total|number_format(2, ',', '.') }} €</div>
+                    {% if summary.meals.amount > 0 %}<div>{{ 'meal.title'|trans }}: {{ summary.meals.amount|number_format(2, ',', '.') }} €</div>{% endif %}
+                    <div class="mt-1"><strong>{{ (p ~ 'total')|trans }}: {{ summary.total|number_format(2, ',', '.') }} €</strong></div>
                 </div>
             </div>
         </div>
