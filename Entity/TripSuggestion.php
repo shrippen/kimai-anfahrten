@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use KimaiPlugin\MileageBundle\Enum\SuggestionStatus;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
+use KimaiPlugin\MileageBundle\Enum\VehicleType;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 
 /**
@@ -77,6 +78,14 @@ class TripSuggestion
     #[ORM\ManyToOne(targetEntity: Project::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Project $project = null;
+
+    /** Dawarich transportation mode (driving, train, …). */
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true)]
+    private ?string $mode = null;
+
+    /** Vehicle derived from the mode; null = the user's default vehicle. */
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true, enumType: VehicleType::class)]
+    private ?VehicleType $vehicle = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, enumType: SuggestionStatus::class)]
     private SuggestionStatus $status = SuggestionStatus::OPEN;
@@ -268,6 +277,30 @@ class TripSuggestion
     public function setProject(?Project $project): self
     {
         $this->project = $project;
+
+        return $this;
+    }
+
+    public function getMode(): ?string
+    {
+        return $this->mode;
+    }
+
+    public function setMode(?string $mode): self
+    {
+        $this->mode = $mode;
+
+        return $this;
+    }
+
+    public function getVehicle(): ?VehicleType
+    {
+        return $this->vehicle;
+    }
+
+    public function setVehicle(?VehicleType $vehicle): self
+    {
+        $this->vehicle = $vehicle;
 
         return $this;
     }

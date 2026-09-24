@@ -14,6 +14,8 @@ werden jeweils steuerlich passend behandelt.
 | **PHP** | ≥ 8.1 |
 | **Roadmap** | [ROADMAP.md](ROADMAP.md) |
 
+Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unter Zeiterfassung).
+
 ![Fahrten](docs/fahrten.png)
 
 ## Funktionen
@@ -27,6 +29,8 @@ werden jeweils steuerlich passend behandelt.
 **Dawarich**
 - Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke
 - **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
+  Fuß-, Lauf- und Radwege werden über den **Transportmodus von Dawarich** ausgeschlossen (abschaltbar);
+  bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel vorgeschlagen.
   Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
   mit Projekt. Übernehmen, bearbeiten oder verwerfen.
 - Orte (Zuhause, Arbeit, Kunde) anlegen oder aus Dawarich-*Areas* übernehmen, optionale Adressauflösung

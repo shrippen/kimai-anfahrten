@@ -7,6 +7,9 @@ use App\Utils\MenuItemModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
+/**
+ * Own section "Fahrten" in the sidebar, placed right after Kimai's time tracking.
+ */
 class MenuSubscriber implements EventSubscriberInterface
 {
     public function __construct(private readonly AuthorizationCheckerInterface $security)
@@ -26,26 +29,51 @@ class MenuSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $timesheets = $event->getTimesheetMenu();
-        if ($timesheets !== null && $timesheets->getChild('mileage_trips') === null) {
-            $item = new MenuItemModel('mileage_trips', 'menu.mileage', 'mileage_trips', [], 'fas fa-car');
-            $item->setTranslationDomain('messages');
-            $timesheets->addChild($item);
+        $root = $event->getMenu();
+        if ($root->getChild('mileage') !== null) {
+            return;
         }
 
-        $reporting = $event->getReportingMenu();
-        if ($reporting !== null && $reporting->getChild('mileage_tax_report') === null) {
-            $item = new MenuItemModel('mileage_tax_report', 'menu.mileage_tax', 'mileage_tax_report', [], 'fas fa-file-invoice');
-            $item->setTranslationDomain('messages');
-            $reporting->addChild($item);
-        }
+        $section = new MenuItemModel('mileage', 'menu.mileage', null, [], 'fas fa-car');
+        $section->setTranslationDomain('messages');
+
+        $items = [
+            ['mileage_trips', 'menu.mileage_trips', 'fas fa-list', ['mileage_trip_create', 'mileage_trip_edit', 'mileage_trip_duplicate', 'mileage_commutes', 'mileage_import', 'mileage_history']],
+            ['mileage_suggestions', 'suggestion.list', 'fas fa-satellite-dish', []],
+            ['mileage_vehicles', 'vehicle.list', 'fas fa-car-side', ['mileage_vehicle_create', 'mileage_vehicle_edit', 'mileage_logbook']],
+            ['mileage_rentals', 'rental.list', 'fas fa-key', ['mileage_rental_create', 'mileage_rental_edit', 'mileage_rental_show']],
+            ['mileage_places', 'place.list', 'fas fa-location-dot', ['mileage_place_create', 'mileage_place_edit']],
+            ['mileage_months', 'logbook.months', 'fas fa-lock', []],
+            ['mileage_overview', 'overview.title', 'fas fa-users', []],
+            ['mileage_tax_report', 'menu.mileage_tax', 'fas fa-file-invoice', []],
+        ];
 
         $teamAccess = $this->security->isGranted('approve_mileage') || $this->security->isGranted('approve_other_mileage')
             || $this->security->isGranted('view_other_mileage') || $this->security->isGranted('view_team_mileage');
-        if ($reporting !== null && $teamAccess && $reporting->getChild('mileage_team') === null) {
-            $item = new MenuItemModel('mileage_team', 'approval.team', 'mileage_team', [], 'fas fa-people-group');
+        if ($teamAccess) {
+            $items[] = ['mileage_team', 'approval.team', 'fas fa-people-group', []];
+        }
+
+        foreach ($items as [$route, $label, $icon, $childRoutes]) {
+            $item = new MenuItemModel($route, $label, $route, [], $icon);
             $item->setTranslationDomain('messages');
-            $reporting->addChild($item);
+            $item->setChildRoutes($childRoutes);
+            $section->addChild($item);
+        }
+
+        $root->addChild($section);
+
+        // Move the section directly behind "Zeiterfassung" (or keep it at the end).
+        $children = array_values(array_filter($root->getChildren(), static fn (MenuItemModel $c) => $c !== $section));
+        $position = null;
+        foreach ($children as $index => $child) {
+            if ($child->getIdentifier() === 'times') {
+                $position = $index + 1;
+            }
+        }
+        if ($position !== null) {
+            array_splice($children, $position, 0, [$section]);
+            $root->setChildren($children);
         }
     }
 }

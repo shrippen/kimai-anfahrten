@@ -94,6 +94,13 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                 ->setTranslation('mileage.detection_section')
                 ->setTranslationDomain('messages')
                 ->setConfiguration([
+                    (new Configuration('mileage.dawarich_exclude_non_motorized'))
+                        ->setLabel('mileage.dawarich_exclude_non_motorized')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(CheckboxType::class)
+                        ->setValue(true)
+                        ->setOptions(['help' => 'mileage.dawarich_exclude_non_motorized_help']),
                     (new Configuration('mileage.detect_stop_minutes'))
                         ->setLabel('mileage.detect_stop_minutes')
                         ->setTranslationDomain('messages')

@@ -18,7 +18,14 @@ final class DetectedTrip
         public readonly int $pointCount,
         public readonly ?GpsPoint $startAnchor = null,
         public readonly ?GpsPoint $endAnchor = null,
+        /** Dominant Dawarich transportation mode, if known. */
+        public readonly ?string $mode = null,
     ) {
+    }
+
+    public function withMode(?string $mode): self
+    {
+        return new self($this->start, $this->end, $this->distanceKm, $this->pointCount, $this->startAnchor, $this->endAnchor, $mode);
     }
 
     public function getStartLocation(): GpsPoint

@@ -8,6 +8,7 @@ use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\DistanceCalculator;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\TransportModeFilter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -25,7 +26,7 @@ class DawarichClientTest extends TestCase
 
     private function client(MockHttpClient $http): DawarichClient
     {
-        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration()), new DistanceCalculator());
+        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration()), new DistanceCalculator(), new TransportModeFilter());
     }
 
     public function testFetchesAllPagesWithBearerToken(): void
@@ -113,5 +114,42 @@ class DawarichClientTest extends TestCase
         ]));
 
         self::assertSame(4711, $this->client($http)->testConnection($this->user()));
+    }
+
+    public function testFetchesTransportSegmentsOfAllTracks(): void
+    {
+        $urls = [];
+        $http = new MockHttpClient(function (string $method, string $url) use (&$urls) {
+            $urls[] = $url;
+            $path = (string) parse_url($url, PHP_URL_PATH);
+            if ($path === '/api/v1/tracks') {
+                return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => [
+                    ['properties' => ['id' => 7, 'dominant_mode' => 'driving']],
+                    ['properties' => ['id' => 9, 'dominant_mode' => 'walking']],
+                ]]));
+            }
+            $id = (int) basename($path);
+
+            return new MockResponse(json_encode(['features' => [['properties' => ['segments' => [
+                ['mode' => $id === 7 ? 'driving' : 'walking', 'start_time' => $id * 100, 'end_time' => $id * 100 + 50],
+                ['mode' => 'unknown'], // legacy segment without times
+            ]]]]]));
+        });
+
+        $from = new \DateTimeImmutable('2026-01-01 00:00');
+        $segments = $this->client($http)->fetchTransportSegments($this->user(), $from, $from->modify('+1 day'));
+
+        self::assertCount(2, $segments);
+        self::assertSame('driving', $segments[0]->mode);
+        self::assertSame(900, $segments[1]->start);
+        self::assertStringContainsString('/api/v1/tracks/9', $urls[2]);
+    }
+
+    public function testOlderDawarichWithoutTracksApi(): void
+    {
+        $http = new MockHttpClient(new MockResponse('Not Found', ['http_code' => 404]));
+        $from = new \DateTimeImmutable('2026-01-01 00:00');
+
+        self::assertSame([], $this->client($http)->fetchTransportSegments($this->user(), $from, $from->modify('+1 day')));
     }
 }

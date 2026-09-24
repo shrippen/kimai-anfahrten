@@ -38,6 +38,18 @@ class MileageConfiguration
         return $value === null || $value === '' ? null : (float) str_replace(',', '.', (string) $value);
     }
 
+    /**
+     * Dawarich transportation modes that are cut out (on by default: walking, running, cycling).
+     *
+     * @return string[]
+     */
+    public function getExcludedTransportModes(): array
+    {
+        $value = $this->configuration->find('mileage.dawarich_exclude_non_motorized');
+
+        return $value === null || (bool) $value ? TransportModeFilter::NON_MOTORIZED : [];
+    }
+
     public function isApprovalEnabled(): bool
     {
         return (bool) ($this->configuration->find('mileage.approval_enabled') ?? false);

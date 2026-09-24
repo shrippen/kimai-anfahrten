@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Own sidebar section "Fahrten" (after time tracking) with all plugin pages
+- Dawarich transportation modes: walking, running and cycling parts of the tracks are excluded from
+  trip detection and distance measurement (setting, on by default); bus/train/motorcycle suggest the vehicle.
+  Works with Dawarich versions that have tracks with transportation modes, older ones are unaffected.
+
 ## [0.9.0] — 2026-09-24
 
 Roadmap phases 0.2–0.6 (see ROADMAP.md).

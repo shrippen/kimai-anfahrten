@@ -91,7 +91,7 @@ class SuggestionController extends AbstractController
 
         if ($suggestion->getStatus() === SuggestionStatus::OPEN) {
             $purpose = TripPurpose::tryFrom((string) $request->request->get('purpose')) ?? $suggestion->getPurpose();
-            $vehicle = VehicleType::tryFrom((string) $request->request->get('vehicle')) ?? $this->configuration->getDefaultVehicle($user);
+            $vehicle = VehicleType::tryFrom((string) $request->request->get('vehicle')) ?? $suggestion->getVehicle() ?? $this->configuration->getDefaultVehicle($user);
             $trip = $this->suggestionService->accept($suggestion, $purpose, $vehicle);
 
             if ($request->request->getBoolean('edit') && $trip->getId() !== null) {
@@ -130,7 +130,7 @@ class SuggestionController extends AbstractController
             if ($suggestion->getPurpose() === TripPurpose::PRIVATE) {
                 continue;
             }
-            $this->suggestionService->accept($suggestion, $suggestion->getPurpose(), $vehicle);
+            $this->suggestionService->accept($suggestion, $suggestion->getPurpose(), $suggestion->getVehicle() ?? $vehicle);
             $count++;
         }
 

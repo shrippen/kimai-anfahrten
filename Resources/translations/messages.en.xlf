@@ -334,1077 +334,1133 @@
         <source>tax.disclaimer</source>
         <target>Calculation aid only, no tax advice. Check the rates in the system settings.</target>
       </trans-unit>
-      <trans-unit id="m085" resname="tax.commute_days">
+      <trans-unit id="m083" resname="tax.commute_days">
         <source>tax.commute_days</source>
         <target>Workdays with commute</target>
       </trans-unit>
-      <trans-unit id="m086" resname="tax.commute_km">
+      <trans-unit id="m084" resname="tax.commute_km">
         <source>tax.commute_km</source>
         <target>Sum of one-way distances</target>
       </trans-unit>
-      <trans-unit id="m087" resname="tax.commute_car">
+      <trans-unit id="m085" resname="tax.commute_car">
         <source>tax.commute_car</source>
         <target>thereof by car (own, company or rental)</target>
       </trans-unit>
-      <trans-unit id="m088" resname="tax.commute_other">
+      <trans-unit id="m086" resname="tax.commute_other">
         <source>tax.commute_other</source>
         <target>thereof by other means of transport</target>
       </trans-unit>
-      <trans-unit id="m089" resname="tax.commute_total">
+      <trans-unit id="m087" resname="tax.commute_total">
         <source>tax.commute_total</source>
         <target>Commuting allowance total</target>
       </trans-unit>
-      <trans-unit id="m090" resname="tax.capped">
+      <trans-unit id="m088" resname="tax.capped">
         <source>tax.capped</source>
         <target>capped at €%cap%</target>
       </trans-unit>
-      <trans-unit id="m091" resname="tax.public_transport_costs">
+      <trans-unit id="m089" resname="tax.public_transport_costs">
         <source>tax.public_transport_costs</source>
         <target>Actual public transport costs (used if higher)</target>
       </trans-unit>
-      <trans-unit id="m094" resname="tax.business_total">
+      <trans-unit id="m090" resname="tax.business_total">
         <source>tax.business_total</source>
         <target>Business travel total</target>
       </trans-unit>
-      <trans-unit id="m095" resname="tax.method.km">
+      <trans-unit id="m091" resname="tax.method.km">
         <source>tax.method.km</source>
         <target>Per-km allowance</target>
       </trans-unit>
-      <trans-unit id="m096" resname="tax.method.costs">
+      <trans-unit id="m092" resname="tax.method.costs">
         <source>tax.method.costs</source>
         <target>Actual costs</target>
       </trans-unit>
-      <trans-unit id="m097" resname="tax.method.employer">
+      <trans-unit id="m093" resname="tax.method.employer">
         <source>tax.method.employer</source>
         <target>Provided by employer — not deductible</target>
       </trans-unit>
-      <trans-unit id="m098" resname="tax.trips">
+      <trans-unit id="m094" resname="tax.trips">
         <source>tax.trips</source>
         <target>trips</target>
       </trans-unit>
-      <trans-unit id="m099" resname="tax.days">
+      <trans-unit id="m095" resname="tax.days">
         <source>tax.days</source>
         <target>days</target>
       </trans-unit>
-      <trans-unit id="m100" resname="tax.rate">
+      <trans-unit id="m096" resname="tax.rate">
         <source>tax.rate</source>
         <target>Rate</target>
       </trans-unit>
-      <trans-unit id="m101" resname="tax.deductible">
+      <trans-unit id="m097" resname="tax.deductible">
         <source>tax.deductible</source>
         <target>Deductible</target>
       </trans-unit>
-      <trans-unit id="m102" resname="tax.private_hint">
+      <trans-unit id="m098" resname="tax.private_hint">
         <source>tax.private_hint</source>
         <target>Private trips are not deductible and only kept for the logbook.</target>
       </trans-unit>
-      <trans-unit id="m104" resname="dawarich.test">
+      <trans-unit id="m099" resname="dawarich.test">
         <source>dawarich.test</source>
         <target>Test Dawarich connection</target>
       </trans-unit>
-      <trans-unit id="m105" resname="dawarich.test_ok">
+      <trans-unit id="m100" resname="dawarich.test_ok">
         <source>dawarich.test_ok</source>
         <target>Dawarich connection OK — %count% GPS points in the last 30 days.</target>
       </trans-unit>
-      <trans-unit id="m106" resname="mileage.geocoder_url">
+      <trans-unit id="m101" resname="mileage.geocoder_url">
         <source>mileage.geocoder_url</source>
         <target>Geocoding server (optional)</target>
       </trans-unit>
-      <trans-unit id="m107" resname="mileage.geocoder_url_help">
+      <trans-unit id="m102" resname="mileage.geocoder_url_help">
         <source>mileage.geocoder_url_help</source>
         <target>Nominatim or Photon compatible, e.g. https://nominatim.openstreetmap.org (mind the usage policy) or your own instance. Empty = coordinates instead of addresses.</target>
       </trans-unit>
-      <trans-unit id="m108" resname="mileage.map_tiles_url">
+      <trans-unit id="m103" resname="mileage.map_tiles_url">
         <source>mileage.map_tiles_url</source>
         <target>Map tiles (URL template)</target>
       </trans-unit>
-      <trans-unit id="m109" resname="mileage.map_tiles_url_help">
+      <trans-unit id="m104" resname="mileage.map_tiles_url_help">
         <source>mileage.map_tiles_url_help</source>
         <target>Leave empty to disable all maps. Default: OpenStreetMap.</target>
       </trans-unit>
-      <trans-unit id="m110" resname="mileage.map_attribution">
+      <trans-unit id="m105" resname="mileage.map_attribution">
         <source>mileage.map_attribution</source>
         <target>Map attribution</target>
       </trans-unit>
-      <trans-unit id="m111" resname="mileage.detection_section">
+      <trans-unit id="m106" resname="mileage.detection_section">
         <source>mileage.detection_section</source>
         <target>Automatic trip detection (Dawarich)</target>
       </trans-unit>
-      <trans-unit id="m112" resname="mileage.detect_stop_minutes">
+      <trans-unit id="m107" resname="mileage.detect_stop_minutes">
         <source>mileage.detect_stop_minutes</source>
         <target>Minimum stop duration (minutes)</target>
       </trans-unit>
-      <trans-unit id="m113" resname="mileage.detect_stop_minutes_help">
+      <trans-unit id="m108" resname="mileage.detect_stop_minutes_help">
         <source>mileage.detect_stop_minutes_help</source>
         <target>Staying this long at one place ends a trip.</target>
       </trans-unit>
-      <trans-unit id="m114" resname="mileage.detect_stop_radius">
+      <trans-unit id="m109" resname="mileage.detect_stop_radius">
         <source>mileage.detect_stop_radius</source>
         <target>Stop radius (m)</target>
       </trans-unit>
-      <trans-unit id="m115" resname="mileage.detect_min_km">
+      <trans-unit id="m110" resname="mileage.detect_min_km">
         <source>mileage.detect_min_km</source>
         <target>Shortest detected trip (km)</target>
       </trans-unit>
-      <trans-unit id="m116" resname="trip.map_empty">
+      <trans-unit id="m111" resname="trip.map_empty">
         <source>trip.map_empty</source>
         <target>No GPS data for this time window</target>
       </trans-unit>
-      <trans-unit id="m117" resname="suggestion.list">
+      <trans-unit id="m112" resname="suggestion.list">
         <source>suggestion.list</source>
         <target>Detected trips</target>
       </trans-unit>
-      <trans-unit id="m118" resname="suggestion.help">
+      <trans-unit id="m113" resname="suggestion.help">
         <source>suggestion.help</source>
         <target>Trips found in your Dawarich history. Choose type and vehicle and accept — only then a trip is created.</target>
       </trans-unit>
-      <trans-unit id="m119" resname="suggestion.from">
+      <trans-unit id="m114" resname="suggestion.from">
         <source>suggestion.from</source>
         <target>From</target>
       </trans-unit>
-      <trans-unit id="m120" resname="suggestion.to">
+      <trans-unit id="m115" resname="suggestion.to">
         <source>suggestion.to</source>
         <target>To</target>
       </trans-unit>
-      <trans-unit id="m121" resname="suggestion.detect">
+      <trans-unit id="m116" resname="suggestion.detect">
         <source>suggestion.detect</source>
         <target>Detect trips</target>
       </trans-unit>
-      <trans-unit id="m122" resname="suggestion.detect_help">
+      <trans-unit id="m117" resname="suggestion.detect_help">
         <source>suggestion.detect_help</source>
         <target>At most 3 months at once. Trips already detected are not duplicated.</target>
       </trans-unit>
-      <trans-unit id="m123" resname="suggestion.detected">
+      <trans-unit id="m118" resname="suggestion.detected">
         <source>suggestion.detected</source>
         <target>%count% new trips detected.</target>
       </trans-unit>
-      <trans-unit id="m124" resname="suggestion.error.range">
+      <trans-unit id="m119" resname="suggestion.error.range">
         <source>suggestion.error.range</source>
         <target>Invalid date range (at most 3 months).</target>
       </trans-unit>
-      <trans-unit id="m125" resname="suggestion.open">
+      <trans-unit id="m120" resname="suggestion.open">
         <source>suggestion.open</source>
         <target>Open suggestions</target>
       </trans-unit>
-      <trans-unit id="m126" resname="suggestion.empty">
+      <trans-unit id="m121" resname="suggestion.empty">
         <source>suggestion.empty</source>
         <target>No open suggestions.</target>
       </trans-unit>
-      <trans-unit id="m127" resname="suggestion.accept">
+      <trans-unit id="m122" resname="suggestion.accept">
         <source>suggestion.accept</source>
         <target>Accept</target>
       </trans-unit>
-      <trans-unit id="m128" resname="suggestion.accept_edit">
+      <trans-unit id="m123" resname="suggestion.accept_edit">
         <source>suggestion.accept_edit</source>
         <target>Accept and edit</target>
       </trans-unit>
-      <trans-unit id="m129" resname="suggestion.dismiss">
+      <trans-unit id="m124" resname="suggestion.dismiss">
         <source>suggestion.dismiss</source>
         <target>Dismiss</target>
       </trans-unit>
-      <trans-unit id="m130" resname="suggestion.accept_all">
+      <trans-unit id="m125" resname="suggestion.accept_all">
         <source>suggestion.accept_all</source>
         <target>Accept all business-related</target>
       </trans-unit>
-      <trans-unit id="m131" resname="suggestion.accept_all_confirm">
+      <trans-unit id="m126" resname="suggestion.accept_all_confirm">
         <source>suggestion.accept_all_confirm</source>
         <target>Accept all suggestions except private trips with the default vehicle?</target>
       </trans-unit>
-      <trans-unit id="m132" resname="suggestion.accepted_all">
+      <trans-unit id="m127" resname="suggestion.accepted_all">
         <source>suggestion.accepted_all</source>
         <target>%count% trips accepted.</target>
       </trans-unit>
-      <trans-unit id="m133" resname="suggestion.status.open">
+      <trans-unit id="m128" resname="suggestion.status.open">
         <source>suggestion.status.open</source>
         <target>Open</target>
       </trans-unit>
-      <trans-unit id="m134" resname="suggestion.status.accepted">
+      <trans-unit id="m129" resname="suggestion.status.accepted">
         <source>suggestion.status.accepted</source>
         <target>Accepted</target>
       </trans-unit>
-      <trans-unit id="m135" resname="suggestion.status.dismissed">
+      <trans-unit id="m130" resname="suggestion.status.dismissed">
         <source>suggestion.status.dismissed</source>
         <target>Dismissed</target>
       </trans-unit>
-      <trans-unit id="m136" resname="place.list">
+      <trans-unit id="m131" resname="place.list">
         <source>place.list</source>
         <target>Places</target>
       </trans-unit>
-      <trans-unit id="m137" resname="place.help">
+      <trans-unit id="m132" resname="place.help">
         <source>place.help</source>
         <target>Named places make detected trips readable: home ↔ office is suggested as commute, customer sites as business trip.</target>
       </trans-unit>
-      <trans-unit id="m138" resname="place.create">
+      <trans-unit id="m133" resname="place.create">
         <source>place.create</source>
         <target>Add place</target>
       </trans-unit>
-      <trans-unit id="m139" resname="place.edit">
+      <trans-unit id="m134" resname="place.edit">
         <source>place.edit</source>
         <target>Edit place</target>
       </trans-unit>
-      <trans-unit id="m140" resname="place.empty">
+      <trans-unit id="m135" resname="place.empty">
         <source>place.empty</source>
         <target>No places yet.</target>
       </trans-unit>
-      <trans-unit id="m141" resname="place.import">
+      <trans-unit id="m136" resname="place.import">
         <source>place.import</source>
         <target>Import Dawarich areas</target>
       </trans-unit>
-      <trans-unit id="m142" resname="place.imported">
+      <trans-unit id="m137" resname="place.imported">
         <source>place.imported</source>
         <target>%count% places imported from Dawarich.</target>
       </trans-unit>
-      <trans-unit id="m143" resname="place.name">
+      <trans-unit id="m138" resname="place.name">
         <source>place.name</source>
         <target>Name</target>
       </trans-unit>
-      <trans-unit id="m144" resname="place.type">
+      <trans-unit id="m139" resname="place.type">
         <source>place.type</source>
         <target>Type</target>
       </trans-unit>
-      <trans-unit id="m145" resname="place.type.home">
+      <trans-unit id="m140" resname="place.type.home">
         <source>place.type.home</source>
         <target>Home</target>
       </trans-unit>
-      <trans-unit id="m146" resname="place.type.work">
+      <trans-unit id="m141" resname="place.type.work">
         <source>place.type.work</source>
         <target>Work / business premises</target>
       </trans-unit>
-      <trans-unit id="m147" resname="place.type.customer">
+      <trans-unit id="m142" resname="place.type.customer">
         <source>place.type.customer</source>
         <target>Customer</target>
       </trans-unit>
-      <trans-unit id="m148" resname="place.type.other">
+      <trans-unit id="m143" resname="place.type.other">
         <source>place.type.other</source>
         <target>Other</target>
       </trans-unit>
-      <trans-unit id="m149" resname="place.address">
+      <trans-unit id="m144" resname="place.address">
         <source>place.address</source>
         <target>Address</target>
       </trans-unit>
-      <trans-unit id="m150" resname="place.latitude">
+      <trans-unit id="m145" resname="place.latitude">
         <source>place.latitude</source>
         <target>Latitude</target>
       </trans-unit>
-      <trans-unit id="m151" resname="place.longitude">
+      <trans-unit id="m146" resname="place.longitude">
         <source>place.longitude</source>
         <target>Longitude</target>
       </trans-unit>
-      <trans-unit id="m152" resname="place.radius">
+      <trans-unit id="m147" resname="place.radius">
         <source>place.radius</source>
         <target>Radius</target>
       </trans-unit>
-      <trans-unit id="m153" resname="place.radius_help">
+      <trans-unit id="m148" resname="place.radius_help">
         <source>place.radius_help</source>
         <target>Metres. A start or end point within this radius counts as this place.</target>
       </trans-unit>
-      <trans-unit id="m154" resname="place.customer">
+      <trans-unit id="m149" resname="place.customer">
         <source>place.customer</source>
         <target>Customer</target>
       </trans-unit>
-      <trans-unit id="m155" resname="place.map_help">
+      <trans-unit id="m150" resname="place.map_help">
         <source>place.map_help</source>
         <target>Take coordinates e.g. from OpenStreetMap or Google Maps (right click).</target>
       </trans-unit>
-      <trans-unit id="m156" resname="place.save_start">
+      <trans-unit id="m151" resname="place.save_start">
         <source>place.save_start</source>
         <target>Save start as place</target>
       </trans-unit>
-      <trans-unit id="m157" resname="place.save_end">
+      <trans-unit id="m152" resname="place.save_end">
         <source>place.save_end</source>
         <target>Save destination as place</target>
       </trans-unit>
-      <trans-unit id="m158" resname="trip.label">
+      <trans-unit id="m153" resname="trip.label">
         <source>trip.label</source>
         <target>Trip</target>
       </trans-unit>
-      <trans-unit id="m159" resname="suggestion.open_hint">
+      <trans-unit id="m154" resname="suggestion.open_hint">
         <source>suggestion.open_hint</source>
         <target>%count% detected trips are waiting for your confirmation.</target>
       </trans-unit>
-      <trans-unit id="m160" resname="vehicle.list">
+      <trans-unit id="m155" resname="vehicle.list">
         <source>vehicle.list</source>
         <target>Vehicles</target>
       </trans-unit>
-      <trans-unit id="m161" resname="vehicle.help">
+      <trans-unit id="m156" resname="vehicle.help">
         <source>vehicle.help</source>
         <target>Vehicles for the logbook: own car, company car, long-term rentals. Single rentals are better recorded as rental.</target>
       </trans-unit>
-      <trans-unit id="m162" resname="vehicle.create">
+      <trans-unit id="m157" resname="vehicle.create">
         <source>vehicle.create</source>
         <target>Add vehicle</target>
       </trans-unit>
-      <trans-unit id="m163" resname="vehicle.edit">
+      <trans-unit id="m158" resname="vehicle.edit">
         <source>vehicle.edit</source>
         <target>Edit vehicle</target>
       </trans-unit>
-      <trans-unit id="m164" resname="vehicle.empty">
+      <trans-unit id="m159" resname="vehicle.empty">
         <source>vehicle.empty</source>
         <target>No vehicles yet.</target>
       </trans-unit>
-      <trans-unit id="m165" resname="vehicle.name">
+      <trans-unit id="m160" resname="vehicle.name">
         <source>vehicle.name</source>
         <target>Name</target>
       </trans-unit>
-      <trans-unit id="m166" resname="vehicle.holder">
+      <trans-unit id="m161" resname="vehicle.holder">
         <source>vehicle.holder</source>
         <target>Registered owner</target>
       </trans-unit>
-      <trans-unit id="m167" resname="vehicle.valid_from">
+      <trans-unit id="m162" resname="vehicle.valid_from">
         <source>vehicle.valid_from</source>
         <target>In use from</target>
       </trans-unit>
-      <trans-unit id="m168" resname="vehicle.valid_to">
+      <trans-unit id="m163" resname="vehicle.valid_to">
         <source>vehicle.valid_to</source>
         <target>In use until</target>
       </trans-unit>
-      <trans-unit id="m169" resname="vehicle.initial_odometer">
+      <trans-unit id="m164" resname="vehicle.initial_odometer">
         <source>vehicle.initial_odometer</source>
         <target>Odometer when added</target>
       </trans-unit>
-      <trans-unit id="m170" resname="vehicle.business_asset">
+      <trans-unit id="m165" resname="vehicle.business_asset">
         <source>vehicle.business_asset</source>
         <target>Business asset</target>
       </trans-unit>
-      <trans-unit id="m171" resname="vehicle.business_asset_help">
+      <trans-unit id="m166" resname="vehicle.business_asset_help">
         <source>vehicle.business_asset_help</source>
         <target>Self-employed only: the vehicle is a business asset (more than 50 % business use).</target>
       </trans-unit>
-      <trans-unit id="m172" resname="vehicle.private_use">
+      <trans-unit id="m167" resname="vehicle.private_use">
         <source>vehicle.private_use</source>
         <target>Private use</target>
       </trans-unit>
-      <trans-unit id="m173" resname="vehicle.private_use_help">
+      <trans-unit id="m168" resname="vehicle.private_use_help">
         <source>vehicle.private_use_help</source>
         <target>How private use of a business vehicle is taxed.</target>
       </trans-unit>
-      <trans-unit id="m174" resname="vehicle.private_use.none">
+      <trans-unit id="m169" resname="vehicle.private_use.none">
         <source>vehicle.private_use.none</source>
         <target>None / not applicable</target>
       </trans-unit>
-      <trans-unit id="m175" resname="vehicle.private_use.one_percent">
+      <trans-unit id="m170" resname="vehicle.private_use.one_percent">
         <source>vehicle.private_use.one_percent</source>
         <target>1 % rule</target>
       </trans-unit>
-      <trans-unit id="m176" resname="vehicle.private_use.logbook">
+      <trans-unit id="m171" resname="vehicle.private_use.logbook">
         <source>vehicle.private_use.logbook</source>
         <target>Logbook method</target>
       </trans-unit>
-      <trans-unit id="m177" resname="vehicle.list_price">
+      <trans-unit id="m172" resname="vehicle.list_price">
         <source>vehicle.list_price</source>
         <target>Gross list price (€)</target>
       </trans-unit>
-      <trans-unit id="m178" resname="vehicle.list_price_help">
+      <trans-unit id="m173" resname="vehicle.list_price_help">
         <source>vehicle.list_price_help</source>
         <target>Domestic list price incl. extras and VAT, for the 1 % rule.</target>
       </trans-unit>
-      <trans-unit id="m179" resname="vehicle.list_price_factor">
+      <trans-unit id="m174" resname="vehicle.list_price_factor">
         <source>vehicle.list_price_factor</source>
         <target>Drive (assessment base)</target>
       </trans-unit>
-      <trans-unit id="m180" resname="vehicle.factor.full">
+      <trans-unit id="m175" resname="vehicle.factor.full">
         <source>vehicle.factor.full</source>
         <target>Combustion (100 %)</target>
       </trans-unit>
-      <trans-unit id="m181" resname="vehicle.factor.hybrid">
+      <trans-unit id="m176" resname="vehicle.factor.hybrid">
         <source>vehicle.factor.hybrid</source>
         <target>Plug-in hybrid (50 %)</target>
       </trans-unit>
-      <trans-unit id="m182" resname="vehicle.factor.electric">
+      <trans-unit id="m177" resname="vehicle.factor.electric">
         <source>vehicle.factor.electric</source>
         <target>Electric (25 %)</target>
       </trans-unit>
-      <trans-unit id="m183" resname="vehicle.active">
+      <trans-unit id="m178" resname="vehicle.active">
         <source>vehicle.active</source>
         <target>Active</target>
       </trans-unit>
-      <trans-unit id="m184" resname="vehicle.inactive">
+      <trans-unit id="m179" resname="vehicle.inactive">
         <source>vehicle.inactive</source>
         <target>inactive</target>
       </trans-unit>
-      <trans-unit id="m185" resname="vehicle.assigned">
+      <trans-unit id="m180" resname="vehicle.assigned">
         <source>vehicle.assigned</source>
         <target>Vehicle (logbook)</target>
       </trans-unit>
-      <trans-unit id="m186" resname="vehicle.assigned_help">
+      <trans-unit id="m181" resname="vehicle.assigned_help">
         <source>vehicle.assigned_help</source>
         <target>Takes over vehicle type and license plate.</target>
       </trans-unit>
-      <trans-unit id="m187" resname="vehicle.error.period">
+      <trans-unit id="m182" resname="vehicle.error.period">
         <source>vehicle.error.period</source>
         <target>The end must be after the start.</target>
       </trans-unit>
-      <trans-unit id="m188" resname="rental.list">
+      <trans-unit id="m183" resname="rental.list">
         <source>rental.list</source>
         <target>Rentals</target>
       </trans-unit>
-      <trans-unit id="m189" resname="rental.label">
+      <trans-unit id="m184" resname="rental.label">
         <source>rental.label</source>
         <target>Rental</target>
       </trans-unit>
-      <trans-unit id="m190" resname="rental.help">
+      <trans-unit id="m185" resname="rental.help">
         <source>rental.help</source>
         <target>A rental bundles rental and fuel costs. All rental-car trips in the period are linked and share the costs by kilometres.</target>
       </trans-unit>
-      <trans-unit id="m191" resname="rental.create">
+      <trans-unit id="m186" resname="rental.create">
         <source>rental.create</source>
         <target>Add rental</target>
       </trans-unit>
-      <trans-unit id="m192" resname="rental.edit">
+      <trans-unit id="m187" resname="rental.edit">
         <source>rental.edit</source>
         <target>Edit rental</target>
       </trans-unit>
-      <trans-unit id="m193" resname="rental.empty">
+      <trans-unit id="m188" resname="rental.empty">
         <source>rental.empty</source>
         <target>No rentals this year.</target>
       </trans-unit>
-      <trans-unit id="m194" resname="rental.provider">
+      <trans-unit id="m189" resname="rental.provider">
         <source>rental.provider</source>
         <target>Rental company</target>
       </trans-unit>
-      <trans-unit id="m195" resname="rental.start">
+      <trans-unit id="m190" resname="rental.start">
         <source>rental.start</source>
         <target>Pick-up</target>
       </trans-unit>
-      <trans-unit id="m196" resname="rental.end">
+      <trans-unit id="m191" resname="rental.end">
         <source>rental.end</source>
         <target>Return</target>
       </trans-unit>
-      <trans-unit id="m197" resname="rental.costs">
+      <trans-unit id="m192" resname="rental.costs">
         <source>rental.costs</source>
         <target>Rental costs (€)</target>
       </trans-unit>
-      <trans-unit id="m198" resname="rental.costs_help">
+      <trans-unit id="m193" resname="rental.costs_help">
         <source>rental.costs_help</source>
         <target>Rent incl. insurance and fees.</target>
       </trans-unit>
-      <trans-unit id="m199" resname="rental.fuel_costs">
+      <trans-unit id="m194" resname="rental.fuel_costs">
         <source>rental.fuel_costs</source>
         <target>Fuel / charging costs (€)</target>
       </trans-unit>
-      <trans-unit id="m200" resname="rental.total">
+      <trans-unit id="m195" resname="rental.total">
         <source>rental.total</source>
         <target>Total costs</target>
       </trans-unit>
-      <trans-unit id="m201" resname="rental.share">
+      <trans-unit id="m196" resname="rental.share">
         <source>rental.share</source>
         <target>Cost share</target>
       </trans-unit>
-      <trans-unit id="m202" resname="rental.business_share">
+      <trans-unit id="m197" resname="rental.business_share">
         <source>rental.business_share</source>
         <target>Thereof business trips (deductible)</target>
       </trans-unit>
-      <trans-unit id="m203" resname="rental.no_trips">
+      <trans-unit id="m198" resname="rental.no_trips">
         <source>rental.no_trips</source>
         <target>No rental-car trips in this period yet.</target>
       </trans-unit>
-      <trans-unit id="m204" resname="rental.linked">
+      <trans-unit id="m199" resname="rental.linked">
         <source>rental.linked</source>
         <target>Saved — %count% trips linked.</target>
       </trans-unit>
-      <trans-unit id="m205" resname="rental.trip_help">
+      <trans-unit id="m200" resname="rental.trip_help">
         <source>rental.trip_help</source>
         <target>Linked automatically by date for rental-car trips. The trip's costs are then extras only (tolls, parking).</target>
       </trans-unit>
-      <trans-unit id="m206" resname="odometer.start">
+      <trans-unit id="m201" resname="odometer.start">
         <source>odometer.start</source>
         <target>Odometer start</target>
       </trans-unit>
-      <trans-unit id="m207" resname="odometer.end">
+      <trans-unit id="m202" resname="odometer.end">
         <source>odometer.end</source>
         <target>Odometer end</target>
       </trans-unit>
-      <trans-unit id="m208" resname="odometer.error.order">
+      <trans-unit id="m203" resname="odometer.error.order">
         <source>odometer.error.order</source>
         <target>The end reading must be greater than the start reading.</target>
       </trans-unit>
-      <trans-unit id="m209" resname="attachment.list">
+      <trans-unit id="m204" resname="attachment.list">
         <source>attachment.list</source>
         <target>Receipts</target>
       </trans-unit>
-      <trans-unit id="m210" resname="attachment.empty">
+      <trans-unit id="m205" resname="attachment.empty">
         <source>attachment.empty</source>
         <target>No receipts.</target>
       </trans-unit>
-      <trans-unit id="m211" resname="attachment.upload">
+      <trans-unit id="m206" resname="attachment.upload">
         <source>attachment.upload</source>
         <target>Upload</target>
       </trans-unit>
-      <trans-unit id="m212" resname="attachment.help">
+      <trans-unit id="m207" resname="attachment.help">
         <source>attachment.help</source>
         <target>PDF or photo, at most 10 MB.</target>
       </trans-unit>
-      <trans-unit id="m213" resname="attachment.error.upload">
+      <trans-unit id="m208" resname="attachment.error.upload">
         <source>attachment.error.upload</source>
         <target>The upload failed.</target>
       </trans-unit>
-      <trans-unit id="m214" resname="attachment.error.size">
+      <trans-unit id="m209" resname="attachment.error.size">
         <source>attachment.error.size</source>
         <target>The file is too large (max. %max% MB).</target>
       </trans-unit>
-      <trans-unit id="m215" resname="attachment.error.type">
+      <trans-unit id="m210" resname="attachment.error.type">
         <source>attachment.error.type</source>
         <target>Only PDF and image files are allowed.</target>
       </trans-unit>
-      <trans-unit id="m216" resname="logbook.title">
+      <trans-unit id="m211" resname="logbook.title">
         <source>logbook.title</source>
         <target>Logbook</target>
       </trans-unit>
-      <trans-unit id="m217" resname="logbook.print">
+      <trans-unit id="m212" resname="logbook.print">
         <source>logbook.print</source>
         <target>Print / PDF</target>
       </trans-unit>
-      <trans-unit id="m218" resname="logbook.reason">
+      <trans-unit id="m213" resname="logbook.reason">
         <source>logbook.reason</source>
         <target>Purpose of trip</target>
       </trans-unit>
-      <trans-unit id="m219" resname="logbook.partner">
+      <trans-unit id="m214" resname="logbook.partner">
         <source>logbook.partner</source>
         <target>Business partner</target>
       </trans-unit>
-      <trans-unit id="m220" resname="logbook.empty">
+      <trans-unit id="m215" resname="logbook.empty">
         <source>logbook.empty</source>
         <target>No trips with this vehicle this year.</target>
       </trans-unit>
-      <trans-unit id="m221" resname="logbook.gaps">
+      <trans-unit id="m216" resname="logbook.gaps">
         <source>logbook.gaps</source>
         <target>%count% gaps or overlaps in the odometer readings — tax offices reject incomplete logbooks.</target>
       </trans-unit>
-      <trans-unit id="m222" resname="logbook.km.business">
+      <trans-unit id="m217" resname="logbook.km.business">
         <source>logbook.km.business</source>
         <target>Business</target>
       </trans-unit>
-      <trans-unit id="m223" resname="logbook.km.commute">
+      <trans-unit id="m218" resname="logbook.km.commute">
         <source>logbook.km.commute</source>
         <target>Commute</target>
       </trans-unit>
-      <trans-unit id="m224" resname="logbook.km.private">
+      <trans-unit id="m219" resname="logbook.km.private">
         <source>logbook.km.private</source>
         <target>Private</target>
       </trans-unit>
-      <trans-unit id="m225" resname="logbook.km.unrecorded">
+      <trans-unit id="m220" resname="logbook.km.unrecorded">
         <source>logbook.km.unrecorded</source>
         <target>Unrecorded (gaps)</target>
       </trans-unit>
-      <trans-unit id="m226" resname="logbook.warning.odometer_missing">
+      <trans-unit id="m221" resname="logbook.warning.odometer_missing">
         <source>logbook.warning.odometer_missing</source>
         <target>Odometer missing</target>
       </trans-unit>
-      <trans-unit id="m227" resname="logbook.warning.odometer_gap">
+      <trans-unit id="m222" resname="logbook.warning.odometer_gap">
         <source>logbook.warning.odometer_gap</source>
         <target>Gap to previous odometer</target>
       </trans-unit>
-      <trans-unit id="m228" resname="logbook.warning.odometer_overlap">
+      <trans-unit id="m223" resname="logbook.warning.odometer_overlap">
         <source>logbook.warning.odometer_overlap</source>
         <target>Overlaps previous trip</target>
       </trans-unit>
-      <trans-unit id="m229" resname="logbook.warning.distance_mismatch">
+      <trans-unit id="m224" resname="logbook.warning.distance_mismatch">
         <source>logbook.warning.distance_mismatch</source>
         <target>Odometer does not match distance</target>
       </trans-unit>
-      <trans-unit id="m230" resname="logbook.warning.purpose_missing">
+      <trans-unit id="m225" resname="logbook.warning.purpose_missing">
         <source>logbook.warning.purpose_missing</source>
         <target>Purpose missing</target>
       </trans-unit>
-      <trans-unit id="m231" resname="logbook.warning.destination_missing">
+      <trans-unit id="m226" resname="logbook.warning.destination_missing">
         <source>logbook.warning.destination_missing</source>
         <target>Destination missing</target>
       </trans-unit>
-      <trans-unit id="m232" resname="logbook.months">
+      <trans-unit id="m227" resname="logbook.months">
         <source>logbook.months</source>
         <target>Month closing</target>
       </trans-unit>
-      <trans-unit id="m233" resname="logbook.months_help">
+      <trans-unit id="m228" resname="logbook.months_help">
         <source>logbook.months_help</source>
         <target>Closed months cannot be changed any more (only with a special permission, and every change is logged). This keeps the logbook contemporaneous and tamper-evident.</target>
       </trans-unit>
-      <trans-unit id="m234" resname="logbook.month">
+      <trans-unit id="m229" resname="logbook.month">
         <source>logbook.month</source>
         <target>Month</target>
       </trans-unit>
-      <trans-unit id="m235" resname="logbook.status">
+      <trans-unit id="m230" resname="logbook.status">
         <source>logbook.status</source>
         <target>Status</target>
       </trans-unit>
-      <trans-unit id="m236" resname="logbook.month_locked">
+      <trans-unit id="m231" resname="logbook.month_locked">
         <source>logbook.month_locked</source>
         <target>Closed</target>
       </trans-unit>
-      <trans-unit id="m237" resname="logbook.month_open">
+      <trans-unit id="m232" resname="logbook.month_open">
         <source>logbook.month_open</source>
         <target>Open</target>
       </trans-unit>
-      <trans-unit id="m238" resname="logbook.month_locked_hint">
+      <trans-unit id="m233" resname="logbook.month_locked_hint">
         <source>logbook.month_locked_hint</source>
         <target>This month is closed.</target>
       </trans-unit>
-      <trans-unit id="m239" resname="logbook.lock">
+      <trans-unit id="m234" resname="logbook.lock">
         <source>logbook.lock</source>
         <target>Close</target>
       </trans-unit>
-      <trans-unit id="m240" resname="logbook.unlock">
+      <trans-unit id="m235" resname="logbook.unlock">
         <source>logbook.unlock</source>
         <target>Reopen</target>
       </trans-unit>
-      <trans-unit id="m241" resname="logbook.lock_confirm">
+      <trans-unit id="m236" resname="logbook.lock_confirm">
         <source>logbook.lock_confirm</source>
         <target>Close this month? No more changes are possible afterwards.</target>
       </trans-unit>
-      <trans-unit id="m242" resname="logbook.locked">
+      <trans-unit id="m237" resname="logbook.locked">
         <source>logbook.locked</source>
         <target>Month %month% closed.</target>
       </trans-unit>
-      <trans-unit id="m243" resname="logbook.unlocked">
+      <trans-unit id="m238" resname="logbook.unlocked">
         <source>logbook.unlocked</source>
         <target>Month %month% reopened.</target>
       </trans-unit>
-      <trans-unit id="m244" resname="logbook.error.locked">
+      <trans-unit id="m239" resname="logbook.error.locked">
         <source>logbook.error.locked</source>
         <target>This month is closed and cannot be changed.</target>
       </trans-unit>
-      <trans-unit id="m245" resname="logbook.history">
+      <trans-unit id="m240" resname="logbook.history">
         <source>logbook.history</source>
         <target>Change history</target>
       </trans-unit>
-      <trans-unit id="m246" resname="logbook.history_help">
+      <trans-unit id="m241" resname="logbook.history_help">
         <source>logbook.history_help</source>
         <target>Every creation, change and deletion of a trip is logged.</target>
       </trans-unit>
-      <trans-unit id="m247" resname="logbook.history_empty">
+      <trans-unit id="m242" resname="logbook.history_empty">
         <source>logbook.history_empty</source>
         <target>No entries.</target>
       </trans-unit>
-      <trans-unit id="m248" resname="logbook.changed_at">
+      <trans-unit id="m243" resname="logbook.changed_at">
         <source>logbook.changed_at</source>
         <target>Time</target>
       </trans-unit>
-      <trans-unit id="m249" resname="logbook.changed_by">
+      <trans-unit id="m244" resname="logbook.changed_by">
         <source>logbook.changed_by</source>
         <target>By</target>
       </trans-unit>
-      <trans-unit id="m250" resname="logbook.action">
+      <trans-unit id="m245" resname="logbook.action">
         <source>logbook.action</source>
         <target>Action</target>
       </trans-unit>
-      <trans-unit id="m251" resname="logbook.changes">
+      <trans-unit id="m246" resname="logbook.changes">
         <source>logbook.changes</source>
         <target>Changes</target>
       </trans-unit>
-      <trans-unit id="m252" resname="logbook.action.create">
+      <trans-unit id="m247" resname="logbook.action.create">
         <source>logbook.action.create</source>
         <target>Created</target>
       </trans-unit>
-      <trans-unit id="m253" resname="logbook.action.update">
+      <trans-unit id="m248" resname="logbook.action.update">
         <source>logbook.action.update</source>
         <target>Changed</target>
       </trans-unit>
-      <trans-unit id="m254" resname="logbook.action.delete">
+      <trans-unit id="m249" resname="logbook.action.delete">
         <source>logbook.action.delete</source>
         <target>Deleted</target>
       </trans-unit>
-      <trans-unit id="m255" resname="mileage.meal_partial">
+      <trans-unit id="m250" resname="mileage.meal_partial">
         <source>mileage.meal_partial</source>
         <target>Meal allowance &gt; 8 h / travel day (€)</target>
       </trans-unit>
-      <trans-unit id="m256" resname="mileage.meal_full">
+      <trans-unit id="m251" resname="mileage.meal_full">
         <source>mileage.meal_full</source>
         <target>Meal allowance full day (€)</target>
       </trans-unit>
-      <trans-unit id="m257" resname="mileage_tax_profile">
+      <trans-unit id="m252" resname="mileage_tax_profile">
         <source>mileage_tax_profile</source>
         <target>Tax profile</target>
       </trans-unit>
-      <trans-unit id="m258" resname="mileage_tax_profile_help">
+      <trans-unit id="m253" resname="mileage_tax_profile_help">
         <source>mileage_tax_profile_help</source>
         <target>Self-employed: business expenses. Employee: income-related expenses.</target>
       </trans-unit>
-      <trans-unit id="m259" resname="tax.profile.self_employed">
+      <trans-unit id="m254" resname="tax.profile.self_employed">
         <source>tax.profile.self_employed</source>
         <target>Self-employed</target>
       </trans-unit>
-      <trans-unit id="m260" resname="tax.profile.employee">
+      <trans-unit id="m255" resname="tax.profile.employee">
         <source>tax.profile.employee</source>
         <target>Employee</target>
       </trans-unit>
-      <trans-unit id="m261" resname="tax.rate_split">
+      <trans-unit id="m256" resname="tax.rate_split">
         <source>tax.rate_split</source>
         <target>%first% €/km up to km 20, %from21% €/km from km 21</target>
       </trans-unit>
-      <trans-unit id="m262" resname="tax.se.commute">
+      <trans-unit id="m257" resname="tax.se.commute">
         <source>tax.se.commute</source>
         <target>Home – business premises</target>
       </trans-unit>
-      <trans-unit id="m263" resname="tax.se.commute_hint">
+      <trans-unit id="m258" resname="tax.se.commute_hint">
         <source>tax.se.commute_hint</source>
         <target>commuting allowance as business expense</target>
       </trans-unit>
-      <trans-unit id="m264" resname="tax.emp.commute">
+      <trans-unit id="m259" resname="tax.emp.commute">
         <source>tax.emp.commute</source>
         <target>Commuting allowance</target>
       </trans-unit>
-      <trans-unit id="m265" resname="tax.emp.commute_hint">
+      <trans-unit id="m260" resname="tax.emp.commute_hint">
         <source>tax.emp.commute_hint</source>
         <target>home ↔ regular place of work</target>
       </trans-unit>
-      <trans-unit id="m266" resname="tax.se.business">
+      <trans-unit id="m261" resname="tax.se.business">
         <source>tax.se.business</source>
         <target>Business trips</target>
       </trans-unit>
-      <trans-unit id="m267" resname="tax.se.business_hint">
+      <trans-unit id="m262" resname="tax.se.business_hint">
         <source>tax.se.business_hint</source>
         <target>business trips with private vehicles (per km) or actual costs</target>
       </trans-unit>
-      <trans-unit id="m268" resname="tax.emp.business">
+      <trans-unit id="m263" resname="tax.emp.business">
         <source>tax.emp.business</source>
         <target>Business travel costs</target>
       </trans-unit>
-      <trans-unit id="m269" resname="tax.emp.business_hint">
+      <trans-unit id="m264" resname="tax.emp.business_hint">
         <source>tax.emp.business_hint</source>
         <target>travel away from the regular place of work</target>
       </trans-unit>
-      <trans-unit id="m270" resname="tax.se.meal_hint">
+      <trans-unit id="m265" resname="tax.se.meal_hint">
         <source>tax.se.meal_hint</source>
         <target>business expense</target>
       </trans-unit>
-      <trans-unit id="m271" resname="tax.emp.meal_hint">
+      <trans-unit id="m266" resname="tax.emp.meal_hint">
         <source>tax.emp.meal_hint</source>
         <target>income-related expense</target>
       </trans-unit>
-      <trans-unit id="m272" resname="tax.se.total">
+      <trans-unit id="m267" resname="tax.se.total">
         <source>tax.se.total</source>
         <target>Business expenses travel</target>
       </trans-unit>
-      <trans-unit id="m273" resname="tax.emp.total">
+      <trans-unit id="m268" resname="tax.emp.total">
         <source>tax.emp.total</source>
         <target>Income-related expenses travel</target>
       </trans-unit>
-      <trans-unit id="m274" resname="tax.method.business_asset">
+      <trans-unit id="m269" resname="tax.method.business_asset">
         <source>tax.method.business_asset</source>
         <target>Costs are booked in the accounts (business asset)</target>
       </trans-unit>
-      <trans-unit id="m275" resname="tax.se.private_use">
+      <trans-unit id="m270" resname="tax.se.private_use">
         <source>tax.se.private_use</source>
         <target>Private use of business vehicles</target>
       </trans-unit>
-      <trans-unit id="m276" resname="tax.se.private_use_hint">
+      <trans-unit id="m271" resname="tax.se.private_use_hint">
         <source>tax.se.private_use_hint</source>
         <target>withdrawal / non-deductible expenses</target>
       </trans-unit>
-      <trans-unit id="m277" resname="tax.se.withdrawal">
+      <trans-unit id="m272" resname="tax.se.withdrawal">
         <source>tax.se.withdrawal</source>
         <target>1 % withdrawal / year</target>
       </trans-unit>
-      <trans-unit id="m278" resname="tax.se.commute_addition">
+      <trans-unit id="m273" resname="tax.se.commute_addition">
         <source>tax.se.commute_addition</source>
         <target>Non-deductible home–business</target>
       </trans-unit>
-      <trans-unit id="m279" resname="tax.se.private_use_footer">
+      <trans-unit id="m274" resname="tax.se.private_use_footer">
         <source>tax.se.private_use_footer</source>
         <target>1 % rule: 1 % of the list price (rounded down to 100 €) per month. Home–business: 0.03 % × list price × km × months minus commuting allowance. Logbook method: apply the private share to the total vehicle costs.</target>
       </trans-unit>
-      <trans-unit id="m280" resname="tax.months">
+      <trans-unit id="m275" resname="tax.months">
         <source>tax.months</source>
         <target>Months</target>
       </trans-unit>
-      <trans-unit id="m281" resname="tax.private_share">
+      <trans-unit id="m276" resname="tax.private_share">
         <source>tax.private_share</source>
         <target>Private share</target>
       </trans-unit>
-      <trans-unit id="m282" resname="trip.overnight">
+      <trans-unit id="m277" resname="trip.overnight">
         <source>trip.overnight</source>
         <target>Stayed overnight</target>
       </trans-unit>
-      <trans-unit id="m283" resname="trip.overnight_help">
+      <trans-unit id="m278" resname="trip.overnight_help">
         <source>trip.overnight_help</source>
         <target>Multi-day business trip: the journey continues with the next business trip (for the meal allowance).</target>
       </trans-unit>
-      <trans-unit id="m284" resname="meal.title">
+      <trans-unit id="m279" resname="meal.title">
         <source>meal.title</source>
         <target>Meal allowance</target>
       </trans-unit>
-      <trans-unit id="m285" resname="meal.partial_days">
+      <trans-unit id="m280" resname="meal.partial_days">
         <source>meal.partial_days</source>
         <target>%count% days at €%rate%</target>
       </trans-unit>
-      <trans-unit id="m286" resname="meal.full_days">
+      <trans-unit id="m281" resname="meal.full_days">
         <source>meal.full_days</source>
         <target>%count% full days at €%rate%</target>
       </trans-unit>
-      <trans-unit id="m287" resname="meal.excluded_days">
+      <trans-unit id="m282" resname="meal.excluded_days">
         <source>meal.excluded_days</source>
         <target>%count% days after the three-month limit</target>
       </trans-unit>
-      <trans-unit id="m288" resname="meal.missing_times">
+      <trans-unit id="m283" resname="meal.missing_times">
         <source>meal.missing_times</source>
         <target>%count% business trips without departure/arrival time could not be considered.</target>
       </trans-unit>
-      <trans-unit id="m289" resname="meal.details">
+      <trans-unit id="m284" resname="meal.details">
         <source>meal.details</source>
         <target>Show days</target>
       </trans-unit>
-      <trans-unit id="m290" resname="meal.kind">
+      <trans-unit id="m285" resname="meal.kind">
         <source>meal.kind</source>
         <target>Type</target>
       </trans-unit>
-      <trans-unit id="m291" resname="meal.kind.absence">
+      <trans-unit id="m286" resname="meal.kind.absence">
         <source>meal.kind.absence</source>
         <target>Absence over 8 h</target>
       </trans-unit>
-      <trans-unit id="m292" resname="meal.kind.travel_day">
+      <trans-unit id="m287" resname="meal.kind.travel_day">
         <source>meal.kind.travel_day</source>
         <target>Travel day</target>
       </trans-unit>
-      <trans-unit id="m293" resname="meal.kind.full_day">
+      <trans-unit id="m288" resname="meal.kind.full_day">
         <source>meal.kind.full_day</source>
         <target>Full day</target>
       </trans-unit>
-      <trans-unit id="m294" resname="meal.three_month">
+      <trans-unit id="m289" resname="meal.three_month">
         <source>meal.three_month</source>
         <target>three-month limit</target>
       </trans-unit>
-      <trans-unit id="m295" resname="plausibility.title">
+      <trans-unit id="m290" resname="plausibility.title">
         <source>plausibility.title</source>
         <target>Plausibility check</target>
       </trans-unit>
-      <trans-unit id="m296" resname="plausibility.level.danger">
+      <trans-unit id="m291" resname="plausibility.level.danger">
         <source>plausibility.level.danger</source>
         <target>Error</target>
       </trans-unit>
-      <trans-unit id="m297" resname="plausibility.level.warning">
+      <trans-unit id="m292" resname="plausibility.level.warning">
         <source>plausibility.level.warning</source>
         <target>Check</target>
       </trans-unit>
-      <trans-unit id="m298" resname="plausibility.level.info">
+      <trans-unit id="m293" resname="plausibility.level.info">
         <source>plausibility.level.info</source>
         <target>Note</target>
       </trans-unit>
-      <trans-unit id="m299" resname="plausibility.more_commutes_than_workdays">
+      <trans-unit id="m294" resname="plausibility.more_commutes_than_workdays">
         <source>plausibility.more_commutes_than_workdays</source>
         <target>%count% more commutes than days with recorded working time.</target>
       </trans-unit>
-      <trans-unit id="m300" resname="plausibility.commute_without_timesheet">
+      <trans-unit id="m295" resname="plausibility.commute_without_timesheet">
         <source>plausibility.commute_without_timesheet</source>
         <target>%count% commutes on days without recorded working time.</target>
       </trans-unit>
-      <trans-unit id="m301" resname="plausibility.commute_on_absence">
+      <trans-unit id="m296" resname="plausibility.commute_on_absence">
         <source>plausibility.commute_on_absence</source>
         <target>%count% commutes on vacation/sick days (HolidayBundle).</target>
       </trans-unit>
-      <trans-unit id="m302" resname="plausibility.rental_without_costs">
+      <trans-unit id="m297" resname="plausibility.rental_without_costs">
         <source>plausibility.rental_without_costs</source>
         <target>%count% rental-car trips without rental and without costs.</target>
       </trans-unit>
-      <trans-unit id="m303" resname="plausibility.business_without_purpose">
+      <trans-unit id="m298" resname="plausibility.business_without_purpose">
         <source>plausibility.business_without_purpose</source>
         <target>%count% business trips without purpose and without project.</target>
       </trans-unit>
-      <trans-unit id="m304" resname="plausibility.commute_on_weekend">
+      <trans-unit id="m299" resname="plausibility.commute_on_weekend">
         <source>plausibility.commute_on_weekend</source>
         <target>%count% commutes on weekends.</target>
       </trans-unit>
-      <trans-unit id="m305" resname="plausibility.multiple_commutes">
+      <trans-unit id="m300" resname="plausibility.multiple_commutes">
         <source>plausibility.multiple_commutes</source>
         <target>%count% days with several commutes — the allowance counts once per day.</target>
       </trans-unit>
-      <trans-unit id="m306" resname="plausibility.commute_distance_deviates">
+      <trans-unit id="m301" resname="plausibility.commute_distance_deviates">
         <source>plausibility.commute_distance_deviates</source>
         <target>%count% commutes deviate from the stored distance.</target>
       </trans-unit>
-      <trans-unit id="m307" resname="plausibility.business_without_times">
+      <trans-unit id="m302" resname="plausibility.business_without_times">
         <source>plausibility.business_without_times</source>
         <target>%count% business trips without times — meal allowance cannot be calculated.</target>
       </trans-unit>
-      <trans-unit id="m308" resname="plausibility.no_absence_data">
+      <trans-unit id="m303" resname="plausibility.no_absence_data">
         <source>plausibility.no_absence_data</source>
         <target>No check against vacation/sickness (HolidayBundle not installed).</target>
       </trans-unit>
-      <trans-unit id="m309" resname="plausibility.open_suggestions">
+      <trans-unit id="m304" resname="plausibility.open_suggestions">
         <source>plausibility.open_suggestions</source>
         <target>%count% detected trips of this year are not confirmed yet.</target>
       </trans-unit>
-      <trans-unit id="m310" resname="plausibility.months_not_closed">
+      <trans-unit id="m305" resname="plausibility.months_not_closed">
         <source>plausibility.months_not_closed</source>
         <target>%count% past months with trips are not closed.</target>
       </trans-unit>
-      <trans-unit id="m311" resname="overview.title">
+      <trans-unit id="m306" resname="overview.title">
         <source>overview.title</source>
         <target>Customer overview</target>
       </trans-unit>
-      <trans-unit id="m312" resname="overview.help">
+      <trans-unit id="m307" resname="overview.help">
         <source>overview.help</source>
         <target>Business trips per customer for copying into an invoice by hand (e.g. Invoice Ninja). Nothing is billed here.</target>
       </trans-unit>
-      <trans-unit id="m313" resname="overview.all_customers">
+      <trans-unit id="m308" resname="overview.all_customers">
         <source>overview.all_customers</source>
         <target>All customers</target>
       </trans-unit>
-      <trans-unit id="m314" resname="overview.no_customer">
+      <trans-unit id="m309" resname="overview.no_customer">
         <source>overview.no_customer</source>
         <target>No customer</target>
       </trans-unit>
-      <trans-unit id="m315" resname="overview.show">
+      <trans-unit id="m310" resname="overview.show">
         <source>overview.show</source>
         <target>Show</target>
       </trans-unit>
-      <trans-unit id="m316" resname="overview.empty">
+      <trans-unit id="m311" resname="overview.empty">
         <source>overview.empty</source>
         <target>No business trips in this period.</target>
       </trans-unit>
-      <trans-unit id="m317" resname="mileage.approval_enabled">
+      <trans-unit id="m312" resname="mileage.approval_enabled">
         <source>mileage.approval_enabled</source>
         <target>Approval by team lead</target>
       </trans-unit>
-      <trans-unit id="m318" resname="mileage.approval_enabled_help">
+      <trans-unit id="m313" resname="mileage.approval_enabled_help">
         <source>mileage.approval_enabled_help</source>
         <target>Users submit months for approval instead of closing them themselves.</target>
       </trans-unit>
-      <trans-unit id="m319" resname="approval.team">
+      <trans-unit id="m314" resname="approval.team">
         <source>approval.team</source>
         <target>Team trips</target>
       </trans-unit>
-      <trans-unit id="m320" resname="approval.status.closed">
+      <trans-unit id="m315" resname="approval.status.closed">
         <source>approval.status.closed</source>
         <target>Closed</target>
       </trans-unit>
-      <trans-unit id="m321" resname="approval.status.submitted">
+      <trans-unit id="m316" resname="approval.status.submitted">
         <source>approval.status.submitted</source>
         <target>Submitted for approval</target>
       </trans-unit>
-      <trans-unit id="m322" resname="approval.status.approved">
+      <trans-unit id="m317" resname="approval.status.approved">
         <source>approval.status.approved</source>
         <target>Approved</target>
       </trans-unit>
-      <trans-unit id="m323" resname="approval.status.rejected">
+      <trans-unit id="m318" resname="approval.status.rejected">
         <source>approval.status.rejected</source>
         <target>Rejected</target>
       </trans-unit>
-      <trans-unit id="m324" resname="approval.submit">
+      <trans-unit id="m319" resname="approval.submit">
         <source>approval.submit</source>
         <target>Submit for approval</target>
       </trans-unit>
-      <trans-unit id="m325" resname="approval.submit_confirm">
+      <trans-unit id="m320" resname="approval.submit_confirm">
         <source>approval.submit_confirm</source>
         <target>Submit this month for approval? No changes are possible until it is reviewed.</target>
       </trans-unit>
-      <trans-unit id="m326" resname="approval.submitted">
+      <trans-unit id="m321" resname="approval.submitted">
         <source>approval.submitted</source>
         <target>Month %month% submitted for approval.</target>
       </trans-unit>
-      <trans-unit id="m327" resname="approval.submitted_at">
+      <trans-unit id="m322" resname="approval.submitted_at">
         <source>approval.submitted_at</source>
         <target>submitted</target>
       </trans-unit>
-      <trans-unit id="m328" resname="approval.pending">
+      <trans-unit id="m323" resname="approval.pending">
         <source>approval.pending</source>
         <target>Waiting for approval</target>
       </trans-unit>
-      <trans-unit id="m329" resname="approval.approve">
+      <trans-unit id="m324" resname="approval.approve">
         <source>approval.approve</source>
         <target>Approve</target>
       </trans-unit>
-      <trans-unit id="m330" resname="approval.reject">
+      <trans-unit id="m325" resname="approval.reject">
         <source>approval.reject</source>
         <target>Reject</target>
       </trans-unit>
-      <trans-unit id="m331" resname="approval.reason">
+      <trans-unit id="m326" resname="approval.reason">
         <source>approval.reason</source>
         <target>Reason (required when rejecting)</target>
       </trans-unit>
-      <trans-unit id="m332" resname="approval.error.reason">
+      <trans-unit id="m327" resname="approval.error.reason">
         <source>approval.error.reason</source>
         <target>Please give a reason for the rejection.</target>
       </trans-unit>
-      <trans-unit id="m333" resname="approval.approved">
+      <trans-unit id="m328" resname="approval.approved">
         <source>approval.approved</source>
         <target>Trips of %user% for %month% approved.</target>
       </trans-unit>
-      <trans-unit id="m334" resname="approval.rejected">
+      <trans-unit id="m329" resname="approval.rejected">
         <source>approval.rejected</source>
         <target>Trips of %user% for %month% rejected.</target>
       </trans-unit>
-      <trans-unit id="m335" resname="approval.reviewed_by">
+      <trans-unit id="m330" resname="approval.reviewed_by">
         <source>approval.reviewed_by</source>
         <target>Reviewed by</target>
       </trans-unit>
-      <trans-unit id="m336" resname="approval.user">
+      <trans-unit id="m331" resname="approval.user">
         <source>approval.user</source>
         <target>User</target>
       </trans-unit>
-      <trans-unit id="m337" resname="approval.amount">
+      <trans-unit id="m332" resname="approval.amount">
         <source>approval.amount</source>
         <target>Deductible (estimate)</target>
       </trans-unit>
-      <trans-unit id="m338" resname="approval.disabled_hint">
+      <trans-unit id="m333" resname="approval.disabled_hint">
         <source>approval.disabled_hint</source>
         <target>Approval by team leads is turned off (System → Settings). The overview works anyway.</target>
       </trans-unit>
-      <trans-unit id="m339" resname="import.title">
+      <trans-unit id="m334" resname="import.title">
         <source>import.title</source>
         <target>CSV import</target>
       </trans-unit>
-      <trans-unit id="m340" resname="import.help">
+      <trans-unit id="m335" resname="import.help">
         <source>import.help</source>
         <target>Take over old logbooks or exports of other apps. Separator, encoding and columns are detected — including this plugin's own CSV export.</target>
       </trans-unit>
-      <trans-unit id="m341" resname="import.columns">
+      <trans-unit id="m336" resname="import.columns">
         <source>import.columns</source>
         <target>Recognized columns include: date, departure, arrival, purpose/type, vehicle, license plate, from, to, km/distance, round trip, costs, comment, odometer start/end. Required: date and km (or odometer).</target>
       </trans-unit>
-      <trans-unit id="m342" resname="import.check">
+      <trans-unit id="m337" resname="import.check">
         <source>import.check</source>
         <target>Check</target>
       </trans-unit>
-      <trans-unit id="m343" resname="import.preview">
+      <trans-unit id="m338" resname="import.preview">
         <source>import.preview</source>
         <target>Preview</target>
       </trans-unit>
-      <trans-unit id="m344" resname="import.recognized">
+      <trans-unit id="m339" resname="import.recognized">
         <source>import.recognized</source>
         <target>Column mapping</target>
       </trans-unit>
-      <trans-unit id="m345" resname="import.ok">
+      <trans-unit id="m340" resname="import.ok">
         <source>import.ok</source>
         <target>%count% ready</target>
       </trans-unit>
-      <trans-unit id="m346" resname="import.duplicates">
+      <trans-unit id="m341" resname="import.duplicates">
         <source>import.duplicates</source>
         <target>%count% possible duplicates</target>
       </trans-unit>
-      <trans-unit id="m347" resname="import.errors">
+      <trans-unit id="m342" resname="import.errors">
         <source>import.errors</source>
         <target>%count% with errors</target>
       </trans-unit>
-      <trans-unit id="m348" resname="import.duplicate">
+      <trans-unit id="m343" resname="import.duplicate">
         <source>import.duplicate</source>
         <target>probably exists already</target>
       </trans-unit>
-      <trans-unit id="m349" resname="import.skip_duplicates">
+      <trans-unit id="m344" resname="import.skip_duplicates">
         <source>import.skip_duplicates</source>
         <target>Skip possible duplicates</target>
       </trans-unit>
-      <trans-unit id="m350" resname="import.run">
+      <trans-unit id="m345" resname="import.run">
         <source>import.run</source>
         <target>Import now</target>
       </trans-unit>
-      <trans-unit id="m351" resname="import.done">
+      <trans-unit id="m346" resname="import.done">
         <source>import.done</source>
         <target>%imported% trips imported, %skipped% skipped.</target>
       </trans-unit>
-      <trans-unit id="m352" resname="import.error.file">
+      <trans-unit id="m347" resname="import.error.file">
         <source>import.error.file</source>
         <target>The file could not be read (max. 2 MB).</target>
       </trans-unit>
-      <trans-unit id="m353" resname="import.error.date_missing">
+      <trans-unit id="m348" resname="import.error.date_missing">
         <source>import.error.date_missing</source>
         <target>Date missing</target>
       </trans-unit>
-      <trans-unit id="m354" resname="import.error.distance_missing">
+      <trans-unit id="m349" resname="import.error.distance_missing">
         <source>import.error.distance_missing</source>
         <target>Distance missing</target>
       </trans-unit>
-      <trans-unit id="m355" resname="trip.error.distance">
+      <trans-unit id="m350" resname="trip.error.distance">
         <source>trip.error.distance</source>
         <target>Please enter the distance.</target>
+      </trans-unit>
+      <trans-unit id="m351" resname="menu.mileage_trips">
+        <source>menu.mileage_trips</source>
+        <target>All trips</target>
+      </trans-unit>
+      <trans-unit id="m352" resname="mileage.dawarich_exclude_non_motorized">
+        <source>mileage.dawarich_exclude_non_motorized</source>
+        <target>Exclude walking, running and cycling</target>
+      </trans-unit>
+      <trans-unit id="m353" resname="mileage.dawarich_exclude_non_motorized_help">
+        <source>mileage.dawarich_exclude_non_motorized_help</source>
+        <target>Uses the transportation mode Dawarich detects for its tracks. Such parts are neither detected as trips nor measured.</target>
+      </trans-unit>
+      <trans-unit id="m354" resname="dawarich.mode.walking">
+        <source>dawarich.mode.walking</source>
+        <target>walking</target>
+      </trans-unit>
+      <trans-unit id="m355" resname="dawarich.mode.running">
+        <source>dawarich.mode.running</source>
+        <target>running</target>
+      </trans-unit>
+      <trans-unit id="m356" resname="dawarich.mode.cycling">
+        <source>dawarich.mode.cycling</source>
+        <target>cycling</target>
+      </trans-unit>
+      <trans-unit id="m357" resname="dawarich.mode.driving">
+        <source>dawarich.mode.driving</source>
+        <target>car</target>
+      </trans-unit>
+      <trans-unit id="m358" resname="dawarich.mode.bus">
+        <source>dawarich.mode.bus</source>
+        <target>bus</target>
+      </trans-unit>
+      <trans-unit id="m359" resname="dawarich.mode.train">
+        <source>dawarich.mode.train</source>
+        <target>train</target>
+      </trans-unit>
+      <trans-unit id="m360" resname="dawarich.mode.flying">
+        <source>dawarich.mode.flying</source>
+        <target>flight</target>
+      </trans-unit>
+      <trans-unit id="m361" resname="dawarich.mode.boat">
+        <source>dawarich.mode.boat</source>
+        <target>boat</target>
+      </trans-unit>
+      <trans-unit id="m362" resname="dawarich.mode.motorcycle">
+        <source>dawarich.mode.motorcycle</source>
+        <target>motorcycle</target>
+      </trans-unit>
+      <trans-unit id="m363" resname="dawarich.mode.stationary">
+        <source>dawarich.mode.stationary</source>
+        <target>stationary</target>
+      </trans-unit>
+      <trans-unit id="m364" resname="dawarich.mode.unknown">
+        <source>dawarich.mode.unknown</source>
+        <target>unknown</target>
       </trans-unit>
     </body>
   </file>

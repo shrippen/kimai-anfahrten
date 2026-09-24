@@ -23,6 +23,7 @@ use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\PlaceMatcher;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use KimaiPlugin\MileageBundle\Service\TimesheetMatcher;
+use KimaiPlugin\MileageBundle\Service\TransportModeFilter;
 use KimaiPlugin\MileageBundle\Service\TripDetector;
 use KimaiPlugin\MileageBundle\Service\TripService;
 use PHPUnit\Framework\TestCase;
@@ -37,7 +38,7 @@ class SuggestionServiceTest extends TestCase
         $http = new MockHttpClient();
 
         return new SuggestionService(
-            new DawarichClient($http, $config, $distance),
+            new DawarichClient($http, $config, $distance, new TransportModeFilter()),
             new TripDetector($distance),
             new PlaceMatcher($distance),
             new TimesheetMatcher(),
@@ -48,6 +49,7 @@ class SuggestionServiceTest extends TestCase
             $this->createMock(TripRepository::class),
             $this->createMock(EntityManagerInterface::class),
             $this->createMock(TripService::class),
+            new TransportModeFilter(),
         );
     }
 

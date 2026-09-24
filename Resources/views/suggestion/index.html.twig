@@ -69,7 +69,10 @@
                                     </div>
                                 {% endif %}
                             </td>
-                            <td class="text-end text-nowrap">{{ s.distanceKm|number_format(1, ',', '.') }}</td>
+                            <td class="text-end text-nowrap">
+                                {{ s.distanceKm|number_format(1, ',', '.') }}
+                                {% if s.mode %}<div class="small text-muted">{{ ('dawarich.mode.' ~ s.mode)|trans }}</div>{% endif %}
+                            </td>
                             <td>{{ s.project ? s.project.customer.name ~ ' / ' ~ s.project.name : '' }}</td>
                             <td>
                                 {% if can_edit %}
@@ -79,7 +82,7 @@
                                             {% for p in purposes %}<option value="{{ p.value }}" {% if p == s.purpose %}selected{% endif %}>{{ p.label|trans }}</option>{% endfor %}
                                         </select>
                                         <select name="vehicle" class="form-select form-select-sm w-auto" aria-label="{{ 'trip.vehicle'|trans }}">
-                                            {% for v in vehicles %}<option value="{{ v.value }}" {% if v == default_vehicle %}selected{% endif %}>{{ v.label|trans }}</option>{% endfor %}
+                                            {% for v in vehicles %}<option value="{{ v.value }}" {% if v == (s.vehicle ?? default_vehicle) %}selected{% endif %}>{{ v.label|trans }}</option>{% endfor %}
                                         </select>
                                     </form>
                                 {% else %}

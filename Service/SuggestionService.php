@@ -34,6 +34,7 @@ class SuggestionService
         private readonly TripRepository $tripRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TripService $tripService,
+        private readonly TransportModeFilter $modeFilter,
     ) {
     }
 
@@ -57,13 +58,7 @@ class SuggestionService
         while ($day <= $last && $day <= $now) {
             $next = $day->modify('+1 day');
             $points = $this->dawarichClient->fetchPoints($user, $day, $next);
-            $detected = $this->tripDetector->detect(
-                $points,
-                $this->configuration->getDetectStopRadius(),
-                $this->configuration->getDetectStopMinutes(),
-                $this->configuration->getDetectMinKm(),
-                $this->configuration->getMaxAccuracy(),
-            );
+            $detected = $points === [] ? [] : $this->detectTrips($user, $points, $day, $next);
 
             $timesheets = $detected !== [] ? $this->findTimesheets($user, $day, $next) : [];
 
@@ -85,6 +80,35 @@ class SuggestionService
     }
 
     /**
+     * Stay-point detection per stretch of motorized movement: walks and bike rides that
+     * Dawarich recognised are cut out first, so they never become (part of) a trip.
+     *
+     * @param GpsPoint[] $points
+     * @return DetectedTrip[]
+     */
+    private function detectTrips(User $user, array $points, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $excluded = $this->configuration->getExcludedTransportModes();
+        $segments = $this->dawarichClient->fetchTransportSegments($user, $from, $to);
+        $chunks = $excluded !== [] ? $this->modeFilter->split($points, $segments, $excluded) : [$points];
+
+        $trips = [];
+        foreach ($chunks as $chunk) {
+            foreach ($this->tripDetector->detect(
+                $chunk,
+                $this->configuration->getDetectStopRadius(),
+                $this->configuration->getDetectStopMinutes(),
+                $this->configuration->getDetectMinKm(),
+                $this->configuration->getMaxAccuracy(),
+            ) as $trip) {
+                $trips[] = $trip->withMode($this->modeFilter->dominantMode($segments, $trip->start->timestamp, $trip->end->timestamp));
+            }
+        }
+
+        return $trips;
+    }
+
+    /**
      * @param Place[] $places
      * @param Timesheet[] $timesheets
      */
@@ -98,7 +122,9 @@ class SuggestionService
             ->setStart($from->latitude, $from->longitude)
             ->setEnd($to->latitude, $to->longitude)
             ->setDistanceKm($trip->distanceKm)
-            ->setPointCount($trip->pointCount);
+            ->setPointCount($trip->pointCount)
+            ->setMode($trip->mode)
+            ->setVehicle(TransportModeFilter::vehicleFor($trip->mode));
 
         $startPlace = $this->placeMatcher->match($places, $from->latitude, $from->longitude);
         $endPlace = $this->placeMatcher->match($places, $to->latitude, $to->longitude);

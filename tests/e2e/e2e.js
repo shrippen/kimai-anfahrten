@@ -43,6 +43,12 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   await page.goto(BASE + '/de/profile/admin/prefs');
   check((await page.content()).includes('mileage_tax_profile'), 'tax profile preference rendered');
 
+  section('Sidebar');
+  await page.goto(BASE + '/de/mileage/');
+  const sidebar = await texts(page, 'aside .navbar-nav > .nav-item > .nav-link, aside .navbar-nav > li > a');
+  const timesIndex = sidebar.findIndex((t) => t.startsWith('Zeiterfassung'));
+  check(timesIndex >= 0 && sidebar[timesIndex + 1]?.startsWith('Fahrten'), `own "Fahrten" section right after time tracking (${sidebar.slice(0, 5).join(' / ')})`);
+
   section('Dawarich: places and trip detection');
   await page.goto(BASE + '/de/mileage/places');
   await submit(page, 'form[action*="places/import"] button');
@@ -52,7 +58,10 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   await page.fill('#detect-to', '2026-09-22');
   await submit(page, 'form[action*="detect"] button');
   let rows = await texts(page, 'tbody tr');
-  check(rows.length === 6, `6 trips detected on two weekdays (${rows.length})`);
+  // per day 3 car trips; the lunch walk and the evening bike ride (Dawarich transport mode) are excluded
+  check(rows.length === 6, `6 trips detected on two weekdays, walks and bike rides excluded (${rows.length})`);
+  const modes = await texts(page, 'tbody tr td:nth-child(3) .small');
+  check(modes.length === 6 && modes.every((m) => m === 'Auto'), `only car trips suggested (${modes.join(', ')})`);
   check(rows[0].includes('07:30') && rows[0].includes('Zuhause') && rows[0].includes('Büro'), 'home → office recognised with local time');
   check(await page.locator('tbody tr').first().locator('select[name=purpose]').inputValue() === 'commute', 'home ↔ office suggested as commute');
   check(rows[1].includes('ACME GmbH / Relaunch'), 'trip matched to timesheet project');

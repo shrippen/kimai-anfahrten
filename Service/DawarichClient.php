@@ -21,6 +21,7 @@ class DawarichClient
         private readonly HttpClientInterface $httpClient,
         private readonly MileageConfiguration $configuration,
         private readonly DistanceCalculator $distanceCalculator,
+        private readonly TransportModeFilter $modeFilter,
     ) {
     }
 
@@ -29,10 +30,27 @@ class DawarichClient
      */
     public function measureDistance(User $user, \DateTimeInterface $from, \DateTimeInterface $to): DistanceResult
     {
-        return $this->distanceCalculator->calculate(
-            $this->fetchPoints($user, $from, $to),
-            $this->configuration->getMaxAccuracy()
-        );
+        $points = $this->fetchPoints($user, $from, $to);
+        $excluded = $this->configuration->getExcludedTransportModes();
+        if ($excluded === []) {
+            return $this->distanceCalculator->calculate($points, $this->configuration->getMaxAccuracy());
+        }
+
+        // Walks (e.g. from the car park) are not part of the driven distance.
+        $chunks = $this->modeFilter->split($points, $this->fetchTransportSegments($user, $from, $to), $excluded);
+        $km = 0.0;
+        $used = 0;
+        $first = null;
+        $last = null;
+        foreach ($chunks as $chunk) {
+            $result = $this->distanceCalculator->calculate($chunk, $this->configuration->getMaxAccuracy());
+            $km += $result->distanceKm;
+            $used += $result->usedPointCount;
+            $first ??= $result->first;
+            $last = $result->last ?? $last;
+        }
+
+        return new DistanceResult(round($km, 1), \count($points), $used, $first, $last);
     }
 
     /**
@@ -72,6 +90,47 @@ class DawarichClient
         }
 
         return $areas;
+    }
+
+    /**
+     * Transportation-mode segments of all tracks touching the window.
+     * Returns an empty list when the Dawarich version has no tracks API (older than the
+     * transportation-mode feature) or has not computed tracks yet.
+     *
+     * @return TransportSegment[]
+     * @throws DawarichException
+     */
+    public function fetchTransportSegments(User $user, \DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        try {
+            [$index] = $this->get($user, '/api/v1/tracks', [
+                'start_at' => $from->format(\DateTimeInterface::ATOM),
+                'end_at' => $to->format(\DateTimeInterface::ATOM),
+                'per_page' => 100,
+            ]);
+        } catch (DawarichException $e) {
+            if ($e->getMessage() === 'dawarich.error.http' && ($e->getParameters()['%status%'] ?? null) === 404) {
+                return [];
+            }
+            throw $e;
+        }
+
+        $segments = [];
+        foreach ($index['features'] ?? [] as $feature) {
+            $id = $feature['properties']['id'] ?? null;
+            if (!is_numeric($id)) {
+                continue;
+            }
+            [$track] = $this->get($user, '/api/v1/tracks/' . (int) $id, []);
+            foreach ($track['features'][0]['properties']['segments'] ?? [] as $segment) {
+                if (!\is_array($segment) || !isset($segment['mode'], $segment['start_time'], $segment['end_time'])) {
+                    continue;
+                }
+                $segments[] = new TransportSegment((int) $segment['start_time'], (int) $segment['end_time'], (string) $segment['mode']);
+            }
+        }
+
+        return $segments;
     }
 
     /**

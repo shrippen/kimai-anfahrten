@@ -165,6 +165,8 @@ class MileageApiController extends AbstractController
             'to' => $s->getEndLabel(),
             'distanceKm' => $s->getDistanceKm(),
             'purpose' => $s->getPurpose()->value,
+            'mode' => $s->getMode(),
+            'vehicle' => $s->getVehicle()?->value,
             'project' => $s->getProject()?->getId(),
         ], $this->suggestionRepository->findOpen($user)));
     }
@@ -180,7 +182,7 @@ class MileageApiController extends AbstractController
         }
         $data = $this->payload($request);
         $purpose = TripMapper::parsePurpose($data['purpose'] ?? '') ?? $suggestion->getPurpose();
-        $vehicle = TripMapper::parseVehicle($data['vehicle'] ?? '') ?? $this->configuration->getDefaultVehicle($user);
+        $vehicle = TripMapper::parseVehicle($data['vehicle'] ?? '') ?? $suggestion->getVehicle() ?? $this->configuration->getDefaultVehicle($user);
 
         $trip = $this->suggestionService->accept($suggestion, $purpose, $vehicle);
 
