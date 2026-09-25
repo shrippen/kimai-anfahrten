@@ -11,7 +11,8 @@ class PlaceMatcher
     }
 
     /**
-     * The nearest place whose radius contains the point.
+     * The nearest place whose radius contains the point; regular places win over temporary ones (created
+     * automatically before the user added or imported the real place there).
      *
      * @param Place[] $places
      */
@@ -19,13 +20,14 @@ class PlaceMatcher
     {
         $point = new GpsPoint($latitude, $longitude, 0);
         $best = null;
-        $bestDistance = PHP_FLOAT_MAX;
+        $bestRank = [\PHP_INT_MAX, \PHP_FLOAT_MAX];
 
         foreach ($places as $place) {
             $meters = 1000 * $this->distanceCalculator->haversine($point, new GpsPoint($place->getLatitude(), $place->getLongitude(), 0));
-            if ($meters <= $place->getRadius() && $meters < $bestDistance) {
+            $rank = [$place->isTemporary() ? 1 : 0, $meters];
+            if ($meters <= $place->getRadius() && $rank < $bestRank) {
                 $best = $place;
-                $bestDistance = $meters;
+                $bestRank = $rank;
             }
         }
 
