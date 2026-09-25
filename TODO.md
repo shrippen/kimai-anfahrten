@@ -133,9 +133,15 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   Zeiten, mehrtägig über Neujahr mit Etappen. Nachtest ✅: „Fahrt erfassen" an Zeiteintrag 34 → Von/Bis
   00:00–23:59, Abfahrt/Ankunft leer; Messung 10:00–18:00 gegen simuliertes Dawarich 46,6 km; gespeichert ohne Zeiten,
   Steuerbericht zählt sie unter `missing_times`.
-- [ ] 📖 **Streckenmessung: Ausreißer als erster Punkt** — `Service/DistanceCalculator.php:42`
+- [x] 📖 **Streckenmessung: Ausreißer als erster Punkt** — `Service/DistanceCalculator.php:42`
   Ist der erste Punkt ein GPS-Sprung, werden alle folgenden verworfen, bis die Zeit groß genug ist, dann wird der
-  Sprung als Strecke gezählt. **Offen:** Algorithmus (z. B. Median-Filter/Neustart) — braucht echte Tracks zum Testen.
+  Sprung als Strecke gezählt.
+  **Entscheidung/Fix:** vor der Summierung `dropLeadingOutliers()`: ein Startpunkt wird verworfen, solange er von
+  mehr als der Hälfte der nächsten 4 Punkte mehr als 1 km entfernt ist *und* sie nur mit mehr als 200 km/h
+  (Durchschnitt) erreichbar wären; höchstens 10 Punkte, mindestens 2 Vergleichspunkte. Der Sprungfilter mitten in
+  der Spur (300 km/h) bleibt. Unit-Tests mit synthetischen Spuren: ein und zwei Ausreißer am Start, alter Fix
+  Minuten vor der Spur (früher +25 km), Glitch nach gutem Start, GPS-Rauschen < 1 km, lange geparkter echter Start,
+  nur 2 Punkte.
 - [ ] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
   Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log). **Offen:** fachlich klären
   (Belege nachreichen ist oft gewollt).

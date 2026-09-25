@@ -27,7 +27,8 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - CSV-Import (erkennt Trennzeichen, Zeichensatz, deutsche/englische Spalten — auch den eigenen Export), REST-API
 
 **Dawarich**
-- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke
+- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke; ungenaue Punkte, GPS-Sprünge
+  (> 300 km/h) und Ausreißer am Anfang der Spur (> 1 km und > 200 km/h von den folgenden Punkten) zählen nicht
 - **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
   Fuß-, Lauf- und Radwege werden über den **Transportmodus von Dawarich** ausgeschlossen (abschaltbar);
   bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel vorgeschlagen.
