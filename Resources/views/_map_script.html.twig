@@ -18,14 +18,16 @@
         });
         function fit() {
             if (bounds.length) { map.fitBounds(bounds, {padding: [20, 20], maxZoom: 15}); }
-            else { map.setView([51.16, 10.45], 5); var hint = document.createElement('div'); hint.className = 'position-absolute top-50 start-50 translate-middle bg-white px-2 rounded small'; hint.style.zIndex = '500'; hint.textContent = el.dataset.empty; el.appendChild(hint); }
+            else { map.setView([51.16, 10.45], 5); var hint = document.createElement('div'); hint.className = 'position-absolute top-50 start-50 translate-middle bg-body text-body px-2 rounded small mileage-map-hint'; hint.textContent = el.dataset.empty; el.appendChild(hint); }
         }
         if (!el.dataset.trackUrl) { fit(); return; }
         fetch(el.dataset.trackUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.points && data.points.length > 1) {
-                    L.polyline(data.points, {color: '#206bc4', weight: 4}).addTo(map);
+                    // theme colour of Kimai (light/dark), no fixed hex value
+                    var color = getComputedStyle(el).getPropertyValue('--tblr-primary').trim();
+                    L.polyline(data.points, {color: color || 'currentColor', weight: 4}).addTo(map);
                     bounds = bounds.concat(data.points);
                 }
                 fit();

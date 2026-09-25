@@ -1,0 +1,22 @@
+{#
+    Plugin helpers on top of the kit. {% import '@Mileage/_macros.html.twig' as mileage %}
+#}
+
+{# Distance with unit in the user's number format ("1.234,5 km" / "1,234.5 km") #}
+{% macro km(value, decimals) -%}
+    {{- 'mileage.unit.km'|trans({'%km%': (value ?? 0)|round(decimals ?? 1)|amount}) -}}
+{%- endmacro %}
+
+{# Kit status of a month lock (MonthLock|null): open, locked, requested, approved, rejected #}
+{% macro month_status_key(lock) -%}
+    {%- if lock is null -%}open
+    {%- else -%}{{ {closed: 'locked', submitted: 'requested', approved: 'approved', rejected: 'rejected'}[lock.status.value] ?? 'open' }}
+    {%- endif -%}
+{%- endmacro %}
+
+{# Status badge of a month lock, the plugin's own wording ("Zur Freigabe eingereicht" …) as tooltip #}
+{% macro month_status(lock) -%}
+    {%- import '@Mileage/_kit/macros.html.twig' as kit -%}
+    {%- set tooltip = lock is null ? null : lock.status.label|trans ~ (lock.comment ? ' · ' ~ lock.comment : '') -%}
+    {{- kit.status_badge(_self.month_status_key(lock)|trim, tooltip) -}}
+{%- endmacro %}

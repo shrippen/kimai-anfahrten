@@ -1,0 +1,25 @@
+{#
+    Form in Kimai's modal (modal-ajax-form) or, without JS, as page with Kimai's form card.
+    Params: form, title, back, intro (optional text above the fields), submit (optional button key), target_user
+#}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+
+{% block page_intro %}
+    {% if target_user is defined and target_user is not null %}{{ kit.context_line([target_user.displayName]) }}{% endif %}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% set formTemplate = kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig' %}
+    {% set full_title = title %}
+    {% if target_user is defined and target_user is not null and target_user != app.user %}
+        {% set full_title = title ~ ' · ' ~ target_user.displayName %}
+    {% endif %}
+    {% embed formTemplate with {title: full_title, form: form, back: back, reset: false, submit_button: submit ?? 'action.save'} %}
+        {% block form_body %}
+            {% if intro ?? null %}<p class="text-body-secondary">{{ intro }}</p>{% endif %}
+            {{ form_widget(form) }}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
