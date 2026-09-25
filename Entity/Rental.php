@@ -39,7 +39,7 @@ class Rental
 
     #[ORM\Column(name: 'end_date', type: Types::DATE_IMMUTABLE)]
     #[Assert\NotNull]
-    #[Assert\Expression('this.getEndDate() === null or this.getStartDate() === null or this.getEndDate() >= this.getStartDate()', message: 'vehicle.error.period')]
+    #[Assert\Expression('this.getEndDate() === null or this.getStartDate() === null or this.getEndDate() >= this.getStartDate()', message: 'mileage.vehicle.error.period')]
     private ?\DateTimeImmutable $endDate = null;
 
     /** Rent incl. insurance and fees in EUR. */

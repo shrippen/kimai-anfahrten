@@ -73,7 +73,7 @@ class DawarichClientTest extends TestCase
     public function testNotConfigured(): void
     {
         $this->expectException(DawarichException::class);
-        $this->expectExceptionMessage('dawarich.error.not_configured');
+        $this->expectExceptionMessage('mileage.dawarich.error.not_configured');
 
         $from = new \DateTimeImmutable();
         $this->client(new MockHttpClient())->fetchPoints(new User(2), $from, $from->modify('+1 hour'));
@@ -82,7 +82,7 @@ class DawarichClientTest extends TestCase
     public function testUnauthorized(): void
     {
         $this->expectException(DawarichException::class);
-        $this->expectExceptionMessage('dawarich.error.unauthorized');
+        $this->expectExceptionMessage('mileage.dawarich.error.unauthorized');
 
         $from = new \DateTimeImmutable();
         $this->client(new MockHttpClient(new MockResponse('{}', ['http_code' => 401])))

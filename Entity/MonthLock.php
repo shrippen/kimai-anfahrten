@@ -147,4 +147,19 @@ class MonthLock
     {
         return $this->comment;
     }
+
+    /**
+     * Undo of unlock/review within the undo window: puts back the state before the action.
+     */
+    public function restore(MonthStatus $status, ?User $lockedBy, \DateTimeImmutable $lockedAt, ?User $reviewedBy, ?\DateTimeImmutable $reviewedAt, ?string $comment): self
+    {
+        $this->status = $status;
+        $this->lockedBy = $lockedBy;
+        $this->lockedAt = $lockedAt;
+        $this->reviewedBy = $reviewedBy;
+        $this->reviewedAt = $reviewedAt;
+        $this->comment = $comment;
+
+        return $this;
+    }
 }

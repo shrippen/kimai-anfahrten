@@ -27,7 +27,7 @@ class TripCsvExporterTest extends TestCase
         self::assertStringStartsWith("\xEF\xBB\xBF", $csv);
         $lines = explode("\n", trim(substr($csv, 3)));
         self::assertCount(2, $lines);
-        self::assertStringContainsString('trip.date;', $lines[0]);
+        self::assertStringContainsString('mileage.trip.date;', $lines[0]);
         self::assertStringContainsString('2026-03-02', $lines[1]);
         self::assertStringContainsString('"Kunde; ""A"""', $lines[1]);
         self::assertStringContainsString(';12,50;x;25,00;3,20;', $lines[1]);

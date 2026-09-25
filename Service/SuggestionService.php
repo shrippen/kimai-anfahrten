@@ -161,6 +161,16 @@ class SuggestionService
      */
     public function accept(TripSuggestion $suggestion, TripPurpose $purpose, VehicleType $vehicle): Trip
     {
+        return $this->acceptTracked($suggestion, $purpose, $vehicle)['trip'];
+    }
+
+    /**
+     * Same as accept(), also tells whether a new trip was created (false: merged into the commute of the day).
+     *
+     * @return array{trip: Trip, created: bool}
+     */
+    public function acceptTracked(TripSuggestion $suggestion, TripPurpose $purpose, VehicleType $vehicle): array
+    {
         /** @var User $user */
         $user = $suggestion->getUser();
 
@@ -170,7 +180,7 @@ class SuggestionService
                     $suggestion->setStatus(SuggestionStatus::ACCEPTED)->setTrip($existing);
                     $this->entityManager->flush();
 
-                    return $existing;
+                    return ['trip' => $existing, 'created' => false];
                 }
             }
         }
@@ -205,12 +215,22 @@ class SuggestionService
         $suggestion->setStatus(SuggestionStatus::ACCEPTED)->setTrip($trip);
         $this->entityManager->flush();
 
-        return $trip;
+        return ['trip' => $trip, 'created' => true];
     }
 
     public function dismiss(TripSuggestion $suggestion): void
     {
         $suggestion->setStatus(SuggestionStatus::DISMISSED);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Undo of accept/dismiss: the suggestion is open again. A trip created by the acceptance is removed by the
+     * caller before (only when it was not changed since).
+     */
+    public function reopen(TripSuggestion $suggestion): void
+    {
+        $suggestion->setStatus(SuggestionStatus::OPEN)->setTrip(null);
         $this->entityManager->flush();
     }
 

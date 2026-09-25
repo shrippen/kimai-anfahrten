@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- kimai-plugin-ui kit – Domain "kpu". Nicht im Plugin editieren: Quelle ist kimai-plugin-ui/kit/translations. -->
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="kimai-plugin-ui">
+    <body>
+      <trans-unit id="kpu000" resname="kpu.status.open">
+        <source>kpu.status.open</source>
+        <target>Open</target>
+      </trans-unit>
+      <trans-unit id="kpu001" resname="kpu.status.requested">
+        <source>kpu.status.requested</source>
+        <target>Requested</target>
+      </trans-unit>
+      <trans-unit id="kpu002" resname="kpu.status.approved">
+        <source>kpu.status.approved</source>
+        <target>Approved</target>
+      </trans-unit>
+      <trans-unit id="kpu003" resname="kpu.status.rejected">
+        <source>kpu.status.rejected</source>
+        <target>Rejected</target>
+      </trans-unit>
+      <trans-unit id="kpu004" resname="kpu.status.billed">
+        <source>kpu.status.billed</source>
+        <target>Billed</target>
+      </trans-unit>
+      <trans-unit id="kpu005" resname="kpu.status.locked">
+        <source>kpu.status.locked</source>
+        <target>Locked</target>
+      </trans-unit>
+      <trans-unit id="kpu006" resname="kpu.period.navigation">
+        <source>kpu.period.navigation</source>
+        <target>Period</target>
+      </trans-unit>
+      <trans-unit id="kpu007" resname="kpu.period.day">
+        <source>kpu.period.day</source>
+        <target>Day</target>
+      </trans-unit>
+      <trans-unit id="kpu008" resname="kpu.period.week">
+        <source>kpu.period.week</source>
+        <target>Week</target>
+      </trans-unit>
+      <trans-unit id="kpu009" resname="kpu.period.month">
+        <source>kpu.period.month</source>
+        <target>Month</target>
+      </trans-unit>
+      <trans-unit id="kpu010" resname="kpu.period.year">
+        <source>kpu.period.year</source>
+        <target>Year</target>
+      </trans-unit>
+      <trans-unit id="kpu011" resname="kpu.period.previous">
+        <source>kpu.period.previous</source>
+        <target>Previous period</target>
+      </trans-unit>
+      <trans-unit id="kpu012" resname="kpu.period.next">
+        <source>kpu.period.next</source>
+        <target>Next period</target>
+      </trans-unit>
+      <trans-unit id="kpu013" resname="kpu.period.today">
+        <source>kpu.period.today</source>
+        <target>Today</target>
+      </trans-unit>
+      <trans-unit id="kpu014" resname="kpu.bulk.selected">
+        <source>kpu.bulk.selected</source>
+        <target>%count% selected</target>
+      </trans-unit>
+      <trans-unit id="kpu015" resname="kpu.bulk.clear">
+        <source>kpu.bulk.clear</source>
+        <target>Clear selection</target>
+      </trans-unit>
+      <trans-unit id="kpu016" resname="kpu.bulk.select_row">
+        <source>kpu.bulk.select_row</source>
+        <target>Select row</target>
+      </trans-unit>
+      <trans-unit id="kpu017" resname="kpu.bulk.select_all">
+        <source>kpu.bulk.select_all</source>
+        <target>Select all</target>
+      </trans-unit>
+      <trans-unit id="kpu018" resname="kpu.toast.undo">
+        <source>kpu.toast.undo</source>
+        <target>Undo</target>
+      </trans-unit>
+      <trans-unit id="kpu019" resname="kpu.toast.close">
+        <source>kpu.toast.close</source>
+        <target>Close</target>
+      </trans-unit>
+      <trans-unit id="kpu020" resname="kpu.toast.error">
+        <source>kpu.toast.error</source>
+        <target>The action could not be completed.</target>
+      </trans-unit>
+      <trans-unit id="kpu021" resname="kpu.toast.undone">
+        <source>kpu.toast.undone</source>
+        <target>Action undone.</target>
+      </trans-unit>
+      <trans-unit id="kpu022" resname="kpu.status.warning">
+        <source>kpu.status.warning</source>
+        <target>Warning</target>
+      </trans-unit>
+      <trans-unit id="kpu023" resname="kpu.bulk.select_group">
+        <source>kpu.bulk.select_group</source>
+        <target>Select %name%</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

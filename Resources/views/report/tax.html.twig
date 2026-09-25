@@ -1,139 +1,180 @@
 {% extends print ? '@Mileage/_print.html.twig' : 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
-{% macro eur(value) %}{{ value|number_format(2, ',', '.') }} €{% endmacro %}
-{% import _self as m %}
+{% set self_employed = profile.value == 'self_employed' %}
+{% set p = self_employed ? 'mileage.tax.se.' : 'mileage.tax.emp.' %}
 
-{% block page_content %}
-    {% set self_employed = profile.value == 'self_employed' %}
-    {% set p = self_employed ? 'tax.se.' : 'tax.emp.' %}
-    {% if not print %}{% include '@Mileage/_nav.html.twig' with {active: 'tax'} %}{% endif %}
+{% macro day(value) -%}
+    {%- if value|length == 7 %}{{ date(value ~ '-01')|month_name(true) }}{% else %}{{ value|date_short }}{% endif -%}
+{%- endmacro %}
 
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <h2 class="mb-0 me-auto">{{ 'menu.mileage_tax'|trans }} {{ year }} — {{ target_user.displayName }} <span class="text-muted fs-4">({{ profile.label|trans }})</span></h2>
-        {% if not print %}
-            <a href="{{ path('mileage_tax_report', {year: year - 1, user: target_user.id, profile: profile.value}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
-            <a href="{{ path('mileage_tax_report', {year: year + 1, user: target_user.id, profile: profile.value}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
-            <div class="btn-group">
-                {% for pr in profiles %}
-                    <a href="{{ path('mileage_tax_report', {year: year, user: target_user.id, profile: pr.value}) }}" class="btn btn-sm {{ pr == profile ? 'btn-secondary' : 'btn-outline-secondary' }}">{{ pr.label|trans }}</a>
-                {% endfor %}
-            </div>
-            <a href="{{ path('mileage_trips', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-primary">{{ 'menu.mileage'|trans }} ({{ trip_count }})</a>
-            <a href="{{ path('mileage_export', {year: year, user: target_user.id}) }}" class="btn btn-sm btn-outline-success">CSV</a>
-            <a href="{{ path('mileage_tax_report', {year: year, user: target_user.id, profile: profile.value, format: 'pdf'}) }}" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf me-1"></i>PDF</a>
-        {% endif %}
+{% macro section(title, hint) -%}
+    <div class="card-header">
+        <div class="text-break">
+            <h3 class="card-title">{{ title }}</h3>
+            {% if hint %}<div class="card-subtitle text-body-secondary small mt-1 mb-0">{{ hint }}</div>{% endif %}
+        </div>
     </div>
+{%- endmacro %}
 
-    <div class="alert alert-warning">{{ 'tax.disclaimer'|trans }}</div>
+{% block stylesheets %}{{ parent() }}{% if not print %}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endif %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% if not print %}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endif %}{% endblock %}
+
+{% block print_title %}{{ 'mileage.menu.tax'|trans }} · {{ year }}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, profile.label|trans, 'mileage.tax.trip_count'|trans({'%count%': trip_count})]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    {{ kit.period_nav(['year'], 'year', year, period.prev, period.next, period.today, {}) }}
+{% endblock %}
+
+{% block print_header %}
+    <h1>{{ 'mileage.menu.tax'|trans }} · {{ year }}</h1>
+    <p>{{ target_user.displayName }} · {{ profile.label|trans }}</p>
+{% endblock %}
+
+{% block main %}
+    {% set c = summary.commute %}
+    {% set meals = summary.meals %}
+    {{ kit.kpi_bar([
+        {label: (p ~ 'commute')|trans, value: c.amount|money('EUR'), hint: 'mileage.tax.commute_days_count'|trans({'%count%': c.days})},
+        {label: (p ~ 'business')|trans, value: summary.business_total|money('EUR')},
+        {label: 'mileage.meal.title'|trans, value: meals.amount|money('EUR')},
+        {label: (p ~ 'total')|trans, value: summary.total|money('EUR'), highlight: true},
+    ]) }}
+
+    {{ alert({type: 'warning', description: 'mileage.tax.disclaimer'|trans, icon: 'warning', dismissible: false, important: false}) }}
 
     {% if findings|length > 0 %}
         <div class="card mb-3">
-            <div class="card-header"><h3 class="card-title"><i class="fas fa-clipboard-check me-1"></i>{{ 'plausibility.title'|trans }}</h3></div>
-            <ul class="list-group list-group-flush">
+            {{ _self.section('mileage.plausibility.title'|trans, null) }}
+            <div class="list-group list-group-flush">
                 {% for f in findings %}
-                    <li class="list-group-item">
-                        <span class="badge bg-{{ f.level == 'danger' ? 'red' : (f.level == 'warning' ? 'orange' : 'azure') }} text-white me-1">{{ ('plausibility.level.' ~ f.level)|trans }}</span>
+                    <div class="list-group-item">
+                        {% if f.level == 'info' %}
+                            <span class="text-body-secondary me-1">{{ icon('info', true) }}</span>
+                        {% else %}
+                            {{ kit.status_badge('warning', ('mileage.plausibility.level.' ~ f.level)|trans) }}
+                        {% endif %}
                         {{ f.key|trans({'%count%': f.count}) }}
-                        {% if f.dates|length > 0 %}<div class="small text-muted">{{ f.dates|join(', ') }}{% if f.count > f.dates|length %} …{% endif %}</div>{% endif %}
-                    </li>
+                        {% if f.dates|length > 0 %}
+                            <div class="small text-body-secondary">{{ f.dates|map(d => _self.day(d))|join(', ') }}{% if f.count > f.dates|length %} …{% endif %}</div>
+                        {% endif %}
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
     {% endif %}
 
-    {% set c = summary.commute %}
     <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">{{ (p ~ 'commute')|trans }} <span class="text-muted small">— {{ (p ~ 'commute_hint')|trans }}</span></h3></div>
-        <div class="card-body p-0">
-            <table class="table mb-0">
+        {{ _self.section((p ~ 'commute')|trans, (p ~ 'commute_hint')|trans) }}
+        <div class="table-responsive">
+            <table class="table card-table table-vcenter mb-0">
                 <tbody>
-                    <tr><td>{{ 'tax.commute_days'|trans }}</td><td class="text-end">{{ c.days }}</td></tr>
-                    <tr><td>{{ 'tax.commute_km'|trans }}</td><td class="text-end">{{ c.km|number_format(0, ',', '.') }} km</td></tr>
-                    <tr><td>{{ 'tax.rate'|trans }}</td><td class="text-end">{% if c.rate == c.rate_from21 %}{{ c.rate|number_format(2, ',', '.') }} €/km{% else %}{{ 'tax.rate_split'|trans({'%first%': c.rate|number_format(2, ',', '.'), '%from21%': c.rate_from21|number_format(2, ',', '.')}) }}{% endif %}</td></tr>
-                    <tr><td>{{ 'tax.commute_car'|trans }}</td><td class="text-end">{{ m.eur(c.amount_car) }}</td></tr>
+                    <tr><td>{{ 'mileage.tax.commute_days'|trans }}</td><td class="text-end">{{ c.days|amount }}</td></tr>
+                    <tr><td>{{ 'mileage.tax.commute_km'|trans }}</td><td class="text-end">{{ mileage.km(c.km, 0) }}</td></tr>
+                    <tr>
+                        <td>{{ 'mileage.tax.rate'|trans }}</td>
+                        <td class="text-end">
+                            {% if c.rate == c.rate_from21 %}
+                                {{ 'mileage.unit.per_km'|trans({'%amount%': c.rate|money('EUR')}) }}
+                            {% else %}
+                                {{ 'mileage.tax.rate_split'|trans({'%first%': c.rate|money('EUR'), '%from21%': c.rate_from21|money('EUR')}) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr><td>{{ 'mileage.tax.commute_car'|trans }}</td><td class="text-end">{{ c.amount_car|money('EUR') }}</td></tr>
                     <tr>
                         <td>
-                            {{ 'tax.commute_other'|trans }}
-                            {% if c.capped %}<span class="badge bg-warning ms-1">{{ 'tax.capped'|trans({'%cap%': c.cap|number_format(0, ',', '.')}) }}</span>{% endif %}
-                            {% if c.public_transport_costs > 0 %}<div class="small text-muted">{{ 'tax.public_transport_costs'|trans }}: {{ m.eur(c.public_transport_costs) }}</div>{% endif %}
+                            {{ 'mileage.tax.commute_other'|trans }}
+                            {% if c.capped %}{{ kit.status_badge('warning', 'mileage.tax.capped'|trans({'%cap%': c.cap|money('EUR')})) }}{% endif %}
+                            {% if c.public_transport_costs > 0 %}<div class="small text-body-secondary">{{ 'mileage.tax.public_transport_costs'|trans }}: {{ c.public_transport_costs|money('EUR') }}</div>{% endif %}
                         </td>
-                        <td class="text-end">{{ m.eur(c.amount_other_capped) }}</td>
+                        <td class="text-end">{{ c.amount_other_capped|money('EUR') }}</td>
                     </tr>
-                    <tr class="fw-bold"><td>{{ 'tax.commute_total'|trans }}</td><td class="text-end">{{ m.eur(c.amount) }}</td></tr>
+                    <tr class="fw-bold"><td>{{ 'mileage.tax.commute_total'|trans }}</td><td class="text-end">{{ c.amount|money('EUR') }}</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">{{ (p ~ 'business')|trans }} <span class="text-muted small">— {{ (p ~ 'business_hint')|trans }}</span></h3></div>
-        <div class="card-body p-0">
-            <table class="table mb-0">
+        {{ _self.section((p ~ 'business')|trans, (p ~ 'business_hint')|trans) }}
+        <div class="table-responsive">
+            <table class="table card-table table-vcenter mb-0">
                 <thead>
                     <tr>
-                        <th>{{ 'trip.vehicle'|trans }}</th>
-                        <th class="text-end">{{ 'tax.trips'|trans }}</th>
-                        <th class="text-end">km</th>
-                        <th class="text-end">{{ 'tax.rate'|trans }}</th>
-                        <th class="text-end">{{ 'trip.costs'|trans }}</th>
-                        <th class="text-end">{{ 'tax.deductible'|trans }}</th>
+                        <th>{{ 'mileage.trip.vehicle'|trans }}</th>
+                        <th class="text-end d-none d-sm-table-cell">{{ 'mileage.tax.trips'|trans }}</th>
+                        <th class="text-end">{{ 'mileage.trip.distance_short'|trans }}</th>
+                        <th class="text-end d-none d-md-table-cell">{{ 'mileage.tax.rate'|trans }}</th>
+                        <th class="text-end d-none d-md-table-cell">{{ 'mileage.trip.costs'|trans }}</th>
+                        <th class="text-end">{{ 'mileage.tax.deductible'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in summary.business %}
                         <tr>
                             <td>
-                                {{ row.vehicle.label|trans }}{% if row.business_asset %} <span class="badge bg-secondary-lt">{{ 'vehicle.business_asset'|trans }}</span>{% endif %}
-                                <div class="small text-muted">
-                                    {% if row.business_asset %}{{ 'tax.method.business_asset'|trans }}
-                                    {% elseif row.vehicle.employerProvided and not self_employed %}{{ 'tax.method.employer'|trans }}
-                                    {% elseif row.rate is not null %}{{ 'tax.method.km'|trans }}
-                                    {% else %}{{ 'tax.method.costs'|trans }}{% endif %}
+                                {{ row.vehicle.label|trans }}{% if row.business_asset %} · {{ 'mileage.vehicle.business_asset'|trans }}{% endif %}
+                                <div class="small text-body-secondary">
+                                    {% if row.business_asset %}{{ 'mileage.tax.method.business_asset'|trans }}
+                                    {% elseif row.vehicle.employerProvided and not self_employed %}{{ 'mileage.tax.method.employer'|trans }}
+                                    {% elseif row.rate is not null %}{{ 'mileage.tax.method.km'|trans }}
+                                    {% else %}{{ 'mileage.tax.method.costs'|trans }}{% endif %}
                                 </div>
                             </td>
-                            <td class="text-end">{{ row.trips }}</td>
-                            <td class="text-end">{{ row.km|number_format(1, ',', '.') }}</td>
-                            <td class="text-end">{{ row.rate is not null ? row.rate|number_format(2, ',', '.') ~ ' €/km' : '–' }}</td>
-                            <td class="text-end">{{ m.eur(row.costs) }}</td>
-                            <td class="text-end">{{ m.eur(row.amount) }}</td>
+                            <td class="text-end d-none d-sm-table-cell">{{ row.trips|amount }}</td>
+                            <td class="text-end text-nowrap">{{ mileage.km(row.km) }}</td>
+                            <td class="text-end d-none d-md-table-cell text-nowrap">{{ row.rate is not null ? 'mileage.unit.per_km'|trans({'%amount%': row.rate|money('EUR')}) : '–' }}</td>
+                            <td class="text-end d-none d-md-table-cell">{{ row.costs|money('EUR') }}</td>
+                            <td class="text-end">{{ row.amount|money('EUR') }}</td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="6" class="text-muted">{{ 'trip.empty'|trans }}</td></tr>
+                        <tr><td colspan="6" class="text-body-secondary">{{ 'mileage.tax.no_business'|trans }}</td></tr>
                     {% endfor %}
-                    <tr class="fw-bold"><td colspan="5">{{ 'tax.business_total'|trans }}</td><td class="text-end">{{ m.eur(summary.business_total) }}</td></tr>
+                    <tr class="fw-bold"><td colspan="2">{{ 'mileage.tax.business_total'|trans }}</td><td class="d-none d-sm-table-cell"></td><td colspan="2" class="d-none d-md-table-cell"></td><td class="text-end">{{ summary.business_total|money('EUR') }}</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    {% set meals = summary.meals %}
     <div class="card mb-3">
-        <div class="card-header"><h3 class="card-title">{{ 'meal.title'|trans }} <span class="text-muted small">— {{ (p ~ 'meal_hint')|trans }}</span></h3></div>
+        {{ _self.section('mileage.meal.title'|trans, (p ~ 'meal_hint')|trans) }}
         <div class="card-body">
             <p class="mb-2">
-                {{ 'meal.partial_days'|trans({'%count%': meals.partial_days, '%rate%': summary.rates.mealPartial|number_format(0, ',', '.')}) }} ·
-                {{ 'meal.full_days'|trans({'%count%': meals.full_days, '%rate%': summary.rates.mealFull|number_format(0, ',', '.')}) }}
-                {% if meals.excluded_days > 0 %} · <span class="text-warning">{{ 'meal.excluded_days'|trans({'%count%': meals.excluded_days}) }}</span>{% endif %}
-                — <strong>{{ m.eur(meals.amount) }}</strong>
+                {{ 'mileage.meal.partial_days'|trans({'%count%': meals.partial_days, '%rate%': summary.rates.mealPartial|money('EUR')}) }} ·
+                {{ 'mileage.meal.full_days'|trans({'%count%': meals.full_days, '%rate%': summary.rates.mealFull|money('EUR')}) }}
+                {% if meals.excluded_days > 0 %} · {{ 'mileage.meal.excluded_days'|trans({'%count%': meals.excluded_days}) }}{% endif %}
+                — <strong>{{ meals.amount|money('EUR') }}</strong>
             </p>
-            {% if meals.missing_times > 0 %}<p class="small text-warning">{{ 'meal.missing_times'|trans({'%count%': meals.missing_times}) }}</p>{% endif %}
+            {% if meals.missing_times > 0 %}
+                <p class="mb-2">{{ kit.status_badge('warning', 'mileage.meal.missing_times'|trans({'%count%': meals.missing_times})) }} {{ 'mileage.meal.missing_times'|trans({'%count%': meals.missing_times}) }}</p>
+            {% endif %}
             {% if meals.days|length > 0 %}
                 <details {% if print %}open{% endif %}>
-                    <summary>{{ 'meal.details'|trans }}</summary>
-                    <table class="table table-sm mt-2">
-                        <thead><tr><th>{{ 'trip.date'|trans }}</th><th>{{ 'meal.kind'|trans }}</th><th class="text-end">{{ 'commute.hours'|trans }}</th><th>{{ 'trip.destination'|trans }}</th><th class="text-end">€</th></tr></thead>
-                        <tbody>
-                            {% for d in meals.days %}
-                                <tr class="{{ d.three_month ? 'text-muted' : '' }}">
-                                    <td>{{ d.date }}</td>
-                                    <td>{{ ('meal.kind.' ~ d.kind)|trans }}{% if d.three_month %} ({{ 'meal.three_month'|trans }}){% endif %}</td>
-                                    <td class="text-end">{{ d.kind == 'absence' ? d.hours|number_format(1, ',', '.') : '' }}</td>
-                                    <td>{{ d.destination }}</td>
-                                    <td class="text-end">{{ d.amount|number_format(2, ',', '.') }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <summary>{{ 'mileage.meal.details'|trans }}</summary>
+                    <div class="table-responsive">
+                        <table class="table table-sm mt-2 mb-0">
+                            <thead><tr><th>{{ 'mileage.trip.date'|trans }}</th><th>{{ 'mileage.meal.kind'|trans }}</th><th class="text-end d-none d-sm-table-cell">{{ 'mileage.commute.hours'|trans }}</th><th class="d-none d-md-table-cell">{{ 'mileage.trip.destination'|trans }}</th><th class="text-end">{{ 'mileage.meal.amount'|trans }}</th></tr></thead>
+                            <tbody>
+                                {% for d in meals.days %}
+                                    <tr class="{{ d.three_month ? 'text-body-secondary' : '' }}">
+                                        <td class="text-nowrap">{{ d.date|date_short }}</td>
+                                        <td>{{ ('mileage.meal.kind.' ~ d.kind)|trans }}{% if d.three_month %} ({{ 'mileage.meal.three_month'|trans }}){% endif %}</td>
+                                        <td class="text-end d-none d-sm-table-cell">{{ d.kind == 'absence' ? (d.hours * 3600)|round|duration : '' }}</td>
+                                        <td class="d-none d-md-table-cell">{{ d.destination }}</td>
+                                        <td class="text-end">{{ d.amount|money('EUR') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </details>
             {% endif %}
         </div>
@@ -141,42 +182,33 @@
 
     {% if self_employed and summary.private_use|length > 0 %}
         <div class="card mb-3">
-            <div class="card-header"><h3 class="card-title">{{ 'tax.se.private_use'|trans }} <span class="text-muted small">— {{ 'tax.se.private_use_hint'|trans }}</span></h3></div>
-            <div class="card-body p-0">
-                <table class="table mb-0">
-                    <thead><tr><th>{{ 'trip.vehicle'|trans }}</th><th>{{ 'vehicle.private_use'|trans }}</th><th class="text-end">{{ 'tax.months'|trans }}</th><th class="text-end">{{ 'logbook.km.private'|trans }}</th><th class="text-end">{{ 'tax.private_share'|trans }}</th><th class="text-end">{{ 'tax.se.withdrawal'|trans }}</th><th class="text-end">{{ 'tax.se.commute_addition'|trans }}</th></tr></thead>
+            {{ _self.section('mileage.tax.se.private_use'|trans, 'mileage.tax.se.private_use_hint'|trans) }}
+            <div class="table-responsive">
+                <table class="table card-table table-vcenter mb-0">
+                    <thead><tr><th>{{ 'mileage.trip.vehicle'|trans }}</th><th class="d-none d-md-table-cell">{{ 'mileage.vehicle.private_use'|trans }}</th><th class="text-end d-none d-sm-table-cell">{{ 'mileage.tax.months'|trans }}</th><th class="text-end d-none d-md-table-cell">{{ 'mileage.logbook.km.private'|trans }}</th><th class="text-end d-none d-lg-table-cell">{{ 'mileage.tax.private_share'|trans }}</th><th class="text-end">{{ 'mileage.tax.se.withdrawal'|trans }}</th><th class="text-end d-none d-sm-table-cell">{{ 'mileage.tax.se.commute_addition'|trans }}</th></tr></thead>
                     <tbody>
                         {% for u in summary.private_use %}
                             <tr>
                                 <td>{{ u.vehicle.label }}</td>
-                                <td>{{ u.method.label|trans }}</td>
-                                <td class="text-end">{{ u.months }}</td>
-                                <td class="text-end">{{ u.km.private|number_format(0, ',', '.') }} km</td>
-                                <td class="text-end">{{ u.private_share|number_format(2, ',', '.') }} %</td>
-                                <td class="text-end">{{ u.one_percent is not null ? m.eur(u.one_percent) : '–' }}</td>
-                                <td class="text-end">{{ u.commute_addition is not null ? m.eur(u.commute_addition) : '–' }}</td>
+                                <td class="d-none d-md-table-cell">{{ u.method.label|trans }}</td>
+                                <td class="text-end d-none d-sm-table-cell">{{ u.months|amount }}</td>
+                                <td class="text-end d-none d-md-table-cell text-nowrap">{{ mileage.km(u.km.private, 0) }}</td>
+                                <td class="text-end d-none d-lg-table-cell">{{ 'mileage.logbook.share'|trans({'%share%': u.private_share|round(2)|amount}) }}</td>
+                                <td class="text-end">{{ u.one_percent is not null ? u.one_percent|money('EUR') : '–' }}</td>
+                                <td class="text-end d-none d-sm-table-cell">{{ u.commute_addition is not null ? u.commute_addition|money('EUR') : '–' }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            <div class="card-footer small text-muted">{{ 'tax.se.private_use_footer'|trans }}</div>
+            <div class="card-footer small text-body-secondary">{{ 'mileage.tax.se.private_use_footer'|trans }}</div>
         </div>
     {% endif %}
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-body">
-                    {{ 'trip.purpose.private'|trans }}: {{ summary.private.trips }} {{ 'tax.trips'|trans }}, {{ summary.private.km|number_format(1, ',', '.') }} km
-                    <div class="small text-muted">{{ 'tax.private_hint'|trans }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card mb-3 border-primary">
-                <div class="card-body fs-3 fw-bold text-end">{{ (p ~ 'total')|trans }}: {{ m.eur(summary.total) }}</div>
-            </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            {{ 'mileage.trip.purpose.private'|trans }}: {{ 'mileage.tax.trip_count'|trans({'%count%': summary.private.trips}) }}, {{ mileage.km(summary.private.km) }}
+            <div class="small text-body-secondary">{{ 'mileage.tax.private_hint'|trans }}</div>
         </div>
     </div>
 {% endblock %}

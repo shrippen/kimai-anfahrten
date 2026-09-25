@@ -1,49 +1,54 @@
-{% extends 'base.html.twig' %}
+{% extends 'datatable.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'vehicles'} %}
-    <h2>{{ 'vehicle.list'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'vehicle.help'|trans }}</p>
-    {% if can_edit %}
-        <p><a href="{{ path('mileage_vehicle_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'vehicle.create'|trans }}</a></p>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, 'mileage.vehicle.help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block datatable_row_attr %}
+    {%- if can_edit %} class="modal-ajax-form open-edit" data-href="{{ path('mileage_vehicle_edit', {id: entry.id}) }}"{% endif -%}
+{% endblock %}
+
+{% block datatable_column_value %}
+    {% set v = entry %}
+    {% if column == 'name' %}
+        <i class="{{ v.type.icon }} fa-fw me-1 d-md-none" aria-hidden="true"></i>{{ v.name }}
+        {% if v.licensePlate %}<div class="text-body-secondary small d-sm-none">{{ v.licensePlate }}</div>{% endif %}
+    {% elseif column == 'type' %}
+        <i class="{{ v.type.icon }} fa-fw me-1" aria-hidden="true"></i>{{ v.type.label|trans }}
+    {% elseif column == 'plate' %}
+        {{ v.licensePlate }}
+    {% elseif column == 'period' %}
+        {{ v.validFrom ? v.validFrom|date_short : '…' }} – {{ v.validTo ? v.validTo|date_short : '…' }}
+    {% elseif column == 'private_use' %}
+        {{ v.businessAsset ? v.privateUse.label|trans : '–' }}
+    {% elseif column == 'active' %}
+        {{ widgets.label_boolean(v.active) }}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'mileage_vehicle', 'index', {vehicle: v, year: year, can_edit: can_edit, can_delete: can_delete}) %}
+        {{ widgets.table_actions(event.actions) }}
     {% endif %}
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'vehicle.name'|trans }}</th>
-                        <th>{{ 'trip.vehicle'|trans }}</th>
-                        <th>{{ 'trip.license_plate'|trans }}</th>
-                        <th>{{ 'vehicle.valid_from'|trans }} – {{ 'vehicle.valid_to'|trans }}</th>
-                        <th>{{ 'vehicle.private_use'|trans }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for v in vehicles %}
-                        <tr class="{{ v.active ? '' : 'text-muted' }}">
-                            <td>{{ v.name }}{% if not v.active %} <span class="badge bg-secondary-lt">{{ 'vehicle.inactive'|trans }}</span>{% endif %}</td>
-                            <td><i class="{{ v.type.icon }} me-1"></i>{{ v.type.label|trans }}</td>
-                            <td>{{ v.licensePlate }}</td>
-                            <td>{{ v.validFrom ? v.validFrom|date('Y-m-d') : '…' }} – {{ v.validTo ? v.validTo|date('Y-m-d') : '…' }}</td>
-                            <td>{{ v.businessAsset ? v.privateUse.label|trans : '–' }}</td>
-                            <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('mileage_logbook', {id: v.id, year: year}) }}"><i class="fas fa-book me-1"></i>{{ 'logbook.title'|trans }}</a>
-                                {% if can_edit %}
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_vehicle_edit', {id: v.id}) }}" title="{{ 'action.edit'|trans }}"><i class="fas fa-pen"></i></a>
-                                    <form class="d-inline" method="post" action="{{ path('mileage_vehicle_delete', {id: v.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_vehicle_delete' ~ v.id) }}">
-                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="6" class="text-muted">{{ 'vehicle.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% endblock %}
+
+{% block main %}
+    {% if not dataTable.hasResults() %}
+        {{ kit.empty_state(
+            'mileage.vehicle.empty'|trans,
+            can_edit ? path('mileage_vehicle_create', {user: user_param}) : null,
+            can_edit ? 'mileage.vehicle.create'|trans : null,
+            'modal-ajax-form'
+        ) }}
+    {% else %}
+        {{ parent() }}
+    {% endif %}
 {% endblock %}

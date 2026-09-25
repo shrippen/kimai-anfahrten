@@ -1,110 +1,74 @@
-{% extends 'base.html.twig' %}
+{% extends 'datatable.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/widgets.html.twig' as widgets %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'suggestions'} %}
-    <h2>{{ 'suggestion.list'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'suggestion.help'|trans }}</p>
-    <p class="d-flex flex-wrap gap-1">
-        <a href="{{ path('mileage_trips', {user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
-        <a href="{{ path('mileage_places', {user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-location-dot me-1"></i>{{ 'place.list'|trans }}</a>
-    </p>
+{% set bulk_form = 'mileage-suggestions-bulk' %}
 
-    {% if not dawarich_configured %}
-        <div class="alert alert-info">{{ 'dawarich.not_configured_hint'|trans }}</div>
-    {% elseif can_edit %}
-        <form method="post" action="{{ path('mileage_suggestions_detect', {user: target_user.id}) }}" class="card mb-3">
-            <input type="hidden" name="_token" value="{{ csrf_token('mileage_suggestions_detect') }}">
-            <div class="card-body d-flex flex-wrap align-items-end gap-2">
-                <div>
-                    <label class="form-label" for="detect-from">{{ 'suggestion.from'|trans }}</label>
-                    <input type="date" class="form-control" id="detect-from" name="from" value="{{ default_from|date('Y-m-d') }}" required>
-                </div>
-                <div>
-                    <label class="form-label" for="detect-to">{{ 'suggestion.to'|trans }}</label>
-                    <input type="date" class="form-control" id="detect-to" name="to" value="{{ default_to|date('Y-m-d') }}" required>
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-satellite-dish me-1"></i>{{ 'suggestion.detect'|trans }}</button>
-                <div class="form-text w-100">{{ 'suggestion.detect_help'|trans }}</div>
-            </div>
-        </form>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, 'mileage.suggestion.help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block datatable_column_value %}
+    {% set s = entry %}
+    {% set is_locked = locked[s.id] ?? false %}
+    {% if column == 'select' %}
+        {% if not is_locked %}{{ kit.bulk_checkbox(bulk_form, s.id) }}{% endif %}
+    {% elseif column == 'date' %}
+        <span class="text-nowrap">{{ s.startAt|date_short }}</span>
+        <div class="text-body-secondary small text-nowrap">{{ s.startAt|time }}–{{ s.endAt|time }}</div>
+    {% elseif column == 'route' %}
+        <div>{% if s.startPlace %}<i class="{{ s.startPlace.type.icon }} fa-fw me-1" aria-hidden="true"></i>{% endif %}{{ s.startLabel }}</div>
+        <div>→ {% if s.endPlace %}<i class="{{ s.endPlace.type.icon }} fa-fw me-1" aria-hidden="true"></i>{% endif %}{{ s.endLabel }}</div>
+        <div class="d-md-none text-body-secondary small">{{ s.purpose.label|trans }}</div>
+    {% elseif column == 'distance' %}
+        {{ mileage.km(s.distanceKm) }}
+        {% if s.mode %}<div class="text-body-secondary small">{{ ('mileage.dawarich.mode.' ~ s.mode)|trans }}</div>{% endif %}
+    {% elseif column == 'purpose' %}
+        <i class="{{ s.purpose.icon }} fa-fw me-1" aria-hidden="true"></i>{{ s.purpose.label|trans }}
+        <div class="text-body-secondary small">{{ (s.vehicle ?? default_vehicle).label|trans }}</div>
+    {% elseif column == 'project' %}
+        {{ s.project ? s.project.customer.name ~ ' / ' ~ s.project.name : '' }}
+    {% elseif column == 'status' %}
+        {{ kit.status_badge(is_locked ? 'locked' : 'open', is_locked ? 'mileage.logbook.month_locked'|trans : null) }}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'mileage_suggestion', 'index', {suggestion: s, can_edit: can_edit, locked: is_locked}) %}
+        {{ widgets.table_actions(event.actions) }}
     {% endif %}
+{% endblock %}
 
-    <div class="card">
-        <div class="card-header d-flex align-items-center">
-            <h3 class="card-title me-auto">{{ 'suggestion.open'|trans }} ({{ suggestions|length }})</h3>
-            {% if can_edit and suggestions|length > 0 %}
-                <form method="post" action="{{ path('mileage_suggestions_accept_all', {user: target_user.id}) }}" onsubmit="return confirm('{{ 'suggestion.accept_all_confirm'|trans|e('js') }}');">
-                    <input type="hidden" name="_token" value="{{ csrf_token('mileage_suggestions_accept_all') }}">
-                    <button type="submit" class="btn btn-sm btn-outline-success">{{ 'suggestion.accept_all'|trans }}</button>
-                </form>
-            {% endif %}
-        </div>
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'trip.date'|trans }}</th>
-                        <th>{{ 'trip.route'|trans }}</th>
-                        <th class="text-end">km</th>
-                        <th>{{ 'trip.project'|trans }}</th>
-                        <th>{{ 'trip.purpose'|trans }} / {{ 'trip.vehicle'|trans }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in suggestions %}
-                        {% set form_id = 'suggestion-' ~ s.id %}
-                        <tr>
-                            <td class="text-nowrap">
-                                {{ s.startAt|date('D, Y-m-d') }}
-                                <div class="small text-muted">{{ s.startAt|date('H:i') }}–{{ s.endAt|date('H:i') }}</div>
-                            </td>
-                            <td>
-                                {% if s.startPlace %}<i class="{{ s.startPlace.type.icon }} me-1"></i>{% endif %}{{ s.startLabel }}
-                                <br>→ {% if s.endPlace %}<i class="{{ s.endPlace.type.icon }} me-1"></i>{% endif %}{{ s.endLabel }}
-                                {% if can_edit %}
-                                    <div class="small">
-                                        {% if not s.startPlace %}<a href="{{ path('mileage_place_create', {user: target_user.id, lat: s.startLatitude, lon: s.startLongitude}) }}">{{ 'place.save_start'|trans }}</a>{% endif %}
-                                        {% if not s.endPlace %}<a class="ms-2" href="{{ path('mileage_place_create', {user: target_user.id, lat: s.endLatitude, lon: s.endLongitude}) }}">{{ 'place.save_end'|trans }}</a>{% endif %}
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td class="text-end text-nowrap">
-                                {{ s.distanceKm|number_format(1, ',', '.') }}
-                                {% if s.mode %}<div class="small text-muted">{{ ('dawarich.mode.' ~ s.mode)|trans }}</div>{% endif %}
-                            </td>
-                            <td>{{ s.project ? s.project.customer.name ~ ' / ' ~ s.project.name : '' }}</td>
-                            <td>
-                                {% if can_edit %}
-                                    <form method="post" id="{{ form_id }}" action="{{ path('mileage_suggestion_accept', {id: s.id}) }}" class="d-flex flex-wrap gap-1">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_suggestion' ~ s.id) }}">
-                                        <select name="purpose" class="form-select form-select-sm w-auto" aria-label="{{ 'trip.purpose'|trans }}">
-                                            {% for p in purposes %}<option value="{{ p.value }}" {% if p == s.purpose %}selected{% endif %}>{{ p.label|trans }}</option>{% endfor %}
-                                        </select>
-                                        <select name="vehicle" class="form-select form-select-sm w-auto" aria-label="{{ 'trip.vehicle'|trans }}">
-                                            {% for v in vehicles %}<option value="{{ v.value }}" {% if v == (s.vehicle ?? default_vehicle) %}selected{% endif %}>{{ v.label|trans }}</option>{% endfor %}
-                                        </select>
-                                    </form>
-                                {% else %}
-                                    {{ s.purpose.label|trans }}
-                                {% endif %}
-                            </td>
-                            <td class="text-end text-nowrap">
-                                {% if can_edit %}
-                                    <button type="submit" form="{{ form_id }}" class="btn btn-sm btn-success" title="{{ 'suggestion.accept'|trans }}"><i class="fas fa-check"></i></button>
-                                    <button type="submit" form="{{ form_id }}" name="edit" value="1" class="btn btn-sm btn-outline-primary" title="{{ 'suggestion.accept_edit'|trans }}"><i class="fas fa-pen"></i></button>
-                                    <form method="post" action="{{ path('mileage_suggestion_dismiss', {id: s.id}) }}" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_suggestion' ~ s.id) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ 'suggestion.dismiss'|trans }}"><i class="fas fa-xmark"></i></button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="6" class="text-muted">{{ 'suggestion.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% block main %}
+    {% if not dataTable.hasResults() %}
+        {% if not dawarich_configured %}
+            {{ kit.empty_state(
+                'mileage.dawarich.not_configured_hint'|trans,
+                target_user == app.user ? path('user_profile_preferences', {username: app.user.userIdentifier}) : null,
+                target_user == app.user ? 'mileage.dawarich.setup'|trans : null
+            ) }}
+        {% else %}
+            {{ kit.empty_state(
+                'mileage.suggestion.empty'|trans,
+                can_edit ? path('mileage_suggestions_detect', {user: user_param}) : null,
+                can_edit ? 'mileage.suggestion.detect'|trans : null,
+                'modal-ajax-form'
+            ) }}
+        {% endif %}
+    {% else %}
+        {{ parent() }}
+        {% if bulk %}
+            {{ kit.bulk_bar(bulk_form, [
+                {label: 'mileage.suggestion.accept'|trans, url: path('mileage_suggestions_accept'), token: csrf_token('mileage_suggestions'), icon: 'success', ajax: true},
+                {label: 'mileage.suggestion.dismiss'|trans, url: path('mileage_suggestions_dismiss'), token: csrf_token('mileage_suggestions'), icon: 'rejected', class: '', ajax: true},
+            ]) }}
+        {% endif %}
+    {% endif %}
 {% endblock %}

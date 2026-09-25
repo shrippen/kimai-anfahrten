@@ -23,21 +23,21 @@ class TripCsvExporter
         fwrite($handle, "\xEF\xBB\xBF");
 
         fputcsv($handle, array_map(fn (string $key) => $this->translator->trans($key), [
-            'trip.date',
-            'trip.departure',
-            'trip.arrival',
-            'trip.purpose',
-            'trip.vehicle',
-            'trip.license_plate',
-            'trip.start_location',
-            'trip.destination',
-            'trip.distance',
-            'trip.round_trip',
-            'trip.total_distance',
-            'trip.costs',
-            'trip.project',
-            'trip.comment',
-            'trip.source',
+            'mileage.trip.date',
+            'mileage.trip.departure',
+            'mileage.trip.arrival',
+            'mileage.trip.purpose',
+            'mileage.trip.vehicle',
+            'mileage.trip.license_plate',
+            'mileage.trip.start_location',
+            'mileage.trip.destination',
+            'mileage.trip.distance',
+            'mileage.trip.round_trip',
+            'mileage.trip.total_distance',
+            'mileage.trip.costs',
+            'mileage.trip.project',
+            'mileage.trip.comment',
+            'mileage.trip.source',
         ]), ';', '"', '');
 
         foreach ($trips as $trip) {

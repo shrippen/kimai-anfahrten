@@ -8,8 +8,8 @@ Checkbox abgehakt = behoben (mit Unit-Test und/oder Live-Nachtest, siehe „Nach
 Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 
 - IDOR Web + API: fremde Fahrten, Fahrzeuge, Orte, Mietvorgänge, Belege, Vorschläge, Fahrtenbuch, Verlauf,
-  Monatsabschluss, Freigabe — alle 403 (`TargetUserTrait`, `canView/Edit/DeleteTripsOf`, `TeamService`).
-- Team-Scoping: lead1 sieht nur Team A (user1), nicht user2; Freigabe nur eigener Teammitglieder, nie sich selbst.
+  Monatsabschluss, Genehmigung — alle 403 (`TargetUserTrait`, `canView/Edit/DeleteTripsOf`, `TeamService`).
+- Team-Scoping: lead1 sieht nur Team A (user1), nicht user2; Genehmigung nur eigener Teammitglieder, nie sich selbst.
 - CSRF: alle zustandsändernden Routen sind POST mit Token (Formulare über Symfony-Form-CSRF).
 - Monatsabschluss: zentral im `TripAuditListener` erzwungen (auch für API, Import, Vorschläge) — kein Bypass,
   nur schlechte Fehlermeldung (siehe P2).

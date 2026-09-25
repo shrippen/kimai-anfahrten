@@ -10,6 +10,6 @@ enum SuggestionStatus: string
 
     public function label(): string
     {
-        return 'suggestion.status.' . $this->value;
+        return 'mileage.suggestion.status.' . $this->value;
     }
 }

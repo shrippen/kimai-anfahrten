@@ -123,7 +123,7 @@ class ImportTest extends TestCase
         $rows = $importer->parse("Datum;km\n2026-07-15;4\n2026-08-15;5\n")['rows'];
 
         $built = $importer->build(new User(1), $rows);
-        self::assertSame(['date' => 'logbook.error.locked'], $built[0]['errors']);
+        self::assertSame(['date' => 'mileage.logbook.error.locked'], $built[0]['errors']);
         self::assertNull($built[0]['trip']);
         self::assertNotNull($built[1]['trip']);
 

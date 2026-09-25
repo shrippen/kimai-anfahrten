@@ -109,7 +109,7 @@ class DawarichClient
                 'per_page' => 100,
             ]);
         } catch (DawarichException $e) {
-            if ($e->getMessage() === 'dawarich.error.http' && ($e->getParameters()['%status%'] ?? null) === 404) {
+            if ($e->getMessage() === 'mileage.dawarich.error.http' && ($e->getParameters()['%status%'] ?? null) === 404) {
                 return [];
             }
             throw $e;
@@ -140,7 +140,7 @@ class DawarichClient
     public function fetchPoints(User $user, \DateTimeInterface $from, \DateTimeInterface $to): array
     {
         if ($to <= $from) {
-            throw new DawarichException('trip.error.arrival_before_departure');
+            throw new DawarichException('mileage.trip.error.arrival_before_departure');
         }
 
         $points = [];
@@ -189,7 +189,7 @@ class DawarichClient
         $apiKey = $this->configuration->getDawarichApiKey($user);
 
         if ($baseUrl === null || $apiKey === null) {
-            throw new DawarichException('dawarich.error.not_configured');
+            throw new DawarichException('mileage.dawarich.error.not_configured');
         }
 
         try {
@@ -206,16 +206,16 @@ class DawarichClient
 
             $status = $response->getStatusCode();
             if ($status === 401 || $status === 403) {
-                throw new DawarichException('dawarich.error.unauthorized');
+                throw new DawarichException('mileage.dawarich.error.unauthorized');
             }
             if ($status >= 400) {
-                throw new DawarichException('dawarich.error.http', ['%status%' => $status]);
+                throw new DawarichException('mileage.dawarich.error.http', ['%status%' => $status]);
             }
 
             $data = $response->toArray(false);
             $headers = $response->getHeaders(false);
         } catch (ExceptionInterface $e) {
-            throw new DawarichException('dawarich.error.connection', ['%message%' => $e->getMessage()], $e);
+            throw new DawarichException('mileage.dawarich.error.connection', ['%message%' => $e->getMessage()], $e);
         }
 
         return [$data, $headers, \count($data)];

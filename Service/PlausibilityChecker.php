@@ -108,34 +108,34 @@ class PlausibilityChecker
         }
 
         if (\count($commuteDays) > \count($workdays) && $workdays !== []) {
-            $add('warning', 'plausibility.more_commutes_than_workdays', [], \count($commuteDays) - \count($workdays));
+            $add('warning', 'mileage.plausibility.more_commutes_than_workdays', [], \count($commuteDays) - \count($workdays));
         }
         if ($withoutTimesheet !== []) {
-            $add('warning', 'plausibility.commute_without_timesheet', $withoutTimesheet);
+            $add('warning', 'mileage.plausibility.commute_without_timesheet', $withoutTimesheet);
         }
         if ($onAbsence !== []) {
-            $add('danger', 'plausibility.commute_on_absence', $onAbsence);
+            $add('danger', 'mileage.plausibility.commute_on_absence', $onAbsence);
         }
         if ($rentalWithoutCosts !== []) {
-            $add('warning', 'plausibility.rental_without_costs', $rentalWithoutCosts);
+            $add('warning', 'mileage.plausibility.rental_without_costs', $rentalWithoutCosts);
         }
         if ($businessWithoutPurpose !== []) {
-            $add('warning', 'plausibility.business_without_purpose', $businessWithoutPurpose);
+            $add('warning', 'mileage.plausibility.business_without_purpose', $businessWithoutPurpose);
         }
         if ($onWeekend !== []) {
-            $add('info', 'plausibility.commute_on_weekend', $onWeekend);
+            $add('info', 'mileage.plausibility.commute_on_weekend', $onWeekend);
         }
         if ($multiple !== []) {
-            $add('info', 'plausibility.multiple_commutes', $multiple);
+            $add('info', 'mileage.plausibility.multiple_commutes', $multiple);
         }
         if ($deviating !== []) {
-            $add('info', 'plausibility.commute_distance_deviates', $deviating);
+            $add('info', 'mileage.plausibility.commute_distance_deviates', $deviating);
         }
         if ($businessWithoutTimes !== []) {
-            $add('info', 'plausibility.business_without_times', $businessWithoutTimes);
+            $add('info', 'mileage.plausibility.business_without_times', $businessWithoutTimes);
         }
         if ($absences === null) {
-            $add('info', 'plausibility.no_absence_data', [], 0);
+            $add('info', 'mileage.plausibility.no_absence_data', [], 0);
         }
 
         return $findings;
@@ -158,7 +158,7 @@ class PlausibilityChecker
             }
         }
         if ($open > 0) {
-            $findings[] = ['level' => 'warning', 'key' => 'plausibility.open_suggestions', 'count' => $open, 'dates' => []];
+            $findings[] = ['level' => 'warning', 'key' => 'mileage.plausibility.open_suggestions', 'count' => $open, 'dates' => []];
         }
 
         $months = [];
@@ -176,7 +176,7 @@ class PlausibilityChecker
         }
         if ($unlocked !== []) {
             sort($unlocked);
-            $findings[] = ['level' => 'info', 'key' => 'plausibility.months_not_closed', 'count' => \count($unlocked), 'dates' => $unlocked];
+            $findings[] = ['level' => 'info', 'key' => 'mileage.plausibility.months_not_closed', 'count' => \count($unlocked), 'dates' => $unlocked];
         }
 
         return $findings;

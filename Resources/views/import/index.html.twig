@@ -1,66 +1,77 @@
 {% extends 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'trips'} %}
-    <h2>{{ 'import.title'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'import.help'|trans }}</p>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
 
-    <form method="post" enctype="multipart/form-data" class="card mb-3" style="max-width: 48rem">
-        <input type="hidden" name="_token" value="{{ csrf_token('mileage_import') }}">
-        <input type="hidden" name="action" value="preview">
-        <div class="card-body d-flex gap-2">
-            <input type="file" name="file" class="form-control" accept=".csv,text/csv,text/plain" required>
-            <button type="submit" class="btn btn-primary text-nowrap">{{ 'import.check'|trans }}</button>
-        </div>
-        <div class="card-footer small text-muted">{{ 'import.columns'|trans }}</div>
-    </form>
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% embed 'default/_form.html.twig' with {title: 'mileage.import.title'|trans, form: upload_form, back: back, reset: false, submit_button: 'mileage.import.check'} %}
+        {% block form_body %}
+            <p class="text-body-secondary">{{ 'mileage.import.help'|trans }}</p>
+            {{ form_widget(upload_form) }}
+        {% endblock %}
+    {% endembed %}
 
     {% if preview %}
         {% set ok = preview.rows|filter(r => r.trip and not r.duplicate)|length %}
         {% set dup = preview.rows|filter(r => r.duplicate)|length %}
         {% set bad = preview.rows|filter(r => not r.trip)|length %}
+        {{ kit.kpi_bar([
+            {label: 'mileage.import.kpi.ready'|trans, value: ok|amount, highlight: true},
+            {label: 'mileage.import.kpi.duplicates'|trans, value: dup|amount},
+            {label: 'mileage.import.kpi.errors'|trans, value: bad|amount},
+        ]) }}
+
         <div class="card mb-3">
-            <div class="card-header d-flex flex-wrap gap-2 align-items-center">
-                <h3 class="card-title me-auto">{{ 'import.preview'|trans }}</h3>
-                <span class="badge bg-green text-white">{{ 'import.ok'|trans({'%count%': ok}) }}</span>
-                <span class="badge bg-yellow">{{ 'import.duplicates'|trans({'%count%': dup}) }}</span>
-                <span class="badge bg-red text-white">{{ 'import.errors'|trans({'%count%': bad}) }}</span>
+            <div class="card-header">
+                <h3 class="card-title">{{ 'mileage.import.preview'|trans }}</h3>
             </div>
             <div class="card-body small">
-                {{ 'import.recognized'|trans }}:
+                {{ 'mileage.import.recognized'|trans }}:
                 {% for c in preview.columns %}<span class="badge {{ c ? 'bg-blue-lt' : 'bg-secondary-lt' }} me-1">{{ c ?: '–' }}</span>{% endfor %}
             </div>
-            <div class="card-body p-0 table-responsive" style="max-height: 60vh">
-                <table class="table table-sm table-vcenter mb-0">
-                    <thead><tr><th>#</th><th>{{ 'trip.date'|trans }}</th><th>{{ 'trip.purpose'|trans }}</th><th>{{ 'trip.vehicle'|trans }}</th><th>{{ 'trip.route'|trans }}</th><th class="text-end">km</th><th></th></tr></thead>
-                    <tbody>
-                        {% for r in preview.rows %}
-                            <tr class="{{ not r.trip ? 'table-danger' : (r.duplicate ? 'table-warning' : '') }}">
-                                <td>{{ r.line }}</td>
-                                {% if r.trip %}
-                                    <td>{{ r.trip.date|date('Y-m-d') }}</td>
-                                    <td>{{ r.trip.purpose.label|trans }}</td>
-                                    <td>{{ r.trip.vehicle.label|trans }}</td>
-                                    <td>{{ r.trip.startLocation|default('–') }} → {{ r.trip.destination|default('–') }}</td>
-                                    <td class="text-end">{{ r.trip.totalDistanceKm|number_format(1, ',', '.') }}</td>
-                                    <td>{{ r.duplicate ? 'import.duplicate'|trans : '' }}</td>
-                                {% else %}
-                                    <td colspan="6">{% for field, error in r.errors %}<div><strong>{{ field }}</strong>: {{ error|trans }}</div>{% endfor %}</td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% if ok > 0 or dup > 0 %}
-                <form method="post" class="card-footer d-flex gap-3 align-items-center">
-                    <input type="hidden" name="_token" value="{{ csrf_token('mileage_import') }}">
-                    <input type="hidden" name="content" value="{{ content }}">
-                    <input type="hidden" name="action" value="import">
-                    <input type="hidden" name="skip_duplicates" value="0">
-                    <label class="form-check mb-0"><input type="checkbox" class="form-check-input" name="skip_duplicates" value="1" checked> {{ 'import.skip_duplicates'|trans }}</label>
-                    <button type="submit" class="btn btn-success ms-auto">{{ 'import.run'|trans }}</button>
-                </form>
+            {% set columns = {
+                'line': {class: 'w-min', title: 'mileage.import.line'},
+                'date': {class: 'alwaysVisible w-min', title: 'mileage.trip.date'},
+                'purpose': {class: 'd-none d-md-table-cell', title: 'mileage.trip.purpose'},
+                'vehicle': {class: 'd-none d-lg-table-cell', title: 'mileage.trip.vehicle'},
+                'route': {class: 'alwaysVisible', title: 'mileage.trip.route'},
+                'distance': {class: 'text-end w-min text-nowrap', title: 'mileage.trip.distance_short'},
+                'status': {class: 'w-min', title: 'status'},
+            } %}
+            {{ tables.datatable_header('mileage_import', columns, null, {columnConfig: false, sticky: false, boxClass: 'kpu-table-wrap'}) }}
+                {% for r in preview.rows %}
+                    <tr>
+                        <td class="{{ datatable_column_class('mileage_import', 'line') }}">{{ r.line }}</td>
+                        {% if r.trip %}
+                            <td class="{{ datatable_column_class('mileage_import', 'date') }} text-nowrap">{{ r.trip.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'purpose') }}">{{ r.trip.purpose.label|trans }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'vehicle') }}">{{ r.trip.vehicle.label|trans }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'route') }}">{{ r.trip.startLocation|default('–') }} → {{ r.trip.destination|default('–') }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'distance') }}">{{ mileage.km(r.trip.totalDistanceKm) }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'status') }}">{% if r.duplicate %}{{ kit.status_badge('warning', 'mileage.import.duplicate'|trans) }}{% endif %}</td>
+                        {% else %}
+                            <td colspan="6" class="text-danger">
+                                {% for field, error in r.errors %}<div><strong>{{ field }}</strong>: {{ error|trans }}</div>{% endfor %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {{ tables.data_table_footer(null, null, null) }}
+            {% if run_form and (ok > 0 or dup > 0) %}
+                <div class="card-footer">
+                    {{ form_start(run_form, {attr: {class: 'd-flex flex-wrap gap-3 align-items-center'}}) }}
+                        {{ form_widget(run_form.skip_duplicates) }}
+                        <button type="submit" class="btn btn-primary ms-auto">{{ 'mileage.import.run'|trans }}</button>
+                    {{ form_end(run_form) }}
+                </div>
             {% endif %}
         </div>
     {% endif %}

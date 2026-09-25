@@ -1,0 +1,12 @@
+{# Delete confirmation in Kimai's modal (or as page without JS). Params: form, item_name, message, back #}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {{ include(kimai_context.modalRequest ? 'default/_form_delete_modal.html.twig' : 'default/_form_delete.html.twig', {
+        message: message,
+        form: form,
+        delete_item_name: item_name,
+        used: true,
+        back: back,
+    }) }}
+{% endblock %}

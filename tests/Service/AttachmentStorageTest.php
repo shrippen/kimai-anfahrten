@@ -48,7 +48,7 @@ class AttachmentStorageTest extends TestCase
     public function testRejectsScriptsEvenWithPdfExtension(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('attachment.error.type');
+        $this->expectExceptionMessage('mileage.attachment.error.type');
 
         (new AttachmentStorage($this->dir))->store(new User(7), $this->upload('<?php echo 1;', 'receipt.pdf'));
     }

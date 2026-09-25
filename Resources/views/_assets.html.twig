@@ -1,0 +1,30 @@
+{#
+    Kit assets plus the plugin's own CSS/JS. Once per page:
+        {% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+        {% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+    Immediate actions (data-kpu-post), the bulk bar, the undo toast and the reload after modal forms
+    (data-form-event "kpu.reload") come from the kit. Page script (delegated on document):
+      - form[data-mileage-autosubmit]: submits on change (filters in the page header).
+#}
+{% if part == 'css' %}
+    {% include '@Mileage/_kit/assets.html.twig' with {kpu_part: 'css'} %}
+    <style>
+        .mileage-map { height: 20rem; position: relative; z-index: 0; }
+        @media (max-width: 575.98px) { .mileage-map { height: 15rem; } }
+        .mileage-map-hint { z-index: 500; }
+        .mileage-changes { overflow-wrap: anywhere; }
+        .mileage-filter { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+        .mileage-filter > .input-group, .mileage-filter > select, .mileage-filter > .ts-wrapper { width: auto; flex: 1 1 14rem; max-width: 22rem; }
+    </style>
+{% else %}
+    {% include '@Mileage/_kit/assets.html.twig' with {kpu_part: 'js'} %}
+    <script>
+        document.addEventListener('change', function (event) {
+            const form = event.target.closest ? event.target.closest('form[data-mileage-autosubmit]') : null;
+            if (form !== null) {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            }
+        });
+    </script>
+{% endif %}

@@ -44,7 +44,7 @@ class Vehicle
     private ?\DateTimeImmutable $validFrom = null;
 
     #[ORM\Column(name: 'valid_to', type: Types::DATE_IMMUTABLE, nullable: true)]
-    #[Assert\Expression('this.getValidTo() === null or this.getValidFrom() === null or this.getValidTo() >= this.getValidFrom()', message: 'vehicle.error.period')]
+    #[Assert\Expression('this.getValidTo() === null or this.getValidFrom() === null or this.getValidTo() >= this.getValidFrom()', message: 'mileage.vehicle.error.period')]
     private ?\DateTimeImmutable $validTo = null;
 
     /** Odometer reading when the vehicle was added. */

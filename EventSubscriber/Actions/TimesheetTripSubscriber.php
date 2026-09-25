@@ -38,7 +38,7 @@ final class TimesheetTripSubscriber extends AbstractActionsSubscriber
                 'purpose' => 'business',
                 'user' => $timesheet->getUser()?->getId(),
             ]),
-            'title' => 'trip.create_from_timesheet',
+            'title' => 'mileage.trip.create_from_timesheet',
             'translation_domain' => 'messages',
             'icon' => 'fas fa-car',
         ]);

@@ -1,31 +1,72 @@
 {% extends 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import 'macros/datatables.html.twig' as tables %}
+{% import 'macros/widgets.html.twig' as widgets %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'history'} %}
-    <h2>{{ 'logbook.history'|trans }} — {{ target_user.displayName }}{% if trip_id %} — #{{ trip_id }}{% endif %}</h2>
-    <p class="text-muted">{{ 'logbook.history_help'|trans }}</p>
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-sm table-vcenter mb-0">
-                <thead><tr><th>{{ 'logbook.changed_at'|trans }}</th><th>{{ 'trip.label'|trans }}</th><th>{{ 'logbook.action'|trans }}</th><th>{{ 'logbook.changed_by'|trans }}</th><th>{{ 'logbook.changes'|trans }}</th></tr></thead>
-                <tbody>
-                    {% for e in entries %}
-                        <tr>
-                            <td class="text-nowrap">{{ e.changedAt|date('Y-m-d H:i') }}{% if e.lockedMonth %} <i class="fas fa-lock text-warning" title="{{ 'logbook.month_locked'|trans }}"></i>{% endif %}</td>
-                            <td><a href="{{ path('mileage_history', {user: target_user.id, trip: e.tripId}) }}">#{{ e.tripId }}</a></td>
-                            <td>{{ ('logbook.action.' ~ e.action)|trans }}</td>
-                            <td>{{ e.changedBy ? e.changedBy.displayName : '–' }}</td>
-                            <td class="small">
-                                {% for field, change in e.changes %}
-                                    <div><strong>{{ field }}</strong>: {% if e.action == 'update' %}<del class="text-muted">{{ change[0] is same as(true) ? '✓' : (change[0] is same as(false) ? '✗' : change[0]) }}</del> → {% endif %}{{ change[1] is same as(true) ? '✓' : (change[1] is same as(false) ? '✗' : change[1]) }}</div>
-                                {% endfor %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="5" class="text-muted">{{ 'logbook.history_empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{# audit field names -> labels of the trip form #}
+{% set labels = {
+    date: 'mileage.trip.date', departureAt: 'mileage.trip.departure', arrivalAt: 'mileage.trip.arrival',
+    purpose: 'mileage.trip.purpose', vehicle: 'mileage.trip.vehicle', startLocation: 'mileage.trip.start_location',
+    destination: 'mileage.trip.destination', distanceKm: 'mileage.trip.distance', roundTrip: 'mileage.trip.round_trip',
+    overnight: 'mileage.trip.overnight', costs: 'mileage.trip.costs', licensePlate: 'mileage.trip.license_plate',
+    comment: 'mileage.trip.comment', project: 'mileage.trip.project', odometerStart: 'mileage.odometer.start',
+    odometerEnd: 'mileage.odometer.end', assignedVehicle: 'mileage.vehicle.assigned', rental: 'mileage.rental.label',
+} %}
+
+{# stored values are normalised strings (ISO dates, enum values, numbers): shown with Kimai's formatters #}
+{% macro value(field, v) -%}
+    {%- import 'macros/widgets.html.twig' as widgets -%}
+    {%- if v is same as(true) or v is same as(false) %}{{ widgets.label_boolean(v) }}
+    {%- elseif v is null or v is same as('') %}–
+    {%- elseif field == 'date' %}{{ v|date_short }}
+    {%- elseif field in ['departureAt', 'arrivalAt'] %}{{ v|date_time }}
+    {%- elseif field == 'purpose' %}{{ ('mileage.trip.purpose.' ~ v)|trans }}
+    {%- elseif field == 'vehicle' %}{{ ('mileage.trip.vehicle.' ~ v)|trans }}
+    {%- elseif field in ['distanceKm', 'odometerStart', 'odometerEnd'] and (v ~ '') matches '/^-?[0-9.]+$/' %}{{ (v + 0)|amount }}
+    {%- elseif field == 'costs' and (v ~ '') matches '/^-?[0-9.]+$/' %}{{ (v + 0)|money('EUR') }}
+    {%- else %}{{ v }}{% endif -%}
+{%- endmacro %}
+
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, 'mileage.logbook.history_help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% if entries is empty %}
+        {{ kit.empty_state('mileage.logbook.history_empty'|trans) }}
+    {% else %}
+        {% set columns = {
+            'changed_at': {class: 'alwaysVisible w-min', title: 'mileage.logbook.changed_at'},
+            'trip': {class: 'd-none d-sm-table-cell w-min', title: 'mileage.trip.label'},
+            'action': {class: 'd-none d-md-table-cell w-min', title: 'mileage.logbook.action'},
+            'changed_by': {class: 'd-none d-lg-table-cell', title: 'mileage.logbook.changed_by'},
+            'changes': {class: 'alwaysVisible', title: 'mileage.logbook.changes'},
+        } %}
+        {{ tables.datatable_header('mileage_history', columns, null, {columnConfig: false, sticky: false, responsive: true}) }}
+            {% for e in entries %}
+                <tr>
+                    <td class="{{ datatable_column_class('mileage_history', 'changed_at') }}">
+                        <span class="text-nowrap">{{ e.changedAt|date_time }}</span>
+                        {% if e.lockedMonth %}<div>{{ kit.status_badge('locked', 'mileage.logbook.month_locked'|trans) }}</div>{% endif %}
+                        <div class="d-md-none text-body-secondary small">{{ ('mileage.logbook.action.' ~ e.action)|trans }}</div>
+                    </td>
+                    <td class="{{ datatable_column_class('mileage_history', 'trip') }}"><a href="{{ path('mileage_history', {user: user_param, trip: e.tripId}) }}">#{{ e.tripId }}</a></td>
+                    <td class="{{ datatable_column_class('mileage_history', 'action') }}">{{ ('mileage.logbook.action.' ~ e.action)|trans }}</td>
+                    <td class="{{ datatable_column_class('mileage_history', 'changed_by') }}">{{ e.changedBy ? e.changedBy.displayName : '–' }}</td>
+                    <td class="{{ datatable_column_class('mileage_history', 'changes') }} small mileage-changes">
+                        {% for field, change in e.changes %}
+                            <div>
+                                <strong>{{ labels[field] is defined ? labels[field]|trans : field }}</strong>:
+                                {% if e.action == 'update' %}<del class="text-body-secondary">{{ _self.value(field, change[0]) }}</del> → {% endif %}{{ _self.value(field, change[1]) }}
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {{ tables.data_table_footer(null, null, null) }}
+    {% endif %}
 {% endblock %}

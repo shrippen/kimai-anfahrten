@@ -43,7 +43,7 @@ class Trip
 
     /** End of the time window (used for the Dawarich lookup). */
     #[ORM\Column(name: 'arrival_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Assert\Expression('this.getArrivalAt() === null or this.getDepartureAt() === null or this.getArrivalAt() > this.getDepartureAt()', message: 'trip.error.arrival_before_departure')]
+    #[Assert\Expression('this.getArrivalAt() === null or this.getDepartureAt() === null or this.getArrivalAt() > this.getDepartureAt()', message: 'mileage.trip.error.arrival_before_departure')]
     private ?\DateTimeImmutable $arrivalAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, enumType: TripPurpose::class)]
@@ -66,7 +66,7 @@ class Trip
      * Business/private: the driven distance; doubled when {@see $roundTrip} is set.
      */
     #[ORM\Column(name: 'distance_km', type: Types::FLOAT, options: ['default' => 0])]
-    #[Assert\Positive(message: 'trip.error.distance')]
+    #[Assert\Positive(message: 'mileage.trip.error.distance')]
     #[Assert\LessThanOrEqual(self::MAX_DISTANCE)]
     private float $distanceKm = 0.0;
 
@@ -119,7 +119,7 @@ class Trip
     #[ORM\Column(name: 'odometer_end', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
     #[Assert\LessThanOrEqual(self::MAX_ODOMETER)]
-    #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'odometer.error.order')]
+    #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'mileage.odometer.error.order')]
     private ?int $odometerEnd = null;
 
     #[ORM\ManyToOne(targetEntity: Timesheet::class)]
