@@ -29,7 +29,8 @@
     {% set p = entry %}
     {% if column == 'name' %}
         {{ p.name }}
-        {% if p.dawarichAreaId %}<div class="text-body-secondary small">{{ 'mileage.place.from_dawarich'|trans }}</div>{% endif %}
+        {% if p.dawarichAreaId or p.dawarichPlaceId %}<div class="text-body-secondary small">{{ 'mileage.place.from_dawarich'|trans }}</div>{% endif %}
+        {% if p.temporary %}<div class="text-body-secondary small">{{ 'mileage.place.temporary'|trans }}</div>{% endif %}
     {% elseif column == 'type' %}
         <i class="{{ p.type.icon }} fa-fw me-1" aria-hidden="true"></i>{{ p.type.label|trans }}
     {% elseif column == 'address' %}

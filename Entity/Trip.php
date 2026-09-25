@@ -60,6 +60,27 @@ class Trip
     #[Assert\Length(max: 255)]
     private ?string $destination = null;
 
+    /** Where a detected trip started/ended (null for trips entered by hand). */
+    #[ORM\Column(name: 'start_lat', type: Types::FLOAT, nullable: true)]
+    private ?float $startLatitude = null;
+
+    #[ORM\Column(name: 'start_lon', type: Types::FLOAT, nullable: true)]
+    private ?float $startLongitude = null;
+
+    #[ORM\Column(name: 'end_lat', type: Types::FLOAT, nullable: true)]
+    private ?float $endLatitude = null;
+
+    #[ORM\Column(name: 'end_lon', type: Types::FLOAT, nullable: true)]
+    private ?float $endLongitude = null;
+
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(name: 'start_place_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Place $startPlace = null;
+
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(name: 'end_place_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Place $endPlace = null;
+
     /**
      * Distance of one direction in km.
      * Commute: the one-way distance (einfache Entfernung) used for the Entfernungspauschale.
@@ -216,8 +237,15 @@ class Trip
         return $this->startLocation;
     }
 
+    /**
+     * Renaming the start by hand detaches it from the detected place and coordinates.
+     */
     public function setStartLocation(?string $startLocation): self
     {
+        if (trim((string) $startLocation) !== trim((string) $this->startLocation)) {
+            $this->startPlace = null;
+            $this->startLatitude = $this->startLongitude = null;
+        }
         $this->startLocation = $startLocation;
 
         return $this;
@@ -228,8 +256,15 @@ class Trip
         return $this->destination;
     }
 
+    /**
+     * Renaming the destination by hand detaches it from the detected place and coordinates.
+     */
     public function setDestination(?string $destination): self
     {
+        if (trim((string) $destination) !== trim((string) $this->destination)) {
+            $this->endPlace = null;
+            $this->endLatitude = $this->endLongitude = null;
+        }
         $this->destination = $destination;
 
         return $this;
@@ -316,6 +351,62 @@ class Trip
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * @return array{float, float}|null latitude, longitude
+     */
+    public function getStartCoordinates(): ?array
+    {
+        return $this->startLatitude !== null && $this->startLongitude !== null ? [$this->startLatitude, $this->startLongitude] : null;
+    }
+
+    public function setStartCoordinates(?float $latitude, ?float $longitude): self
+    {
+        $this->startLatitude = $latitude;
+        $this->startLongitude = $longitude;
+
+        return $this;
+    }
+
+    /**
+     * @return array{float, float}|null latitude, longitude
+     */
+    public function getEndCoordinates(): ?array
+    {
+        return $this->endLatitude !== null && $this->endLongitude !== null ? [$this->endLatitude, $this->endLongitude] : null;
+    }
+
+    public function setEndCoordinates(?float $latitude, ?float $longitude): self
+    {
+        $this->endLatitude = $latitude;
+        $this->endLongitude = $longitude;
+
+        return $this;
+    }
+
+    public function getStartPlace(): ?Place
+    {
+        return $this->startPlace;
+    }
+
+    public function setStartPlace(?Place $startPlace): self
+    {
+        $this->startPlace = $startPlace;
+
+        return $this;
+    }
+
+    public function getEndPlace(): ?Place
+    {
+        return $this->endPlace;
+    }
+
+    public function setEndPlace(?Place $endPlace): self
+    {
+        $this->endPlace = $endPlace;
 
         return $this;
     }

@@ -536,7 +536,7 @@
       </trans-unit>
       <trans-unit id="m136" resname="mileage.place.import">
         <source>mileage.place.import</source>
-        <target>Import Dawarich areas</target>
+        <target>Import from Dawarich (areas and places)</target>
       </trans-unit>
       <trans-unit id="m137" resname="mileage.place.imported">
         <source>mileage.place.imported</source>
@@ -1765,6 +1765,18 @@
       <trans-unit id="m443" resname="mileage.dawarich.error.no_tracks">
         <source>mileage.dawarich.error.no_tracks</source>
         <target>Dawarich has no tracks for this period (nothing recorded or tracks not computed yet).</target>
+      </trans-unit>
+      <trans-unit id="m444" resname="mileage.place_radius">
+        <source>mileage.place_radius</source>
+        <target>Radius of automatically created places (m)</target>
+      </trans-unit>
+      <trans-unit id="m445" resname="mileage.place_radius_help">
+        <source>mileage.place_radius_help</source>
+        <target>When a detected trip ends outside all places, a temporary place with this radius is created there; a later trip starting inside it starts at that place. Also used for places imported from Dawarich and for comparing coordinates.</target>
+      </trans-unit>
+      <trans-unit id="m446" resname="mileage.place.temporary">
+        <source>mileage.place.temporary</source>
+        <target>created automatically – saving it makes it a regular place</target>
       </trans-unit>
     </body>
   </file>

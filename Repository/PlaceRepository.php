@@ -18,16 +18,23 @@ class PlaceRepository extends ServiceEntityRepository
     }
 
     /**
+     * Places of the user, the temporary ones last.
+     *
      * @return Place[]
      */
     public function findByUser(User $user): array
     {
-        return $this->findBy(['user' => $user], ['type' => 'ASC', 'name' => 'ASC']);
+        return $this->findBy(['user' => $user], ['temporary' => 'ASC', 'type' => 'ASC', 'name' => 'ASC']);
     }
 
     public function findOneByDawarichArea(User $user, int $areaId): ?Place
     {
         return $this->findOneBy(['user' => $user, 'dawarichAreaId' => $areaId]);
+    }
+
+    public function findOneByDawarichPlace(User $user, int $placeId): ?Place
+    {
+        return $this->findOneBy(['user' => $user, 'dawarichPlaceId' => $placeId]);
     }
 
     public function save(Place $place, bool $flush = true): void

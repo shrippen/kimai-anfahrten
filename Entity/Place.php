@@ -11,7 +11,8 @@ use KimaiPlugin\MileageBundle\Repository\PlaceRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * A named location of a user (home, place of work, customer site) used to label detected trips.
+ * A named location of a user (home, place of work, customer site) used to label detected trips and to link
+ * the legs of a journey (see MealAllowanceCalculator).
  */
 #[ORM\Entity(repositoryClass: PlaceRepository::class)]
 #[ORM\Table(name: 'kimai2_ext_mileage_place')]
@@ -58,6 +59,17 @@ class Place
     /** Id of the Dawarich area this place was imported from. */
     #[ORM\Column(name: 'dawarich_area_id', type: Types::INTEGER, nullable: true)]
     private ?int $dawarichAreaId = null;
+
+    /** Id of the Dawarich place this place was imported from. */
+    #[ORM\Column(name: 'dawarich_place_id', type: Types::INTEGER, nullable: true)]
+    private ?int $dawarichPlaceId = null;
+
+    /**
+     * Created automatically where a detected trip started or ended outside all places, so the next trip from
+     * there starts at the same place. Saving it in the form makes it a regular place.
+     */
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $temporary = false;
 
     public function getId(): ?int
     {
@@ -168,6 +180,30 @@ class Place
     public function setDawarichAreaId(?int $dawarichAreaId): self
     {
         $this->dawarichAreaId = $dawarichAreaId;
+
+        return $this;
+    }
+
+    public function getDawarichPlaceId(): ?int
+    {
+        return $this->dawarichPlaceId;
+    }
+
+    public function setDawarichPlaceId(?int $dawarichPlaceId): self
+    {
+        $this->dawarichPlaceId = $dawarichPlaceId;
+
+        return $this;
+    }
+
+    public function isTemporary(): bool
+    {
+        return $this->temporary;
+    }
+
+    public function setTemporary(bool $temporary): self
+    {
+        $this->temporary = $temporary;
 
         return $this;
     }

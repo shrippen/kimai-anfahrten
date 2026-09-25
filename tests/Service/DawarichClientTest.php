@@ -258,4 +258,39 @@ class DawarichClientTest extends TestCase
         self::assertSame(1, $result->segmentCount);
         self::assertSame(2, $result->pointCount);
     }
+
+    public function testReverseGeocodingUsesDawarichNearbyPlaces(): void
+    {
+        $url = null;
+        $http = new MockHttpClient(function (string $method, string $u) use (&$url) {
+            $url = $u;
+
+            // Places::PhotonResultFormatter
+            return new MockResponse(json_encode(['places' => [[
+                'id' => null, 'name' => 'Bäckerei Schmidt', 'latitude' => 52.52, 'longitude' => 13.405, 'osm_id' => 1,
+                'city' => 'Berlin', 'country' => 'Germany', 'street' => 'Unter den Linden', 'housenumber' => '5', 'postcode' => '10117', 'source' => 'photon',
+            ]]]));
+        });
+
+        self::assertSame('Unter den Linden 5, 10117 Berlin', $this->client($http)->reverseGeocode($this->user(), 52.52, 13.405));
+        self::assertStringStartsWith('https://dawarich.test/api/v1/places/nearby?', (string) $url);
+        self::assertStringContainsString('radius=0.1', (string) $url);
+
+        // a POI without street, no geocoder in Dawarich, errors
+        $poi = new MockHttpClient(new MockResponse(json_encode(['places' => [['name' => 'Stadtpark', 'city' => 'Hamburg']]])));
+        self::assertSame('Stadtpark, Hamburg', $this->client($poi)->reverseGeocode($this->user(), 1, 2));
+        self::assertNull($this->client(new MockHttpClient(new MockResponse('{"places":[]}')))->reverseGeocode($this->user(), 1, 2));
+        self::assertNull($this->client(new MockHttpClient(new MockResponse('', ['http_code' => 500])))->reverseGeocode($this->user(), 1, 2));
+    }
+
+    public function testFetchesPlaces(): void
+    {
+        $http = new MockHttpClient(new MockResponse(json_encode([
+            ['id' => 3, 'name' => 'Kunde Nord', 'latitude' => 53.1, 'longitude' => 9.9, 'source' => 'manual', 'visits_count' => 4, 'tags' => []],
+            ['id' => 4, 'name' => '', 'latitude' => 1, 'longitude' => 2],
+        ])));
+
+        self::assertSame([['id' => 3, 'name' => 'Kunde Nord', 'latitude' => 53.1, 'longitude' => 9.9]], $this->client($http)->fetchPlaces($this->user()));
+        self::assertSame([], $this->client(new MockHttpClient(new MockResponse('', ['http_code' => 404])))->fetchPlaces($this->user()));
+    }
 }

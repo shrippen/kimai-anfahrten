@@ -38,8 +38,11 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   vorgeschlagen.
   Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
   mit Projekt. Übernehmen, bearbeiten oder verwerfen.
-- Orte (Zuhause, Arbeit, Kunde) anlegen oder aus Dawarich-*Areas* übernehmen, optionale Adressauflösung
-  (Nominatim/Photon), nächtlicher Abgleich per Cronjob
+- **Orte statt Namen**: Start und Ziel einer erkannten Fahrt sind Orte mit Koordinaten — eigene Orte, aus Dawarich
+  übernommene *Areas* und *Places*, oder **vorläufige Orte**, die automatisch dort angelegt werden, wo eine Fahrt
+  außerhalb aller Orte endet (Radius einstellbar, Standard 200 m); die nächste Fahrt, die darin beginnt, startet an
+  diesem Ort. Die Adresse kommt vom Geocoder der Dawarich-Instanz (`/api/v1/places/nearby`), sonst vom optional
+  eingestellten Nominatim/Photon, und wird am Ort gespeichert. Nächtlicher Abgleich per Cronjob
 
 ![Erkannte Fahrten](docs/erkannte-fahrten.png)
 
@@ -108,7 +111,7 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
    Der API-Key wird nicht angezeigt (leer lassen = behalten, ein Leerzeichen = löschen) und liegt in einer eigenen
    Tabelle, nicht bei Kimais Benutzereinstellungen — `/api/users/me` und Rechnungsvorlagen enthalten ihn nicht.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
-3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
+3. **Fahrten → Orte → Aus Dawarich übernehmen** (Areas und Places), oder Orte selbst anlegen.
 4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
 
    ```bash

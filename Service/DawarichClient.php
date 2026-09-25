@@ -98,6 +98,75 @@ class DawarichClient
     }
 
     /**
+     * Places the user keeps in Dawarich (GET /api/v1/places: named by hand, imported, confirmed visits, tagged).
+     * Empty for Dawarich versions without places.
+     *
+     * @return list<array{id: int, name: string, latitude: float, longitude: float}>
+     * @throws DawarichException
+     */
+    public function fetchPlaces(User $user): array
+    {
+        try {
+            [$data] = $this->get($user, '/api/v1/places', []);
+        } catch (DawarichException $e) {
+            if (self::isNotFound($e)) {
+                return [];
+            }
+            throw $e;
+        }
+
+        $places = [];
+        foreach ($data as $row) {
+            if (!\is_array($row) || !is_numeric($row['id'] ?? null) || !\is_string($row['name'] ?? null) || trim($row['name']) === ''
+                || !is_numeric($row['latitude'] ?? null) || !is_numeric($row['longitude'] ?? null)) {
+                continue;
+            }
+            $places[] = ['id' => (int) $row['id'], 'name' => trim($row['name']), 'latitude' => (float) $row['latitude'], 'longitude' => (float) $row['longitude']];
+        }
+
+        return $places;
+    }
+
+    /**
+     * Address of a position from the reverse geocoder configured in Dawarich (GET /api/v1/places/nearby, the
+     * nearest result within 100 m). Null when Dawarich has no geocoder, finds nothing or fails.
+     */
+    public function reverseGeocode(User $user, float $latitude, float $longitude): ?string
+    {
+        try {
+            [$data] = $this->get($user, '/api/v1/places/nearby', [
+                'latitude' => (string) $latitude,
+                'longitude' => (string) $longitude,
+                'radius' => '0.1',
+                'limit' => 1,
+            ]);
+        } catch (DawarichException) {
+            return null;
+        }
+
+        $place = $data['places'][0] ?? null;
+
+        return \is_array($place) ? self::address($place) : null;
+    }
+
+    /**
+     * "Street 5, 12345 City", otherwise "Name, City".
+     *
+     * @param array<mixed> $place
+     */
+    private static function address(array $place): ?string
+    {
+        $text = static fn (string $key): string => \is_scalar($place[$key] ?? null) ? trim((string) $place[$key]) : '';
+        $city = trim($text('postcode') . ' ' . $text('city'));
+        $street = trim($text('street') . ' ' . $text('housenumber'));
+        $name = $text('name') === 'Unknown Place' ? '' : $text('name');
+
+        $parts = array_values(array_filter($street !== '' ? [$street, $city] : [$name, $city], static fn (string $part) => $part !== ''));
+
+        return $parts !== [] ? mb_substr(implode(', ', $parts), 0, 255) : null;
+    }
+
+    /**
      * Tracks touching the window, oldest first, each with its transportation-mode segments.
      *
      * @return list<DawarichTrack>

@@ -536,7 +536,7 @@
       </trans-unit>
       <trans-unit id="m136" resname="mileage.place.import">
         <source>mileage.place.import</source>
-        <target>Aus Dawarich-Areas übernehmen</target>
+        <target>Aus Dawarich übernehmen (Areas und Places)</target>
       </trans-unit>
       <trans-unit id="m137" resname="mileage.place.imported">
         <source>mileage.place.imported</source>
@@ -1765,6 +1765,18 @@
       <trans-unit id="m443" resname="mileage.dawarich.error.no_tracks">
         <source>mileage.dawarich.error.no_tracks</source>
         <target>Dawarich liefert für diesen Zeitraum keine Tracks (keine Aufzeichnung oder Tracks noch nicht berechnet).</target>
+      </trans-unit>
+      <trans-unit id="m444" resname="mileage.place_radius">
+        <source>mileage.place_radius</source>
+        <target>Radius automatisch angelegter Orte (m)</target>
+      </trans-unit>
+      <trans-unit id="m445" resname="mileage.place_radius_help">
+        <source>mileage.place_radius_help</source>
+        <target>Endet eine erkannte Fahrt außerhalb aller Orte, wird dort ein vorläufiger Ort mit diesem Radius angelegt; eine spätere Fahrt, die darin beginnt, startet an diesem Ort. Gilt auch für aus Dawarich übernommene Orte und für den Vergleich von Koordinaten.</target>
+      </trans-unit>
+      <trans-unit id="m446" resname="mileage.place.temporary">
+        <source>mileage.place.temporary</source>
+        <target>automatisch angelegt – speichern macht ihn zu einem festen Ort</target>
       </trans-unit>
     </body>
   </file>

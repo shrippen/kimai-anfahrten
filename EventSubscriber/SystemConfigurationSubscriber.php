@@ -109,6 +109,13 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setValue(5)
                         ->setOptions(['help' => 'mileage.detect_stop_minutes_help']),
                     $rate('mileage.detect_min_km', 1.0),
+                    (new Configuration('mileage.place_radius'))
+                        ->setLabel('mileage.place_radius')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(IntegerType::class)
+                        ->setValue(200)
+                        ->setOptions(['help' => 'mileage.place_radius_help']),
                 ])
         );
     }

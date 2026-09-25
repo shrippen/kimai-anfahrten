@@ -1,10 +1,11 @@
 <?php
 
 /*
- * Minimal fake of the Dawarich API for end-to-end tests: areas and tracks with transportation-mode segments, in the
- * shape of Dawarich's Api::V1::TracksController / Tracks::GeojsonSerializer. Every weekday is one track (the phone
- * records all day, Dawarich only starts a new track after a 30-minute gap): home → office (car), a walk to lunch and
- * back, office → customer → home (car), and an evening bike ride, with standstills in between.
+ * Minimal fake of the Dawarich API for end-to-end tests: areas, places, reverse geocoding (places/nearby) and tracks
+ * with transportation-mode segments, in the shape of Dawarich's API controllers and serializers (Dawarich 1.15.2).
+ * Every weekday is one track (the phone records all day, Dawarich only starts a new track after a 30-minute gap):
+ * home → office (car), a walk to lunch and back, office → customer → home (car), and an evening bike ride, with
+ * standstills in between.
  */
 header('Content-Type: application/json');
 if (($_SERVER['HTTP_AUTHORIZATION'] ?? '') !== 'Bearer test-key') {
@@ -26,6 +27,38 @@ if ($path === '/api/v1/areas') {
         ['id' => 1, 'name' => 'Zuhause', 'latitude' => HOME[0], 'longitude' => HOME[1], 'radius' => 150],
         ['id' => 2, 'name' => 'Büro', 'latitude' => OFFICE[0], 'longitude' => OFFICE[1], 'radius' => 150],
     ]);
+
+    return;
+}
+
+// places (Api::V1::PlacesController#serialize_place)
+if ($path === '/api/v1/places') {
+    echo json_encode([
+        ['id' => 11, 'name' => 'Kunde Potsdam', 'latitude' => CUSTOMER[0], 'longitude' => CUSTOMER[1], 'source' => 'manual', 'note' => null,
+            'icon' => null, 'color' => null, 'visits_count' => 3, 'name_locked' => true, 'created_at' => '2026-01-01T00:00:00Z', 'tags' => []],
+    ]);
+
+    return;
+}
+
+// reverse geocoding (Places::NearbySearch → Places::PhotonResultFormatter); empty without a geocoder
+if ($path === '/api/v1/places/nearby') {
+    $at = [(float) $_GET['latitude'], (float) $_GET['longitude']];
+    $addresses = [
+        [HOME, 'Wohnhaus', 'Alexanderstraße', '7', '10178', 'Berlin'],
+        [OFFICE, 'Bürohaus', 'Hardenbergstraße', '32', '10623', 'Berlin'],
+        [CUSTOMER, 'ACME GmbH', 'Kundenweg', '1', '14467', 'Potsdam'],
+    ];
+    $radius = 1000 * (float) ($_GET['radius'] ?? 0.5);
+    $places = [];
+    foreach ($addresses as [$point, $name, $street, $number, $postcode, $city]) {
+        if (metres($point, $at) <= $radius) {
+            $places[] = ['id' => null, 'name' => $name, 'latitude' => $point[0], 'longitude' => $point[1], 'osm_id' => null, 'osm_type' => null,
+                'osm_key' => null, 'osm_value' => null, 'city' => $city, 'country' => 'Germany', 'street' => $street, 'housenumber' => $number,
+                'postcode' => $postcode, 'source' => 'photon', 'geodata' => []];
+        }
+    }
+    echo json_encode(['places' => array_slice($places, 0, (int) ($_GET['limit'] ?? 10))]);
 
     return;
 }

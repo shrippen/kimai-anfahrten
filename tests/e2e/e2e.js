@@ -59,7 +59,7 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   section('Dawarich: places and trip detection');
   await page.goto(BASE + '/de/mileage/places');
   await submit(page, '.pa-desktop [data-kpu-post*="places/import"]');
-  check((await texts(page, 'tbody tr td:first-child')).join() === 'Zuhause aus Dawarich,Büro aus Dawarich', 'Dawarich areas imported as places');
+  check((await texts(page, 'tbody tr td:first-child')).join() === 'Zuhause aus Dawarich,Kunde Potsdam aus Dawarich,Büro aus Dawarich', 'Dawarich areas and places imported as places');
   await page.goto(BASE + '/de/mileage/suggestions');
   await page.click('.pa-desktop .action-mileage_detect');
   await page.waitForSelector('#remote_form_modal.show #suggestion_detect_form_from');

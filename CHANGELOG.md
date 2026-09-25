@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   standstills of at least the stop duration end it. Distance is the sum of Dawarich's segment distances; a segment
   cut by the measuring window counts in proportion to its time. "Test connection" checks the tracks API and counts
   tracks. Dawarich versions without tracks are no longer supported: the plugin reports "no tracks" instead.
+- Places by coordinates: detected trips store their start/end coordinates and places. Where a trip starts or ends
+  outside all places, a temporary place is created (radius setting `mileage.place_radius`, default 200 m), so the
+  next trip from there starts at the same place; saving it in the form makes it a regular place. Dawarich places
+  (`/api/v1/places`) are imported together with the areas. Addresses come from Dawarich's reverse geocoder
+  (`/api/v1/places/nearby`), then from the plugin's geocoding server, and are kept on the place.
+- Renaming a detected trip's start/destination by hand detaches it from the place.
 - Removed the settings `mileage.dawarich_max_accuracy` and `mileage.detect_stop_radius` (and the GPS jump and
   leading outlier filters): Dawarich's own analysis is used
 

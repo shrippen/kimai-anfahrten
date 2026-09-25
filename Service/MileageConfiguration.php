@@ -123,6 +123,15 @@ class MileageConfiguration
         return max(1, (int) $this->float('mileage.detect_stop_minutes', 5));
     }
 
+    /**
+     * Radius (m) of the places created automatically where a detected trip starts or ends, of imported Dawarich
+     * places, and for linking trips by coordinates.
+     */
+    public function getPlaceRadius(): int
+    {
+        return max(10, min(5000, (int) $this->float('mileage.place_radius', 200)));
+    }
+
     public function getDetectMinKm(): float
     {
         return max(0.1, $this->float('mileage.detect_min_km', 1.0));
