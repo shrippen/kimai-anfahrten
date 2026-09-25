@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- User interface rebuilt with Kimai components and the shared UI kit
+  ([kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) 0.2.0): page title with period and context line,
+  page actions and row "…" menus instead of buttons in the content, period navigation (week/month/year where
+  supported), KPI bars, Kimai data tables, status badges, empty states with a next step, result callouts
+- The own tab navigation is gone; the plugin pages are the entries of the "Fahrten" menu
+- Numbers, dates and amounts follow the user's locale (were always German)
+- Vehicles, places, rentals, "detect trips" and rejecting a month open in Kimai's modal; deleting asks with
+  Kimai's confirmation modal instead of the browser dialog
+- Detected trips: selection with bulk "Accept"/"Dismiss", both with undo; the purpose is chosen in the row menu
+  ("Accept as …") and the vehicle in the trip form ("Accept and edit") instead of inline selects
+- Month closing: closing/handing in asks with Kimai's modal, reopening can be undone; team approval: approve
+  (also for several members at once) with undo, reject with a required reason in a modal
+- Departure/arrival use Kimai's date and time pickers
+- Customer overview filter uses Kimai's date range and customer fields (old `from`/`to`/`customer` links still work)
+- Translation keys carry the prefix `mileage.` (e.g. `trip.date` → `mileage.trip.date`,
+  `menu.mileage` → `mileage.menu`); messages with a count cover 0
+- Delete routes of trips, vehicles, places and rentals also answer GET (confirmation page for Kimai's modal);
+  new routes for bulk/undo actions, the former single routes stay
+
 ### Security
 
 - Stored XSS: place and Dawarich area names were rendered as HTML in the map tooltips

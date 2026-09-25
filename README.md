@@ -166,6 +166,24 @@ composer check          # CS-Fixer (Prüfmodus), PHPStan Level 6, PHPUnit
 ```
 
 Browser-Tests gegen ein echtes Kimai mit simuliertem Dawarich: [tests/e2e/README.md](tests/e2e/README.md).
+
+### Oberfläche
+
+Die Seiten folgen dem gemeinsamen UI-Leitfaden der Kimai-Plugins,
+[kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) (`GUIDELINES.md`, `CHECKLIST.md`); das Kit liegt in
+`Resources/views/_kit/` und `Resources/translations/kpu.*.xlf` und wird nur mit `bin/sync.sh` aus dem Kit-Repo
+aktualisiert, nie von Hand. Kurz:
+
+- Kimai-Bausteine zuerst: Seitenkopf über `PageSetup` (Service `MileagePages`, Titel „Seite · Zeitraum“, Hilfe-Link),
+  Seitenaktionen und „…“-Menüs über `PageActionsEvent` (`EventSubscriber/Actions/`), Listen als Kimai-DataTable,
+  Formulare als FormTypes im Kimai-Modal (der Fahrt-Editor ist eine eigene Seite).
+- Unterseiten sind die Einträge des Menüs „Fahrten“; es gibt keine eigene Tab-Navigation.
+- Zeitraum über `kit.period_nav`, Kennzahlen über `kit.kpi_bar`, Status über `kit.status_badge`
+  (Monat: Offen/Gesperrt/Beantragt/Genehmigt/Abgelehnt, Hinweise als Warnung), Leerzustände mit nächstem Schritt.
+- Umkehrbares (Vorschläge übernehmen/verwerfen, Monat wieder öffnen, Freigeben) läuft sofort mit „Rückgängig“
+  (15 Minuten, gleicher Benutzer und gleiche Sitzung), Löschen und Monat abschließen/einreichen fragen mit Kimais Modal.
+- Zahlen, Datum und Beträge nur über Kimai-Filter (`amount`, `date_short`, `money('EUR')` …), also im Format des
+  Benutzers; alle Texte über Übersetzungen mit dem Präfix `mileage.`.
 Alles läuft auch in GitHub Actions (PHP 8.1–8.4, PHPStan, E2E auf MariaDB).
 
 ## Lizenz
