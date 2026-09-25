@@ -185,11 +185,19 @@ class MileageConfiguration
         return $this->userString($user, self::PREF_WORK_ADDRESS);
     }
 
+    /**
+     * One-way distance home–work from the preferences; null when not set, zero, negative or not a number
+     * (a commute of 0 km is never meant, it is an unset field of the profile form).
+     */
     public function getCommuteKm(User $user): ?float
     {
         $value = $this->userString($user, self::PREF_COMMUTE_KM);
+        if ($value === null || !is_numeric($value = str_replace(',', '.', $value))) {
+            return null;
+        }
+        $km = (float) $value;
 
-        return $value !== null ? (float) str_replace(',', '.', $value) : null;
+        return is_finite($km) && $km > 0 ? $km : null;
     }
 
     public function getDefaultVehicle(User $user): VehicleType

@@ -41,6 +41,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- A commute distance of 0 (or an invalid value) in the preferences counted as set: accepting a commute suggestion
+  created a 0 km trip. It now counts as not set: suggestions keep the detected distance, "Arbeitsweg" in the trip
+  form shows a hint to fill in the preferences, and `POST /api/mileage/trips {"purpose": "commute"}` without
+  `distanceKm` answers 400 with that hint
 - Too long texts and too large numbers (plate, locations, odometer, km, costs, …) caused HTTP 500 in forms,
   API and import instead of a validation error; the API rejects arrays/objects for text fields (was stored as "Array")
 - Attachment files stayed on disk when a trip was deleted through the API or a rental was deleted
@@ -54,6 +58,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - REST API: `timesheet` (id of an own timesheet entry) can be set when creating or updating a trip
+- REST API: `GET /api/mileage/ping` (plugin version, API versions, features, permissions, profile with commute
+  distance/default vehicle/whether Dawarich is set up, locked months of this and the previous year; needs only API
+  access and never contains the Dawarich URL or key)
+- REST API: `from`/`to` (YYYY-MM-DD, at most 366 days) on `GET /trips` and `GET /suggestions`
+- REST API: accepting a suggestion takes `project`, `distanceKm`, `comment` and `timesheet`; suggestions carry
+  `timesheet`
 - Own sidebar section "Fahrten" (after time tracking) with all plugin pages
 - Dawarich transportation modes: walking, running and cycling parts of the tracks are excluded from
   trip detection and distance measurement (setting, on by default); bus/train/motorcycle suggest the vehicle.

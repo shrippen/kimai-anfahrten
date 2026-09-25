@@ -1734,6 +1734,10 @@
         <source>mileage.trip.distance_short</source>
         <target>km</target>
       </trans-unit>
+      <trans-unit id="m433" resname="mileage.commute.error.no_distance">
+        <source>mileage.commute.error.no_distance</source>
+        <target>Die Entfernung Wohnung – Arbeit ist nicht eingetragen. Bitte unter Profil → Einstellungen eintragen oder die Kilometer angeben.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

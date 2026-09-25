@@ -1734,6 +1734,10 @@
         <source>mileage.trip.distance_short</source>
         <target>km</target>
       </trans-unit>
+      <trans-unit id="m433" resname="mileage.commute.error.no_distance">
+        <source>mileage.commute.error.no_distance</source>
+        <target>The distance home – work is not set. Please enter it under Profile → Preferences or give the distance.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -166,10 +166,13 @@ class SuggestionService
 
     /**
      * Same as accept(), also tells whether a new trip was created (false: merged into the commute of the day).
+     * $configure can change the new trip before it is saved (not called when merged); an exception thrown there
+     * leaves the suggestion open and saves nothing.
      *
+     * @param (callable(Trip): void)|null $configure
      * @return array{trip: Trip, created: bool}
      */
-    public function acceptTracked(TripSuggestion $suggestion, TripPurpose $purpose, VehicleType $vehicle): array
+    public function acceptTracked(TripSuggestion $suggestion, TripPurpose $purpose, VehicleType $vehicle, ?callable $configure = null): array
     {
         /** @var User $user */
         $user = $suggestion->getUser();
@@ -209,6 +212,9 @@ class SuggestionService
             ->setPointCount($suggestion->getPointCount())
             ->setProject($suggestion->getProject())
             ->setTimesheet($suggestion->getTimesheet());
+        if ($configure !== null) {
+            $configure($trip);
+        }
 
         $this->tripService->prepare($trip);
         $this->tripRepository->save($trip, false);

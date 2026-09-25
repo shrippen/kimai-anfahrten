@@ -175,6 +175,12 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   check((await api('hans', '/api/mileage/trips?user=1')).status === 403, 'foreign user → 403');
   check((await fetch(BASE + '/api/mileage/trips')).status === 401, 'no token → 401');
   check((await api('hans', '/api/mileage/tax/2026')).status === 200, 'tax summary');
+  r = await api('admin', '/api/mileage/ping');
+  const ping = await r.text();
+  check(r.status === 200 && JSON.parse(ping).profile.dawarichConfigured && JSON.parse(ping).profile.commuteKm === 8 && !ping.includes('8002') && !ping.includes('test-key'), 'ping without Dawarich URL and key');
+  r = await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-14');
+  check(r.status === 200 && (await r.json()).some((t) => t.id === created.id), 'trips by date range');
+  check((await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-01')).status === 400, 'reversed date range → 400');
 
   section('CSV import (hans)');
   page = await login(browser, 'hans');
