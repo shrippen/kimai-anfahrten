@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Minimal fake of the Dawarich API for end-to-end tests: areas, places, reverse geocoding (places/nearby) and tracks
- * with transportation-mode segments, in the shape of Dawarich's API controllers and serializers (Dawarich 1.15.2).
+ * Minimal fake of the Dawarich API for end-to-end tests: areas, places, reverse geocoding (places/nearby), visits and
+ * tracks with transportation-mode segments, in the shape of Dawarich's API controllers and serializers (Dawarich 1.15.2).
  * Every weekday is one track (the phone records all day, Dawarich only starts a new track after a 30-minute gap):
  * home → office (car), a walk to lunch and back, office → customer → home (car), and an evening bike ride, with
  * standstills in between.
@@ -177,6 +177,27 @@ function weekdays(int $from, int $to): iterable
             yield $d;
         }
     }
+}
+
+// visits (Api::VisitSerializer, Visits::FindInTime: started in the window): office and customer on weekdays
+if ($path === '/api/v1/visits') {
+    $from = strtotime($_GET['start_at']);
+    $to = strtotime($_GET['end_at']);
+    $visits = [];
+    foreach (weekdays($from - 86400, $to) as $d) {
+        foreach ([[OFFICE, '07:50', '12:00', 'Büro'], [CUSTOMER, '12:35', '16:00', 'Kunde Potsdam']] as [$at, $a, $b, $name]) {
+            $start = $d->modify($a);
+            if ($start->getTimestamp() >= $from && $start->getTimestamp() <= $to) {
+                $visits[] = ['id' => (int) $d->format('md') * 10 + count($visits), 'area_id' => null, 'user_id' => 1,
+                    'started_at' => $start->format('Y-m-d\\TH:i:s.vP'), 'ended_at' => $d->modify($b)->format('Y-m-d\\TH:i:s.vP'),
+                    'duration' => ($d->modify($b)->getTimestamp() - $start->getTimestamp()) / 60, 'name' => $name, 'status' => 'confirmed',
+                    'confidence' => 90, 'confidence_band' => 'high', 'place' => ['latitude' => $at[0], 'longitude' => $at[1], 'id' => null]];
+            }
+        }
+    }
+    echo json_encode($visits);
+
+    return;
 }
 
 // tracks: one per weekday, the id is the date (Ymd); newest first and paginated like Tracks::IndexQuery

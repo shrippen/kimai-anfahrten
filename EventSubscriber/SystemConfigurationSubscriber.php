@@ -48,6 +48,13 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                     $rate('mileage.commute_cap', 4500.0),
                     $rate('mileage.meal_partial', 14.0),
                     $rate('mileage.meal_full', 28.0),
+                    (new Configuration('mileage.journey_max_gap_days'))
+                        ->setLabel('mileage.journey_max_gap_days')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(IntegerType::class)
+                        ->setValue(14)
+                        ->setOptions(['help' => 'mileage.journey_max_gap_days_help']),
                     (new Configuration('mileage.dawarich_url'))
                         ->setLabel('mileage.dawarich_url')
                         ->setTranslationDomain('messages')

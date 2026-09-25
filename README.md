@@ -64,9 +64,13 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - Dienstreisen: eigener PKW 0,30 €/km, Motorrad 0,20 €/km, sonst tatsächliche Kosten; Firmenwagen bzw.
   Betriebsvermögen ohne km-Pauschale
 - **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist — nur aus Abfahrt und
-  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Hin- und Rückfahrt eines Tages, die am selben Ort
-  aneinander anschließen, zählen als eine Abwesenheit — bei erkannten Fahrten über Ort bzw. Koordinaten, bei
-  von Hand erfassten über den Namen; die Dreimonatsfrist zählt pro Ort). Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
+  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Fahrten, die dort beginnen, wo die vorige endete, bilden
+  eine Reise — bei erkannten Fahrten über Ort bzw. Koordinaten, bei von Hand erfassten über den Namen; die
+  Dreimonatsfrist zählt pro Ort). **Mehrtägige Reisen werden erkannt**: endet die letzte Fahrt eines Tages nicht
+  zu Hause/an der ersten Tätigkeitsstätte (Orte vom Typ „Zuhause"/„Arbeit" oder Profiladressen) und beginnt eine
+  spätere dort, gilt das als Übernachtung; Dawarich-*Visits* über Mitternacht bestätigen das. Unklare Fälle
+  (Zuhause unbekannt, Lücke über 14 Tage — einstellbar, Visit zu Hause) werden nicht gezählt, sondern als
+  „zu prüfen" gezeigt; „Übernachtung" an der Fahrt erzwingt die Reise. Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
 - Selbstständige: **Privatnutzung** betrieblicher Fahrzeuge (1-%-Regel inkl. E-Auto/Hybrid-Faktor,
   0,03-%-Zuschlag Wohnung–Betrieb, Privatanteil nach Fahrtenbuch)
 - **Plausibilitätsprüfung**: Arbeitswege ohne Arbeitszeit, am Wochenende, an Urlaubs-/Krankheitstagen

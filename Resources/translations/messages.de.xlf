@@ -1778,6 +1778,50 @@
         <source>mileage.place.temporary</source>
         <target>automatisch angelegt – speichern macht ihn zu einem festen Ort</target>
       </trans-unit>
+      <trans-unit id="m447" resname="mileage.journey_max_gap_days">
+        <source>mileage.journey_max_gap_days</source>
+        <target>Mehrtägige Reise: längste Lücke (Tage)</target>
+      </trans-unit>
+      <trans-unit id="m448" resname="mileage.journey_max_gap_days_help">
+        <source>mileage.journey_max_gap_days_help</source>
+        <target>Beginnt die nächste Dienstreise dort, wo die vorige (nicht zu Hause/an der Arbeitsstätte) endete, zählt das als Übernachtung und die Reise läuft weiter — liegen mehr Tage dazwischen, wird sie nicht automatisch verbunden, sondern als „zu prüfen“ gezeigt.</target>
+      </trans-unit>
+      <trans-unit id="m449" resname="mileage.meal.review">
+        <source>mileage.meal.review</source>
+        <target>Zu prüfen</target>
+      </trans-unit>
+      <trans-unit id="m450" resname="mileage.meal.review_hint">
+        <source>mileage.meal.review_hint</source>
+        <target>Nicht mitgezählt: Hier könnte eine mehrtägige Reise weitergehen. Wenn ja, bei der Fahrt davor „Übernachtung“ anhaken.</target>
+      </trans-unit>
+      <trans-unit id="m451" resname="mileage.meal.review.no_home">
+        <source>mileage.meal.review.no_home</source>
+        <target>Zuhause/Arbeitsstätte unbekannt</target>
+      </trans-unit>
+      <trans-unit id="m452" resname="mileage.meal.review.gap">
+        <source>mileage.meal.review.gap</source>
+        <target>zu lange Lücke seit der letzten Fahrt</target>
+      </trans-unit>
+      <trans-unit id="m453" resname="mileage.meal.review.visit">
+        <source>mileage.meal.review.visit</source>
+        <target>Dawarich zeigt die Nacht zu Hause</target>
+      </trans-unit>
+      <trans-unit id="m454" resname="mileage.meal.hint_home_work">
+        <source>mileage.meal.hint_home_work</source>
+        <target>Für mehrtägige Reisen muss bekannt sein, wo Zuhause und die erste Tätigkeitsstätte sind: Orte vom Typ „Zuhause“ und „Arbeit“ anlegen oder die Adressen im Profil eintragen.</target>
+      </trans-unit>
+      <trans-unit id="m455" resname="mileage.meal.overnight.manual">
+        <source>mileage.meal.overnight.manual</source>
+        <target>Übernachtung (angehakt)</target>
+      </trans-unit>
+      <trans-unit id="m456" resname="mileage.meal.overnight.inferred">
+        <source>mileage.meal.overnight.inferred</source>
+        <target>Übernachtung (aus den Orten erkannt)</target>
+      </trans-unit>
+      <trans-unit id="m457" resname="mileage.meal.overnight.confirmed">
+        <source>mileage.meal.overnight.confirmed</source>
+        <target>Übernachtung (von Dawarich bestätigt)</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

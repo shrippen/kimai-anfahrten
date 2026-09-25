@@ -263,7 +263,7 @@ class MileageApiController extends AbstractController
             'commute' => $summary['commute'],
             'business' => array_values(array_map(static fn (array $row) => ['vehicle' => $row['vehicle']->value] + array_diff_key($row, ['vehicle' => true]), $summary['business'])),
             'businessTotal' => $summary['business_total'],
-            'meals' => array_diff_key($summary['meals'], ['days' => true]),
+            'meals' => array_diff_key($summary['meals'], ['days' => true, 'review' => true]) + ['review_count' => \count($summary['meals']['review'])],
             'privateKm' => $summary['private']['km'],
             'totalKm' => $summary['total_km'],
             'total' => $summary['total'],

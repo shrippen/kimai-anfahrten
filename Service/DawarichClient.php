@@ -128,6 +128,44 @@ class DawarichClient
     }
 
     /**
+     * Visits (stays) Dawarich detected that started in the window (GET /api/v1/visits, Api::VisitSerializer);
+     * declined ones are left out. Empty for Dawarich versions without visits.
+     *
+     * @return list<array{start: int, end: int, latitude: float, longitude: float}>
+     * @throws DawarichException
+     */
+    public function fetchVisits(User $user, \DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        try {
+            [$data] = $this->get($user, '/api/v1/visits', [
+                'start_at' => $from->format(\DateTimeInterface::ATOM),
+                'end_at' => $to->format(\DateTimeInterface::ATOM),
+            ]);
+        } catch (DawarichException $e) {
+            if (self::isNotFound($e)) {
+                return [];
+            }
+            throw $e;
+        }
+
+        $visits = [];
+        foreach ($data as $row) {
+            if (!\is_array($row) || ($row['status'] ?? null) === 'declined') {
+                continue;
+            }
+            $start = self::timestamp($row['started_at'] ?? null);
+            $end = self::timestamp($row['ended_at'] ?? null);
+            $place = \is_array($row['place'] ?? null) ? $row['place'] : [];
+            if ($start === null || $end === null || !is_numeric($place['latitude'] ?? null) || !is_numeric($place['longitude'] ?? null)) {
+                continue;
+            }
+            $visits[] = ['start' => $start, 'end' => $end, 'latitude' => (float) $place['latitude'], 'longitude' => (float) $place['longitude']];
+        }
+
+        return $visits;
+    }
+
+    /**
      * Address of a position from the reverse geocoder configured in Dawarich (GET /api/v1/places/nearby, the
      * nearest result within 100 m). Null when Dawarich has no geocoder, finds nothing or fails.
      */

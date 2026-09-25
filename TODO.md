@@ -170,6 +170,18 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   Quellcode (Dawarich 1.15.2, `app/serializers/tracks/geojson_serializer.rb`) übernommen, getestet nur gegen den
   nachgebauten Server in `tests/e2e/fake-dawarich`.
 
+## Entscheidungen A-6 bis A-8 (Branch `claude/dawarich-tracks`)
+
+- [x] A-6 Mehrtägige Reise automatisch: Übernachtung, wenn die letzte Fahrt eines Tages nicht zu Hause/an der
+  Arbeitsstätte endet und eine spätere Fahrt am selben Ort beginnt (Ort, Koordinaten im Radius, sonst Name);
+  Dawarich-Visits über Mitternacht bestätigen bzw. widersprechen (nur im Steuerbericht, nur mit Bearbeitungsrecht).
+  Unklar → „zu prüfen" statt gezählt (Zuhause/Arbeit unbekannt mit Hinweis, Lücke > 14 Tage einstellbar, Visit zu
+  Hause). „Übernachtung" bleibt als manuelle Übersteuerung. Unit-Tests in `MealAllowanceCalculatorTest`,
+  `OvernightVisitCheckerTest`.
+- [x] A-7 Radius vorläufiger Orte 200 m, einstellbar (`mileage.place_radius`).
+- [x] A-8 Platzhalterzeiten 00:00–23:59 per Migration geleert (siehe oben). Nicht live ausgeführt: das Anwenden
+  der Datenmigration auf der geteilten Testinstanz wurde nicht freigegeben.
+
 ## UI-Beobachtungen (für die spätere UI-Kit-Integration, hier nicht geändert)
 
 - Zahlen sind überall deutsch formatiert (`number_format(…, ',', '.')`), auch bei englischer Oberfläche.

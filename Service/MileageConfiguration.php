@@ -132,6 +132,14 @@ class MileageConfiguration
         return max(10, min(5000, (int) $this->float('mileage.place_radius', 200)));
     }
 
+    /**
+     * A journey is not continued silently when the next leg starts more than this many days later (for review).
+     */
+    public function getJourneyMaxGapDays(): int
+    {
+        return max(1, (int) $this->float('mileage.journey_max_gap_days', 14));
+    }
+
     public function getDetectMinKm(): float
     {
         return max(0.1, $this->float('mileage.detect_min_km', 1.0));

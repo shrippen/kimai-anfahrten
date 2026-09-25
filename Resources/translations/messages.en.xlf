@@ -1778,6 +1778,50 @@
         <source>mileage.place.temporary</source>
         <target>created automatically – saving it makes it a regular place</target>
       </trans-unit>
+      <trans-unit id="m447" resname="mileage.journey_max_gap_days">
+        <source>mileage.journey_max_gap_days</source>
+        <target>Multi-day journey: longest gap (days)</target>
+      </trans-unit>
+      <trans-unit id="m448" resname="mileage.journey_max_gap_days_help">
+        <source>mileage.journey_max_gap_days_help</source>
+        <target>When the next business trip starts where the previous one (not at home/the workplace) ended, that counts as a night away and the journey continues — with more days in between it is not linked automatically but shown for review.</target>
+      </trans-unit>
+      <trans-unit id="m449" resname="mileage.meal.review">
+        <source>mileage.meal.review</source>
+        <target>To review</target>
+      </trans-unit>
+      <trans-unit id="m450" resname="mileage.meal.review_hint">
+        <source>mileage.meal.review_hint</source>
+        <target>Not counted: a multi-day journey might continue here. If so, tick "overnight" on the trip before.</target>
+      </trans-unit>
+      <trans-unit id="m451" resname="mileage.meal.review.no_home">
+        <source>mileage.meal.review.no_home</source>
+        <target>home/workplace unknown</target>
+      </trans-unit>
+      <trans-unit id="m452" resname="mileage.meal.review.gap">
+        <source>mileage.meal.review.gap</source>
+        <target>gap since the last trip too long</target>
+      </trans-unit>
+      <trans-unit id="m453" resname="mileage.meal.review.visit">
+        <source>mileage.meal.review.visit</source>
+        <target>Dawarich shows the night at home</target>
+      </trans-unit>
+      <trans-unit id="m454" resname="mileage.meal.hint_home_work">
+        <source>mileage.meal.hint_home_work</source>
+        <target>Multi-day journeys need to know where home and the regular workplace are: create places of type "Home" and "Work" or enter the addresses in the profile.</target>
+      </trans-unit>
+      <trans-unit id="m455" resname="mileage.meal.overnight.manual">
+        <source>mileage.meal.overnight.manual</source>
+        <target>overnight (ticked)</target>
+      </trans-unit>
+      <trans-unit id="m456" resname="mileage.meal.overnight.inferred">
+        <source>mileage.meal.overnight.inferred</source>
+        <target>overnight (detected from the places)</target>
+      </trans-unit>
+      <trans-unit id="m457" resname="mileage.meal.overnight.confirmed">
+        <source>mileage.meal.overnight.confirmed</source>
+        <target>overnight (confirmed by Dawarich)</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

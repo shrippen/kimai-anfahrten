@@ -20,6 +20,12 @@ All notable changes to this project will be documented in this file.
 - Meal allowance: legs of a journey are linked by place (same place or coordinates within the radius) instead of
   by name, and the three-month rule counts per place; trips entered by hand still compare names. Renaming a
   detected trip's start/destination by hand detaches it from the place.
+- Meal allowance: multi-day journeys are detected. A journey stays open over night when a day's last leg ends
+  away from home and the regular workplace (places of type home/work, or the profile addresses) and a later leg
+  starts at that same place; Dawarich visits over midnight (`/api/v1/visits`) confirm it in the tax report.
+  Unclear cases are not counted but listed as "to review": home/workplace unknown (with a hint to set them), more
+  than `mileage.journey_max_gap_days` (default 14) days in between, or a visit showing the night at home. The
+  "overnight" checkbox still forces the journey. The API reports `meals.review_count` and `meals.hint_home_work`.
 - Removed the settings `mileage.dawarich_max_accuracy` and `mileage.detect_stop_radius` (and the GPS jump and
   leading outlier filters): Dawarich's own analysis is used
 
