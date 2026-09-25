@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
   Unclear cases are not counted but listed as "to review": home/workplace unknown (with a hint to set them), more
   than `mileage.journey_max_gap_days` (default 14) days in between, or a visit showing the night at home. The
   "overnight" checkbox still forces the journey. The API reports `meals.review_count` and `meals.hint_home_work`.
+- Page actions "Arbeitsweg erfassen" and "Fahrten erkennen" use the keys `home`/`search`, so Kimai shows their
+  icons (it takes the icon from the key and ignores `icon`, kit GUIDELINES 2.3); the ineffective `icon` of the
+  places/suggestions links is gone
 - Removed the settings `mileage.dawarich_max_accuracy` and `mileage.detect_stop_radius` (and the GPS jump and
   leading outlier filters): Dawarich's own analysis is used
 

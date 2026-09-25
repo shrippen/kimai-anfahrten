@@ -75,10 +75,10 @@ final class PageActionsSubscriber extends AbstractActionsSubscriber
         $more = [];
         if ($payload['can_edit'] ?? false) {
             $event->addAction('create', ['url' => $this->path('mileage_trip_create', ['user' => $user]), 'title' => 'mileage.trip.create']);
-            $event->addAction('mileage_commute', [
+            // Kimai takes a page action's icon from its key and ignores "icon" (kit GUIDELINES 2.3)
+            $event->addAction('home', [
                 'url' => $this->path('mileage_trip_create', ['user' => $user, 'purpose' => 'commute']),
                 'title' => 'mileage.trip.create_commute',
-                'icon' => 'home',
             ]);
             if ($month !== null) {
                 $more['mileage_commutes'] = [
@@ -139,14 +139,13 @@ final class PageActionsSubscriber extends AbstractActionsSubscriber
     {
         $user = $payload['user'] ?? null;
         if (($payload['can_edit'] ?? false) && ($payload['dawarich'] ?? false)) {
-            $event->addAction('mileage_detect', [
+            $event->addAction('search', [
                 'url' => $this->path('mileage_suggestions_detect', ['user' => $user]),
                 'class' => 'modal-ajax-form',
                 'title' => 'mileage.suggestion.detect',
-                'icon' => 'search',
             ]);
         }
-        $event->addAction('mileage_places', ['url' => $this->path('mileage_places', ['user' => $user]), 'title' => 'mileage.place.list', 'icon' => 'fas fa-location-dot']);
+        $event->addAction('mileage_places', ['url' => $this->path('mileage_places', ['user' => $user]), 'title' => 'mileage.place.list']);
         if (!($payload['dawarich'] ?? false) && ($payload['own'] ?? false)) {
             $event->addAction('settings', ['url' => $this->path('user_profile_preferences', ['username' => $event->getUser()->getUserIdentifier()]), 'title' => 'mileage.dawarich.setup']);
         }
@@ -171,7 +170,7 @@ final class PageActionsSubscriber extends AbstractActionsSubscriber
                 ]);
             }
         }
-        $event->addAction('mileage_suggestions', ['url' => $this->path('mileage_suggestions', ['user' => $user]), 'title' => 'mileage.suggestion.list', 'icon' => 'fas fa-satellite-dish']);
+        $event->addAction('mileage_suggestions', ['url' => $this->path('mileage_suggestions', ['user' => $user]), 'title' => 'mileage.suggestion.list']);
     }
 
     /**
