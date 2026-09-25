@@ -20,6 +20,9 @@ All notable changes to this project will be documented in this file.
   (also for several members at once) with undo, reject with a required reason in a modal
 - Departure/arrival use Kimai's date and time pickers
 - Customer overview filter uses Kimai's date range and customer fields (old `from`/`to`/`customer` links still work)
+- Month approval wording aligned with the status badges and the HolidayBundle: German "Genehmigen"/"Ablehnen",
+  "Genehmigt"/"Abgelehnt", "zur Genehmigung einreichen" instead of "Freigeben"/"Zurückweisen" (English was
+  already Approve/Reject); translation keys unchanged
 - Translation keys carry the prefix `mileage.` (e.g. `trip.date` → `mileage.trip.date`,
   `menu.mileage` → `mileage.menu`); messages with a count cover 0
 - Delete routes of trips, vehicles, places and rentals also answer GET (confirmation page for Kimai's modal);

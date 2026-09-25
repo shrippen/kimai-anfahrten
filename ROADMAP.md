@@ -98,7 +98,7 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 
 ## 0.6 — Team und Schnittstellen ✅
 
-- [x] Freigabe-Workflow (Monat einreichen, freigeben, mit Begründung zurückweisen), Teambericht;
+- [x] Genehmigungs-Workflow (Monat einreichen, genehmigen, mit Begründung ablehnen), Teambericht;
       Teamleitungen sehen nur ihre Teammitglieder
 - [x] REST-API `/api/mileage/...` mit Kimai-API-Token
 - [x] CSV-Import mit Vorschau und Duplikaterkennung (Web und Konsole)

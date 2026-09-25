@@ -20,7 +20,7 @@ siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Bra
 | Monatsabschluss | `mileage_months` | `logbook/months` |
 | Änderungsprotokoll | `mileage_history` | `logbook/history` |
 | Kundenübersicht | `mileage_overview` | `overview/index` |
-| Teamfreigabe | `mileage_team` | `team/index` |
+| Teamgenehmigung | `mileage_team` | `team/index` |
 | Fahrtkosten (Steuer) + Druck/PDF | `mileage_tax_report` | `report/tax`, `_print` |
 | Belege (Teil von Fahrt/Mietwagen) | `mileage_attachment_*` | `_attachments` |
 | Karte (Teil von Orte/Fahrt) | – | `_map`, `_map_script` |
@@ -37,11 +37,11 @@ siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Bra
 - [x] Seitenaktionen nur über `PageActionsEvent`-Subscriber (keine Textknöpfe im Inhalt)
 - [x] Inhalt in `{% block main %}` statt `page_content`
 - [x] Zeitraum über `kit.period_nav` (nur unterstützte Einheiten) statt «/» und „Ganzes Jahr“; „Woche“ gibt es nicht,
-      weil keine Seite wochenweise rechnet (Steuer/Fahrtenbuch jahres-, Freigabe monatsweise)
+      weil keine Seite wochenweise rechnet (Steuer/Fahrtenbuch jahres-, Genehmigung monatsweise)
 - [x] Listen über Kimai-DataTable bzw. `macros/datatables.html.twig`, Zeilenaktionen im „…“-Menü
 - [x] Kein `confirm()`: Löschen über Kimai-Modal (`addDelete()` → Bestätigungsseite/-modal mit CSRF), Endgültiges
       (Monat einreichen/abschließen) mit Kimai-Bestätigung, Umkehrbares sofort + Rückgängig (GUIDELINES 3.5)
-- [x] Anlegen/Bearbeiten im Kimai-Modal (Fahrzeug, Ort, Mietwagen, Fahrten erkennen, Zurückweisen); Fahrt-Editor bleibt
+- [x] Anlegen/Bearbeiten im Kimai-Modal (Fahrzeug, Ort, Mietwagen, Fahrten erkennen, Ablehnen); Fahrt-Editor bleibt
       eine Seite (lang, Karte, Belege, Dawarich-Messung) mit Kimai-`_form`-Karte
 - [x] Ergebnisse mit Zahlen als `kpu_result`-Callout (Import, Erkennen, Übernehmen, Arbeitswege, Orte-Import, Messung)
 - [x] Modal-Formulare mit Ergebnis: `redirectToRouteAfterCreate()` bzw. leere 200 + `data-form-event: kpu.reload`
@@ -59,6 +59,9 @@ siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Bra
 - [x] Alle Keys mit Plugin-Präfix `mileage.` (vorher `trip.`, `tax.`, `menu.mileage` …); Einstellungs-/Präferenznamen unverändert
 - [x] Plural-Texte decken 0 ab, Test `TranslationKeysTest::testPluralsCoverZero`
 - [x] Glossar: „Benutzer“ statt „Nutzer“/„Mitarbeiter“
+- [x] Glossar Monatsgenehmigung (Produktentscheidung, wie Kit-Status und HolidayBundle): „Genehmigen“/„Ablehnen“,
+      Zustände „Genehmigt“/„Abgelehnt“, Einreichen „zur Genehmigung“ (EN Approve/Reject, Approved/Rejected) statt
+      „Freigeben/Freigegeben/Freigabe“ und „Zurückweisen/Zurückgewiesen“; Übersetzungs-Keys (`mileage.approval.*`) unverändert
 - [x] de/en gleicher Key-Bestand, `lint:xliff` grün
 
 ## Status-Vokabular (Zuordnung)
@@ -66,10 +69,10 @@ siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Bra
 | Plugin-Zustand | Kit-Status | Anzeige |
 |---|---|---|
 | Monat ohne Abschluss | `open` | Offen |
-| Monat abgeschlossen (ohne Freigabe) | `locked` | Gesperrt |
+| Monat abgeschlossen (ohne Genehmigung) | `locked` | Gesperrt |
 | Monat eingereicht (wartet auf Teamleitung) | `requested` | Beantragt |
-| Monat freigegeben | `approved` | Genehmigt |
-| Monat zurückgewiesen | `rejected` | Abgelehnt (Grund als Tooltip/Text) |
+| Monat genehmigt | `approved` | Genehmigt |
+| Monat abgelehnt | `rejected` | Abgelehnt (Grund als Tooltip/Text) |
 | Erkannte Fahrt offen | `open` | Offen |
 | Erkannte Fahrt im gesperrten Monat | `locked` | Gesperrt |
 | Fahrtenbuch-/Import-Hinweis (km-Lücke, Duplikat) | `warning` | Warnung + Grund |
@@ -114,9 +117,9 @@ siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Bra
 - [x] KPI-Leiste km je Art mit Anteil, Warnungen als `status_badge('warning', grund)`
 - [x] Seitenaktionen: Zurück, CSV, Drucken; Druckansicht mit Kimai-Formaten, ohne Inline-Handler
 
-### Monatsabschluss / Teamfreigabe
+### Monatsabschluss / Teamgenehmigung
 - [x] Monatsliste mit Status-Badges, „…“: Abschließen/Einreichen (Kimai-Bestätigung), Entsperren (sofort + Rückgängig)
-- [x] Team: `period_nav` Monat, KPI-Leiste, Tabelle mit Status, Sammelaktion Freigeben (+ Rückgängig), Zurückweisen im Modal mit Pflicht-Grund
+- [x] Team: `period_nav` Monat, KPI-Leiste, Tabelle mit Status, Sammelaktion Genehmigen (+ Rückgängig), Ablehnen im Modal mit Pflicht-Grund
 
 ### Änderungsprotokoll / Kundenübersicht / Steuer
 - [x] Protokoll als Tabelle mit `date_time`, Feldnamen übersetzt, Ja/Nein über `label_boolean`

@@ -1252,11 +1252,11 @@
       </trans-unit>
       <trans-unit id="m312" resname="mileage.approval_enabled">
         <source>mileage.approval_enabled</source>
-        <target>Freigabe durch Teamleitung</target>
+        <target>Genehmigung durch Teamleitung</target>
       </trans-unit>
       <trans-unit id="m313" resname="mileage.approval_enabled_help">
         <source>mileage.approval_enabled_help</source>
-        <target>Benutzer reichen Monate zur Freigabe ein statt sie selbst abzuschließen.</target>
+        <target>Benutzer reichen Monate zur Genehmigung ein statt sie selbst abzuschließen.</target>
       </trans-unit>
       <trans-unit id="m314" resname="mileage.approval.team">
         <source>mileage.approval.team</source>
@@ -1268,27 +1268,27 @@
       </trans-unit>
       <trans-unit id="m316" resname="mileage.approval.status.submitted">
         <source>mileage.approval.status.submitted</source>
-        <target>Zur Freigabe eingereicht</target>
+        <target>Zur Genehmigung eingereicht</target>
       </trans-unit>
       <trans-unit id="m317" resname="mileage.approval.status.approved">
         <source>mileage.approval.status.approved</source>
-        <target>Freigegeben</target>
+        <target>Genehmigt</target>
       </trans-unit>
       <trans-unit id="m318" resname="mileage.approval.status.rejected">
         <source>mileage.approval.status.rejected</source>
-        <target>Zurückgewiesen</target>
+        <target>Abgelehnt</target>
       </trans-unit>
       <trans-unit id="m319" resname="mileage.approval.submit">
         <source>mileage.approval.submit</source>
-        <target>Zur Freigabe einreichen</target>
+        <target>Zur Genehmigung einreichen</target>
       </trans-unit>
       <trans-unit id="m320" resname="mileage.approval.submit_confirm">
         <source>mileage.approval.submit_confirm</source>
-        <target>Monat zur Freigabe einreichen? Bis zur Entscheidung sind keine Änderungen möglich.</target>
+        <target>Monat zur Genehmigung einreichen? Bis zur Entscheidung sind keine Änderungen möglich.</target>
       </trans-unit>
       <trans-unit id="m321" resname="mileage.approval.submitted">
         <source>mileage.approval.submitted</source>
-        <target>%month% zur Freigabe eingereicht.</target>
+        <target>%month% zur Genehmigung eingereicht.</target>
       </trans-unit>
       <trans-unit id="m322" resname="mileage.approval.submitted_at">
         <source>mileage.approval.submitted_at</source>
@@ -1296,15 +1296,15 @@
       </trans-unit>
       <trans-unit id="m323" resname="mileage.approval.pending">
         <source>mileage.approval.pending</source>
-        <target>Wartet auf Freigabe</target>
+        <target>Wartet auf Genehmigung</target>
       </trans-unit>
       <trans-unit id="m324" resname="mileage.approval.approve">
         <source>mileage.approval.approve</source>
-        <target>Freigeben</target>
+        <target>Genehmigen</target>
       </trans-unit>
       <trans-unit id="m325" resname="mileage.approval.reject">
         <source>mileage.approval.reject</source>
-        <target>Zurückweisen</target>
+        <target>Ablehnen</target>
       </trans-unit>
       <trans-unit id="m326" resname="mileage.approval.reason">
         <source>mileage.approval.reason</source>
@@ -1312,15 +1312,15 @@
       </trans-unit>
       <trans-unit id="m327" resname="mileage.approval.error.reason">
         <source>mileage.approval.error.reason</source>
-        <target>Bitte eine Begründung für die Zurückweisung angeben.</target>
+        <target>Bitte eine Begründung für die Ablehnung angeben.</target>
       </trans-unit>
       <trans-unit id="m328" resname="mileage.approval.approved">
         <source>mileage.approval.approved</source>
-        <target>Fahrten von %user% für %month% freigegeben.</target>
+        <target>Fahrten von %user% für %month% genehmigt.</target>
       </trans-unit>
       <trans-unit id="m329" resname="mileage.approval.rejected">
         <source>mileage.approval.rejected</source>
-        <target>Fahrten von %user% für %month% zurückgewiesen.</target>
+        <target>Fahrten von %user% für %month% abgelehnt.</target>
       </trans-unit>
       <trans-unit id="m330" resname="mileage.approval.reviewed_by">
         <source>mileage.approval.reviewed_by</source>
@@ -1336,7 +1336,7 @@
       </trans-unit>
       <trans-unit id="m333" resname="mileage.approval.disabled_hint">
         <source>mileage.approval.disabled_hint</source>
-        <target>Die Freigabe durch die Teamleitung ist ausgeschaltet (System → Einstellungen). Die Übersicht funktioniert trotzdem.</target>
+        <target>Die Genehmigung durch die Teamleitung ist ausgeschaltet (System → Einstellungen). Die Übersicht funktioniert trotzdem.</target>
       </trans-unit>
       <trans-unit id="m334" resname="mileage.import.title">
         <source>mileage.import.title</source>
@@ -1584,19 +1584,19 @@
       </trans-unit>
       <trans-unit id="m395" resname="mileage.approval.approved_count">
         <source>mileage.approval.approved_count</source>
-        <target>{0}Keine Monate freigegeben.|{1}Ein Monat freigegeben.|]1,Inf[%count% Monate freigegeben.</target>
+        <target>{0}Keine Monate genehmigt.|{1}Ein Monat genehmigt.|]1,Inf[%count% Monate genehmigt.</target>
       </trans-unit>
       <trans-unit id="m396" resname="mileage.approval.reopened">
         <source>mileage.approval.reopened</source>
-        <target>{1}Freigabe zurückgenommen, der Monat wartet wieder.|[0,Inf[Freigabe für %count% Monate zurückgenommen.</target>
+        <target>{1}Genehmigung zurückgenommen, der Monat wartet wieder.|[0,Inf[Genehmigung für %count% Monate zurückgenommen.</target>
       </trans-unit>
       <trans-unit id="m397" resname="mileage.approval.reject_title">
         <source>mileage.approval.reject_title</source>
-        <target>%user% · %month% zurückweisen</target>
+        <target>%user% · %month% ablehnen</target>
       </trans-unit>
       <trans-unit id="m398" resname="mileage.approval.team_help">
         <source>mileage.approval.team_help</source>
-        <target>Monate der Teammitglieder: freigeben oder mit Begründung zurückweisen.</target>
+        <target>Monate der Teammitglieder: genehmigen oder mit Begründung ablehnen.</target>
       </trans-unit>
       <trans-unit id="m399" resname="mileage.approval.no_members">
         <source>mileage.approval.no_members</source>

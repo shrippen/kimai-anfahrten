@@ -152,10 +152,10 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
 
   section('Month closing and audit log');
   await page.goto(BASE + '/de/mileage/months/2026');
-  await (await rowAction(page, 'September', 'Zur Freigabe einreichen')).click();
+  await (await rowAction(page, 'September', 'Zur Genehmigung einreichen')).click();
   await confirmModal(page);
   // approval is enabled in the seed, so closing means handing in
-  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('September') && r.includes('Beantragt') && r.includes('Zur Freigabe eingereicht')), 'September handed in (locked)');
+  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('September') && r.includes('Beantragt') && r.includes('Zur Genehmigung eingereicht')), 'September handed in (locked)');
   await page.goto(BASE + edit);
   await page.fill('#trip_form_comment', 'korrigiert');
   await submit(page, '#trip_form_save');
@@ -187,30 +187,30 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
 
   section('Approval workflow');
   await page.goto(BASE + '/de/mileage/months/2026');
-  await (await rowAction(page, 'August', 'Zur Freigabe einreichen')).click();
+  await (await rowAction(page, 'August', 'Zur Genehmigung einreichen')).click();
   await confirmModal(page);
-  check((await texts(page, 'tbody tr')).some((x) => x.startsWith('August') && x.includes('Zur Freigabe eingereicht')), 'hans submits August');
+  check((await texts(page, 'tbody tr')).some((x) => x.startsWith('August') && x.includes('Zur Genehmigung eingereicht')), 'hans submits August');
   await page.close();
   page = await login(browser, 'tina');
   await page.goto(BASE + '/de/mileage/team/2026/8');
   check((await texts(page, 'table tbody tr')).every((x) => !x.startsWith('admin')), 'team lead only sees her team');
-  await (await rowAction(page, 'hans', 'Zurückweisen')).click();
+  await (await rowAction(page, 'hans', 'Ablehnen')).click();
   await page.waitForSelector('#remote_form_modal.show textarea');
   check(await page.locator('#remote_form_modal textarea').evaluate((el) => !el.checkValidity()), 'rejection needs a reason');
   await page.fill('#remote_form_modal textarea', 'Bitte Anlass ergänzen');
   await submit(page, '#remote_form_modal button[type=submit]');
-  check((await texts(page, '.kpu-result')).join().includes('zurückgewiesen'), 'rejection result shown');
+  check((await texts(page, '.kpu-result')).join().includes('abgelehnt'), 'rejection result shown');
   await page.close();
   page = await login(browser, 'hans');
   await page.goto(BASE + '/de/mileage/months/2026');
   check((await texts(page, 'tbody tr')).some((x) => x.includes('Abgelehnt') && x.includes('Bitte Anlass ergänzen')), 'hans sees the rejection reason');
-  await (await rowAction(page, 'August', 'Zur Freigabe einreichen')).click();
+  await (await rowAction(page, 'August', 'Zur Genehmigung einreichen')).click();
   await confirmModal(page);
   await page.close();
   page = await login(browser, 'tina');
   await page.goto(BASE + '/de/mileage/team/2026/8');
-  await Promise.all([page.waitForNavigation(), (await rowAction(page, 'hans', 'Freigeben')).click()]);
-  check((await page.locator('.kpu-toast').innerText()).includes('freigegeben'), 'approval with undo toast');
+  await Promise.all([page.waitForNavigation(), (await rowAction(page, 'hans', 'Genehmigen')).click()]);
+  check((await page.locator('.kpu-toast').innerText()).includes('genehmigt'), 'approval with undo toast');
   check((await texts(page, 'table tbody tr')).some((x) => x.startsWith('hans') && x.includes('Genehmigt')), 'team lead approves');
   await page.screenshot({ path: SHOTS + '/team.png', fullPage: true });
   await page.close();

@@ -14,7 +14,7 @@
     {%- endif -%}
 {%- endmacro %}
 
-{# Status badge of a month lock, the plugin's own wording ("Zur Freigabe eingereicht" …) as tooltip #}
+{# Status badge of a month lock, the plugin's own wording ("Zur Genehmigung eingereicht" …) as tooltip #}
 {% macro month_status(lock) -%}
     {%- import '@Mileage/_kit/macros.html.twig' as kit -%}
     {%- set tooltip = lock is null ? null : lock.status.label|trans ~ (lock.comment ? ' · ' ~ lock.comment : '') -%}

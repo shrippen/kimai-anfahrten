@@ -65,10 +65,10 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 ![Steuerbericht](docs/steuerbericht.png)
 
 **Team**
-- Optionale **Freigabe durch die Teamleitung**: Monat einreichen → freigeben oder mit Begründung zurückweisen
+- Optionale **Genehmigung durch die Teamleitung**: Monat einreichen → genehmigen oder mit Begründung ablehnen
 - Teambericht pro Monat; Teamleitungen sehen nur ihre Teammitglieder
 
-![Team-Freigabe](docs/team-freigabe.png)
+![Team-Genehmigung](docs/team-genehmigung.png)
 
 ## Installation
 
@@ -107,7 +107,7 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
    ```
 
 **System → Einstellungen** (Abschnitte *Fahrten & Fahrtkosten* und *Fahrten automatisch erkennen*): abweichende
-Sätze, Standard-Dawarich-URL, Geocoding-Server, Kartenkacheln (leer = keine Karten), Freigabe durch Teamleitung,
+Sätze, Standard-Dawarich-URL, Geocoding-Server, Kartenkacheln (leer = keine Karten), Genehmigung durch Teamleitung,
 Empfindlichkeit der Fahrterkennung.
 
 Eigene Dawarich-URLs pro Benutzer sind standardmäßig **aus** (*Eigene Dawarich-URL pro Benutzer erlauben*): Die URL
@@ -122,9 +122,9 @@ Installationen, in denen schon eigene URLs eingetragen sind, bekommen die Einste
 | `edit_own_mileage` / `delete_own_mileage` | eigene Fahrten | alle |
 | `lock_mileage` | eigene Monate abschließen bzw. einreichen | alle |
 | `view_team_mileage` | Fahrten der eigenen Teammitglieder sehen | Teamleitung |
-| `approve_mileage` | Monate der Teammitglieder freigeben | Teamleitung |
+| `approve_mileage` | Monate der Teammitglieder genehmigen oder ablehnen | Teamleitung |
 | `view_other_mileage` / `edit_other_mileage` / `delete_other_mileage` | alle Nutzer | Admin |
-| `approve_other_mileage` | alle Monate freigeben | Admin |
+| `approve_other_mileage` | alle Monate genehmigen oder ablehnen | Admin |
 | `unlock_mileage` / `edit_locked_mileage` | Monate wieder öffnen / in abgeschlossenen Monaten ändern | Admin |
 
 ## REST-API
@@ -180,7 +180,7 @@ aktualisiert, nie von Hand. Kurz:
 - Unterseiten sind die Einträge des Menüs „Fahrten“; es gibt keine eigene Tab-Navigation.
 - Zeitraum über `kit.period_nav`, Kennzahlen über `kit.kpi_bar`, Status über `kit.status_badge`
   (Monat: Offen/Gesperrt/Beantragt/Genehmigt/Abgelehnt, Hinweise als Warnung), Leerzustände mit nächstem Schritt.
-- Umkehrbares (Vorschläge übernehmen/verwerfen, Monat wieder öffnen, Freigeben) läuft sofort mit „Rückgängig“
+- Umkehrbares (Vorschläge übernehmen/verwerfen, Monat wieder öffnen, Genehmigen) läuft sofort mit „Rückgängig“
   (15 Minuten, gleicher Benutzer und gleiche Sitzung), Löschen und Monat abschließen/einreichen fragen mit Kimais Modal.
 - Zahlen, Datum und Beträge nur über Kimai-Filter (`amount`, `date_short`, `money('EUR')` …), also im Format des
   Benutzers; alle Texte über Übersetzungen mit dem Präfix `mileage.`.
