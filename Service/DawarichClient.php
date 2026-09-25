@@ -200,6 +200,8 @@ class DawarichClient
                 ],
                 'query' => $query,
                 'timeout' => 20,
+                // never follow a redirect to another (internal) address
+                'max_redirects' => 0,
             ]);
 
             $status = $response->getStatusCode();

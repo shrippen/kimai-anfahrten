@@ -20,8 +20,10 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  */
 class UserPreferenceSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly AuthorizationCheckerInterface $security)
-    {
+    public function __construct(
+        private readonly AuthorizationCheckerInterface $security,
+        private readonly MileageConfiguration $configuration,
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -59,7 +61,9 @@ class UserPreferenceSubscriber implements EventSubscriberInterface
             $profiles[$profile->label()] = $profile->value;
         }
         $add(MileageConfiguration::PREF_TAX_PROFILE, ChoiceType::class, ['choices' => $profiles, 'choice_translation_domain' => 'messages', 'help' => 'mileage_tax_profile_help'], TaxProfile::SELF_EMPLOYED->value);
-        $add(MileageConfiguration::PREF_DAWARICH_URL, UrlType::class, ['help' => 'mileage_dawarich_url_help']);
+        if ($this->configuration->isUserDawarichUrlAllowed()) {
+            $add(MileageConfiguration::PREF_DAWARICH_URL, UrlType::class, ['help' => 'mileage_dawarich_url_help', 'default_protocol' => 'https']);
+        }
         $add(MileageConfiguration::PREF_DAWARICH_API_KEY, SecretType::class, ['help' => 'mileage_dawarich_api_key_help']);
         $add(MileageConfiguration::PREF_HOME_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_WORK_ADDRESS, TextType::class);

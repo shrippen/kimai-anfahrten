@@ -95,7 +95,8 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
 ## Einrichtung
 
 1. **Profil → Einstellungen**: Steuerprofil, Wohn- und Arbeitsadresse, Entfernung Wohnung–Arbeit,
-   Standardfahrzeug, Kennzeichen, Dawarich-URL und API-Key (in Dawarich unter *Account*).
+   Standardfahrzeug, Kennzeichen, Dawarich-API-Key (in Dawarich unter *Account*) und — falls in den
+   Systemeinstellungen erlaubt — eine eigene Dawarich-URL.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
 3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
 4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
@@ -108,6 +109,10 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
 **System → Einstellungen** (Abschnitte *Fahrten & Fahrtkosten* und *Fahrten automatisch erkennen*): abweichende
 Sätze, Standard-Dawarich-URL, Geocoding-Server, Kartenkacheln (leer = keine Karten), Freigabe durch Teamleitung,
 Empfindlichkeit der Fahrterkennung.
+
+Eigene Dawarich-URLs pro Benutzer sind standardmäßig **aus** (*Eigene Dawarich-URL pro Benutzer erlauben*): Die URL
+ruft der Kimai-Server auf, ein Benutzer könnte damit sonst interne Dienste im Netz des Servers ansprechen.
+Installationen, in denen schon eigene URLs eingetragen sind, bekommen die Einstellung beim Update eingeschaltet.
 
 ## Rechte
 
