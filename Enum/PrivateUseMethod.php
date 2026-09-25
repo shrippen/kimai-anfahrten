@@ -16,6 +16,6 @@ enum PrivateUseMethod: string
 
     public function label(): string
     {
-        return 'vehicle.private_use.' . $this->value;
+        return 'mileage.vehicle.private_use.' . $this->value;
     }
 }

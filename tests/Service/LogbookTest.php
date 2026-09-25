@@ -74,10 +74,10 @@ class LogbookTest extends TestCase
 
         self::assertCount(2, $result['gaps']);
         self::assertSame(15, $result['km']['unrecorded']);
-        self::assertContains('logbook.warning.odometer_gap', $result['rows'][1]['warnings']);
-        self::assertContains('logbook.warning.odometer_overlap', $result['rows'][2]['warnings']);
-        self::assertContains('logbook.warning.distance_mismatch', $result['rows'][3]['warnings']);
-        self::assertContains('logbook.warning.odometer_missing', $result['rows'][4]['warnings']);
+        self::assertContains('mileage.logbook.warning.odometer_gap', $result['rows'][1]['warnings']);
+        self::assertContains('mileage.logbook.warning.odometer_overlap', $result['rows'][2]['warnings']);
+        self::assertContains('mileage.logbook.warning.distance_mismatch', $result['rows'][3]['warnings']);
+        self::assertContains('mileage.logbook.warning.odometer_missing', $result['rows'][4]['warnings']);
     }
 
     public function testSuggestOdometerStart(): void

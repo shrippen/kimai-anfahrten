@@ -4,7 +4,7 @@
     {% include '@Mileage/_nav.html.twig' with {active: 'trips'} %}
     <h2>{{ title|trans }} — {{ target_user.displayName }}</h2>
     <p>
-        <a href="{{ path('mileage_trips', {year: trip.date ? trip.date|date('Y') : 'now'|date('Y'), month: trip.date ? trip.date|date('n') : 'now'|date('n'), user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'menu.mileage'|trans }}</a>
+        <a href="{{ path('mileage_trips', {year: trip.date ? trip.date|date('Y') : 'now'|date('Y'), month: trip.date ? trip.date|date('n') : 'now'|date('n'), user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'mileage.menu'|trans }}</a>
     </p>
 
     <div class="card mb-3">
@@ -51,9 +51,9 @@
                             </div>
                             {% if form.dawarich is defined %}
                                 {{ form_widget(form.dawarich) }}
-                                <div class="form-text">{{ 'dawarich.lookup_help'|trans }}</div>
+                                <div class="form-text">{{ 'mileage.dawarich.lookup_help'|trans }}</div>
                             {% else %}
-                                <div class="form-text">{{ 'dawarich.not_configured_hint'|trans }}</div>
+                                <div class="form-text">{{ 'mileage.dawarich.not_configured_hint'|trans }}</div>
                             {% endif %}
                         </div>
                     </div>
@@ -64,7 +64,7 @@
                         </div>
                     {% endif %}
                     {% if trip.source.value == 'dawarich' %}
-                        <p class="small text-info"><i class="fas fa-satellite-dish me-1"></i>{{ 'trip.source.dawarich'|trans }} ({{ trip.pointCount }} GPS)</p>
+                        <p class="small text-info"><i class="fas fa-satellite-dish me-1"></i>{{ 'mileage.trip.source.dawarich'|trans }} ({{ trip.pointCount }} GPS)</p>
                     {% endif %}
                     {{ form_row(form.roundTrip) }}
                     {{ form_row(form.overnight) }}
@@ -74,7 +74,7 @@
             </div>
             {{ form_widget(form.save) }}
             {% if trip.id %}
-                <a href="{{ path('mileage_history', {user: target_user.id, trip: trip.id}) }}" class="btn btn-link"><i class="fas fa-clock-rotate-left me-1"></i>{{ 'logbook.history'|trans }}</a>
+                <a href="{{ path('mileage_history', {user: target_user.id, trip: trip.id}) }}" class="btn btn-link"><i class="fas fa-clock-rotate-left me-1"></i>{{ 'mileage.logbook.history'|trans }}</a>
             {% endif %}
             {{ form_end(form) }}
         </div>

@@ -80,7 +80,7 @@ class TeamController extends AbstractController
         );
 
         return $this->render('@Mileage/team/index.html.twig', [
-            'page_setup' => new PageSetup('approval.team'),
+            'page_setup' => new PageSetup('mileage.approval.team'),
             'target_user' => $current,
             'year' => $year,
             'month' => $month,
@@ -108,13 +108,13 @@ class TeamController extends AbstractController
         $approve = $request->request->get('decision') === 'approve';
         $comment = trim((string) $request->request->get('comment'));
         if (!$approve && $comment === '') {
-            $this->flashError($this->translator->trans('approval.error.reason'));
+            $this->flashError($this->translator->trans('mileage.approval.error.reason'));
 
             return $this->redirectToRoute('mileage_team', ['year' => $lock->getYear(), 'month' => $lock->getMonth()]);
         }
 
         $this->lockService->review($lock, $approve, $current, $comment !== '' ? mb_substr($comment, 0, 2000) : null);
-        $this->flashSuccess($this->translator->trans($approve ? 'approval.approved' : 'approval.rejected', [
+        $this->flashSuccess($this->translator->trans($approve ? 'mileage.approval.approved' : 'mileage.approval.rejected', [
             '%user%' => $lock->getUser()->getDisplayName(),
             '%month%' => \sprintf('%02d/%d', $lock->getMonth(), $lock->getYear()),
         ]));

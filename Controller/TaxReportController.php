@@ -48,7 +48,7 @@ class TaxReportController extends AbstractController
         $format = (string) $request->query->get('format');
 
         $context = [
-            'page_setup' => new PageSetup('menu.mileage_tax'),
+            'page_setup' => new PageSetup('mileage.menu.tax'),
             'year' => $year,
             'target_user' => $user,
             'trip_count' => \count($trips),

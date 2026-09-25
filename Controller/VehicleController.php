@@ -31,7 +31,7 @@ class VehicleController extends AbstractController
         $user = $this->getTargetUser($request, $this->userRepository);
 
         return $this->render('@Mileage/vehicle/index.html.twig', [
-            'page_setup' => new PageSetup('vehicle.list'),
+            'page_setup' => new PageSetup('mileage.vehicle.list'),
             'target_user' => $user,
             'vehicles' => $this->vehicleRepository->findByUser($user),
             'can_edit' => $this->canEditTripsOf($user),
@@ -90,7 +90,7 @@ class VehicleController extends AbstractController
         }
 
         return $this->render('@Mileage/vehicle/edit.html.twig', [
-            'page_setup' => new PageSetup($vehicle->getId() === null ? 'vehicle.create' : 'vehicle.edit'),
+            'page_setup' => new PageSetup($vehicle->getId() === null ? 'mileage.vehicle.create' : 'mileage.vehicle.edit'),
             'vehicle' => $vehicle,
             'form' => $form->createView(),
             'target_user' => $vehicle->getUser(),

@@ -34,24 +34,24 @@ class MenuSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $section = new MenuItemModel('mileage', 'menu.mileage', null, [], 'fas fa-car');
+        $section = new MenuItemModel('mileage', 'mileage.menu', null, [], 'fas fa-car');
         $section->setTranslationDomain('messages');
 
         $items = [
-            ['mileage_trips', 'menu.mileage_trips', 'fas fa-list', ['mileage_trip_create', 'mileage_trip_edit', 'mileage_trip_duplicate', 'mileage_commutes', 'mileage_import', 'mileage_history']],
-            ['mileage_suggestions', 'suggestion.list', 'fas fa-satellite-dish', []],
-            ['mileage_vehicles', 'vehicle.list', 'fas fa-car-side', ['mileage_vehicle_create', 'mileage_vehicle_edit', 'mileage_logbook']],
-            ['mileage_rentals', 'rental.list', 'fas fa-key', ['mileage_rental_create', 'mileage_rental_edit', 'mileage_rental_show']],
-            ['mileage_places', 'place.list', 'fas fa-location-dot', ['mileage_place_create', 'mileage_place_edit']],
-            ['mileage_months', 'logbook.months', 'fas fa-lock', []],
-            ['mileage_overview', 'overview.title', 'fas fa-users', []],
-            ['mileage_tax_report', 'menu.mileage_tax', 'fas fa-file-invoice', []],
+            ['mileage_trips', 'mileage.menu.trips', 'fas fa-list', ['mileage_trip_create', 'mileage_trip_edit', 'mileage_trip_duplicate', 'mileage_commutes', 'mileage_import', 'mileage_history']],
+            ['mileage_suggestions', 'mileage.suggestion.list', 'fas fa-satellite-dish', []],
+            ['mileage_vehicles', 'mileage.vehicle.list', 'fas fa-car-side', ['mileage_vehicle_create', 'mileage_vehicle_edit', 'mileage_logbook']],
+            ['mileage_rentals', 'mileage.rental.list', 'fas fa-key', ['mileage_rental_create', 'mileage_rental_edit', 'mileage_rental_show']],
+            ['mileage_places', 'mileage.place.list', 'fas fa-location-dot', ['mileage_place_create', 'mileage_place_edit']],
+            ['mileage_months', 'mileage.logbook.months', 'fas fa-lock', []],
+            ['mileage_overview', 'mileage.overview.title', 'fas fa-users', []],
+            ['mileage_tax_report', 'mileage.menu.tax', 'fas fa-file-invoice', []],
         ];
 
         $teamAccess = $this->security->isGranted('approve_mileage') || $this->security->isGranted('approve_other_mileage')
             || $this->security->isGranted('view_other_mileage') || $this->security->isGranted('view_team_mileage');
         if ($teamAccess) {
-            $items[] = ['mileage_team', 'approval.team', 'fas fa-people-group', []];
+            $items[] = ['mileage_team', 'mileage.approval.team', 'fas fa-people-group', []];
         }
 
         foreach ($items as [$route, $label, $icon, $childRoutes]) {

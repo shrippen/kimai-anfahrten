@@ -12,7 +12,7 @@ enum PlaceType: string
 
     public function label(): string
     {
-        return 'place.type.' . $this->value;
+        return 'mileage.place.type.' . $this->value;
     }
 
     public function icon(): string

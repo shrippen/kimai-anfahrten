@@ -49,7 +49,7 @@ class RentalController extends AbstractController
         $user = $this->getTargetUser($request, $this->userRepository);
 
         return $this->render('@Mileage/rental/index.html.twig', [
-            'page_setup' => new PageSetup('rental.list'),
+            'page_setup' => new PageSetup('mileage.rental.list'),
             'target_user' => $user,
             'year' => $year,
             'rentals' => $this->rentalRepository->findByUserAndYear($user, $year),
@@ -83,7 +83,7 @@ class RentalController extends AbstractController
         $trips = $this->tripRepository->findByRental($rental);
 
         return $this->render('@Mileage/rental/show.html.twig', [
-            'page_setup' => new PageSetup('rental.label'),
+            'page_setup' => new PageSetup('mileage.rental.label'),
             'rental' => $rental,
             'target_user' => $user,
             'trips' => $trips,
@@ -133,13 +133,13 @@ class RentalController extends AbstractController
             $this->rentalRepository->save($rental);
             $linked = $this->tripService->linkRentalTrips($rental);
             $this->entityManager->flush();
-            $this->flashSuccess($linked > 0 ? $this->translator->trans('rental.linked', ['%count%' => $linked]) : 'action.update.success');
+            $this->flashSuccess($linked > 0 ? $this->translator->trans('mileage.rental.linked', ['%count%' => $linked]) : 'action.update.success');
 
             return $this->redirectToRoute('mileage_rental_show', ['id' => $rental->getId()]);
         }
 
         return $this->render('@Mileage/rental/edit.html.twig', [
-            'page_setup' => new PageSetup($rental->getId() === null ? 'rental.create' : 'rental.edit'),
+            'page_setup' => new PageSetup($rental->getId() === null ? 'mileage.rental.create' : 'mileage.rental.edit'),
             'rental' => $rental,
             'form' => $form->createView(),
             'target_user' => $rental->getUser(),

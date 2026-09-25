@@ -87,10 +87,10 @@ class TripCsvImporter
             }
             $errors = [];
             if (!isset($data['date'])) {
-                $errors['date'] = 'import.error.date_missing';
+                $errors['date'] = 'mileage.import.error.date_missing';
             }
             if (!isset($data['distanceKm']) && !(isset($data['odometerStart'], $data['odometerEnd']))) {
-                $errors['distanceKm'] = 'import.error.distance_missing';
+                $errors['distanceKm'] = 'mileage.import.error.distance_missing';
             }
             $rows[] = ['line' => $line, 'data' => $data, 'errors' => $errors];
         }
@@ -130,7 +130,7 @@ class TripCsvImporter
                 }
                 // Closed months are refused when saving anyway; report it per row instead of failing the whole import.
                 if ($errors === [] && !$mayEditLocked && $this->lockService?->isTripLocked($trip) === true) {
-                    $errors['date'] = 'logbook.error.locked';
+                    $errors['date'] = 'mileage.logbook.error.locked';
                 }
 
                 if ($errors === [] && ($day = $trip->getDate()) !== null) {

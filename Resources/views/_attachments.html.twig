@@ -1,6 +1,6 @@
 {# Params: attachments, upload_url, can_edit, can_delete #}
 <div class="card mb-3">
-    <div class="card-header"><h3 class="card-title"><i class="fas fa-paperclip me-1"></i>{{ 'attachment.list'|trans }}</h3></div>
+    <div class="card-header"><h3 class="card-title"><i class="fas fa-paperclip me-1"></i>{{ 'mileage.attachment.list'|trans }}</h3></div>
     <ul class="list-group list-group-flush">
         {% for a in attachments %}
             <li class="list-group-item d-flex align-items-center">
@@ -14,7 +14,7 @@
                 {% endif %}
             </li>
         {% else %}
-            <li class="list-group-item text-muted">{{ 'attachment.empty'|trans }}</li>
+            <li class="list-group-item text-muted">{{ 'mileage.attachment.empty'|trans }}</li>
         {% endfor %}
     </ul>
     {% if can_edit %}
@@ -22,9 +22,9 @@
             <form method="post" action="{{ upload_url }}" enctype="multipart/form-data" class="d-flex gap-2">
                 <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_upload') }}">
                 <input type="file" name="file" class="form-control" accept="application/pdf,image/*" required>
-                <button type="submit" class="btn btn-outline-primary text-nowrap">{{ 'attachment.upload'|trans }}</button>
+                <button type="submit" class="btn btn-outline-primary text-nowrap">{{ 'mileage.attachment.upload'|trans }}</button>
             </form>
-            <div class="form-text">{{ 'attachment.help'|trans }}</div>
+            <div class="form-text">{{ 'mileage.attachment.help'|trans }}</div>
         </div>
     {% endif %}
 </div>

@@ -11,6 +11,6 @@ enum TaxProfile: string
 
     public function label(): string
     {
-        return 'tax.profile.' . $this->value;
+        return 'mileage.tax.profile.' . $this->value;
     }
 }

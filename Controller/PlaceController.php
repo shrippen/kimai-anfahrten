@@ -39,7 +39,7 @@ class PlaceController extends AbstractController
         $user = $this->getTargetUser($request, $this->userRepository);
 
         return $this->render('@Mileage/place/index.html.twig', [
-            'page_setup' => new PageSetup('place.list'),
+            'page_setup' => new PageSetup('mileage.place.list'),
             'target_user' => $user,
             'places' => $this->placeRepository->findByUser($user),
             'can_edit' => $this->canEditTripsOf($user),
@@ -107,7 +107,7 @@ class PlaceController extends AbstractController
 
         try {
             $count = $this->suggestionService->importAreas($user);
-            $this->flashSuccess($this->translator->trans('place.imported', ['%count%' => $count]));
+            $this->flashSuccess($this->translator->trans('mileage.place.imported', ['%count%' => $count]));
         } catch (DawarichException $e) {
             $this->flashError($this->translator->trans($e->getMessage(), $e->getParameters()));
         }
@@ -128,7 +128,7 @@ class PlaceController extends AbstractController
         }
 
         return $this->render('@Mileage/place/edit.html.twig', [
-            'page_setup' => new PageSetup($place->getId() === null ? 'place.create' : 'place.edit'),
+            'page_setup' => new PageSetup($place->getId() === null ? 'mileage.place.create' : 'mileage.place.edit'),
             'place' => $place,
             'form' => $form->createView(),
             'target_user' => $place->getUser(),

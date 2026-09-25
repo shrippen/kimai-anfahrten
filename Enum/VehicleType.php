@@ -14,7 +14,7 @@ enum VehicleType: string
 
     public function label(): string
     {
-        return 'trip.vehicle.' . $this->value;
+        return 'mileage.trip.vehicle.' . $this->value;
     }
 
     public function icon(): string

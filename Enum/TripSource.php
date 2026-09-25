@@ -9,6 +9,6 @@ enum TripSource: string
 
     public function label(): string
     {
-        return 'trip.source.' . $this->value;
+        return 'mileage.trip.source.' . $this->value;
     }
 }

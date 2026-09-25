@@ -50,7 +50,7 @@ class ImportController extends AbstractController
             $file = $request->files->get('file');
             if ($file instanceof UploadedFile) {
                 if (!$file->isValid() || $file->getSize() > self::MAX_BYTES) {
-                    $this->flashError($this->translator->trans('import.error.file'));
+                    $this->flashError($this->translator->trans('mileage.import.error.file'));
 
                     return $this->redirectToRoute('mileage_import', ['user' => $user->getId()]);
                 }
@@ -60,7 +60,7 @@ class ImportController extends AbstractController
             }
 
             if ($content === null || \strlen($content) > self::MAX_BYTES) {
-                $this->flashError($this->translator->trans('import.error.file'));
+                $this->flashError($this->translator->trans('mileage.import.error.file'));
 
                 return $this->redirectToRoute('mileage_import', ['user' => $user->getId()]);
             }
@@ -70,7 +70,7 @@ class ImportController extends AbstractController
 
             if ($request->request->get('action') === 'import') {
                 $result = $this->importer->import($built, $request->request->getBoolean('skip_duplicates', true));
-                $this->flashSuccess($this->translator->trans('import.done', ['%imported%' => $result['imported'], '%skipped%' => $result['skipped']]));
+                $this->flashSuccess($this->translator->trans('mileage.import.done', ['%imported%' => $result['imported'], '%skipped%' => $result['skipped']]));
 
                 return $this->redirectToRoute('mileage_trips', ['user' => $user->getId()]);
             }
@@ -79,7 +79,7 @@ class ImportController extends AbstractController
         }
 
         return $this->render('@Mileage/import/index.html.twig', [
-            'page_setup' => new PageSetup('import.title'),
+            'page_setup' => new PageSetup('mileage.import.title'),
             'target_user' => $user,
             'preview' => $preview,
             'content' => $content !== null ? base64_encode($content) : null,

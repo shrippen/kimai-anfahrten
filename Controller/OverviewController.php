@@ -57,7 +57,7 @@ class OverviewController extends AbstractController
         foreach ($all as $trip) {
             $customer = $trip->getProject()?->getCustomer();
             $id = $customer?->getId() ?? 0;
-            $customers[$id] = $customer?->getName() ?? $this->translator->trans('overview.no_customer');
+            $customers[$id] = $customer?->getName() ?? $this->translator->trans('mileage.overview.no_customer');
             if ($customerId > 0 && $id !== $customerId) {
                 continue;
             }
@@ -75,7 +75,7 @@ class OverviewController extends AbstractController
         }
 
         return $this->render('@Mileage/overview/index.html.twig', [
-            'page_setup' => new PageSetup('overview.title'),
+            'page_setup' => new PageSetup('mileage.overview.title'),
             'target_user' => $user,
             'from' => $from,
             'to' => $to,
@@ -93,7 +93,7 @@ class OverviewController extends AbstractController
         $t = fn (string $key) => $this->translator->trans($key);
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
-        fputcsv($handle, [$t('place.customer'), $t('trip.project'), $t('trip.date'), $t('trip.start_location'), $t('trip.destination'), 'km', $t('trip.costs'), $t('trip.comment')], ';', '"', '');
+        fputcsv($handle, [$t('mileage.place.customer'), $t('mileage.trip.project'), $t('mileage.trip.date'), $t('mileage.trip.start_location'), $t('mileage.trip.destination'), 'km', $t('mileage.trip.costs'), $t('mileage.trip.comment')], ';', '"', '');
         foreach ($groups as $group) {
             foreach ($group['trips'] as $row) {
                 $trip = $row['trip'];

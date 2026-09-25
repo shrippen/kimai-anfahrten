@@ -41,18 +41,18 @@ class PlausibilityCheckerTest extends TestCase
         );
         $findings = array_column($checker->evaluate($user, 2026, $trips, $workdays, $absences), null, 'key');
 
-        self::assertSame(1, $findings['plausibility.more_commutes_than_workdays']['count']);
-        self::assertSame(['2026-03-03'], $findings['plausibility.commute_without_timesheet']['dates']);
-        self::assertSame('danger', $findings['plausibility.commute_on_absence']['level']);
-        self::assertSame(['2026-03-09'], $findings['plausibility.commute_on_absence']['dates']);
-        self::assertSame(['2026-03-07'], $findings['plausibility.commute_on_weekend']['dates']);
-        self::assertSame(['2026-03-02'], $findings['plausibility.multiple_commutes']['dates']);
-        self::assertSame(['2026-03-03'], $findings['plausibility.commute_distance_deviates']['dates']);
-        self::assertSame(['2026-03-10'], $findings['plausibility.rental_without_costs']['dates']);
-        self::assertSame(['2026-03-10'], $findings['plausibility.business_without_purpose']['dates']);
-        self::assertArrayNotHasKey('plausibility.no_absence_data', $findings);
+        self::assertSame(1, $findings['mileage.plausibility.more_commutes_than_workdays']['count']);
+        self::assertSame(['2026-03-03'], $findings['mileage.plausibility.commute_without_timesheet']['dates']);
+        self::assertSame('danger', $findings['mileage.plausibility.commute_on_absence']['level']);
+        self::assertSame(['2026-03-09'], $findings['mileage.plausibility.commute_on_absence']['dates']);
+        self::assertSame(['2026-03-07'], $findings['mileage.plausibility.commute_on_weekend']['dates']);
+        self::assertSame(['2026-03-02'], $findings['mileage.plausibility.multiple_commutes']['dates']);
+        self::assertSame(['2026-03-03'], $findings['mileage.plausibility.commute_distance_deviates']['dates']);
+        self::assertSame(['2026-03-10'], $findings['mileage.plausibility.rental_without_costs']['dates']);
+        self::assertSame(['2026-03-10'], $findings['mileage.plausibility.business_without_purpose']['dates']);
+        self::assertArrayNotHasKey('mileage.plausibility.no_absence_data', $findings);
 
         $withoutHoliday = array_column($checker->evaluate($user, 2026, [], [], null), 'key');
-        self::assertContains('plausibility.no_absence_data', $withoutHoliday);
+        self::assertContains('mileage.plausibility.no_absence_data', $withoutHoliday);
     }
 }

@@ -60,7 +60,7 @@ class LogbookController extends AbstractController
         }
 
         return $this->render('@Mileage/logbook/index.html.twig', [
-            'page_setup' => new PageSetup('logbook.title'),
+            'page_setup' => new PageSetup('mileage.logbook.title'),
             'vehicle' => $vehicle,
             'target_user' => $user,
             'year' => $year,
@@ -82,7 +82,7 @@ class LogbookController extends AbstractController
         }
 
         return $this->render('@Mileage/logbook/months.html.twig', [
-            'page_setup' => new PageSetup('logbook.months'),
+            'page_setup' => new PageSetup('mileage.logbook.months'),
             'target_user' => $user,
             'year' => $year,
             'locks' => $this->lockRepository->findByUserAndYear($user, $year),
@@ -106,7 +106,7 @@ class LogbookController extends AbstractController
         $current = $this->getUser();
         $approval = $this->configuration->isApprovalEnabled();
         $this->lockService->lock($user, $year, $month, $current, $approval ? MonthStatus::SUBMITTED : MonthStatus::CLOSED);
-        $this->flashSuccess($this->translator->trans($approval ? 'approval.submitted' : 'logbook.locked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
+        $this->flashSuccess($this->translator->trans($approval ? 'mileage.approval.submitted' : 'mileage.logbook.locked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
 
         return $this->redirectToRoute('mileage_months', ['year' => $year, 'user' => $user->getId()]);
     }
@@ -119,7 +119,7 @@ class LogbookController extends AbstractController
         $this->assertCsrf($request, 'mileage_month_lock');
 
         $this->lockService->unlock($user, $year, $month);
-        $this->flashSuccess($this->translator->trans('logbook.unlocked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
+        $this->flashSuccess($this->translator->trans('mileage.logbook.unlocked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
 
         return $this->redirectToRoute('mileage_months', ['year' => $year, 'user' => $user->getId()]);
     }
@@ -135,7 +135,7 @@ class LogbookController extends AbstractController
         $entries = array_values(array_filter($entries, static fn ($e) => $e->getOwner() === $user));
 
         return $this->render('@Mileage/logbook/history.html.twig', [
-            'page_setup' => new PageSetup('logbook.history'),
+            'page_setup' => new PageSetup('mileage.logbook.history'),
             'target_user' => $user,
             'entries' => $entries,
             'trip_id' => $tripId,
@@ -169,7 +169,7 @@ class LogbookController extends AbstractController
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
         $t = fn (string $key) => $this->translator->trans($key);
-        fputcsv($handle, [$t('trip.date'), $t('trip.departure'), $t('trip.arrival'), $t('odometer.start'), $t('odometer.end'), 'km', $t('trip.purpose'), $t('trip.start_location'), $t('trip.destination'), $t('logbook.reason'), $t('logbook.partner')], ';', '"', '');
+        fputcsv($handle, [$t('mileage.trip.date'), $t('mileage.trip.departure'), $t('mileage.trip.arrival'), $t('mileage.odometer.start'), $t('mileage.odometer.end'), 'km', $t('mileage.trip.purpose'), $t('mileage.trip.start_location'), $t('mileage.trip.destination'), $t('mileage.logbook.reason'), $t('mileage.logbook.partner')], ';', '"', '');
 
         foreach ($rows as $row) {
             $trip = $row['trip'];

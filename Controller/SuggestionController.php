@@ -46,7 +46,7 @@ class SuggestionController extends AbstractController
         $user = $this->getTargetUser($request, $this->userRepository);
 
         return $this->render('@Mileage/suggestion/index.html.twig', [
-            'page_setup' => new PageSetup('suggestion.list'),
+            'page_setup' => new PageSetup('mileage.suggestion.list'),
             'target_user' => $user,
             'suggestions' => $this->suggestionRepository->findOpen($user),
             'can_edit' => $this->canEditTripsOf($user),
@@ -69,14 +69,14 @@ class SuggestionController extends AbstractController
         $to = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->request->get('to'));
 
         if ($from === false || $to === false || $to < $from || $from->diff($to)->days > 92) {
-            $this->flashError($this->translator->trans('suggestion.error.range'));
+            $this->flashError($this->translator->trans('mileage.suggestion.error.range'));
 
             return $this->redirectToRoute('mileage_suggestions', ['user' => $user->getId()]);
         }
 
         try {
             $count = $this->suggestionService->detect($user, $from, $to);
-            $this->flashSuccess($this->translator->trans('suggestion.detected', ['%count%' => $count]));
+            $this->flashSuccess($this->translator->trans('mileage.suggestion.detected', ['%count%' => $count]));
         } catch (DawarichException $e) {
             $this->flashError($this->translator->trans($e->getMessage(), $e->getParameters()));
         }
@@ -92,7 +92,7 @@ class SuggestionController extends AbstractController
         $this->assertEditable($user, $request, 'mileage_suggestion' . $suggestion->getId());
 
         if ($suggestion->getStatus() === SuggestionStatus::OPEN && $this->isLockedFor($user, $suggestion)) {
-            $this->flashError($this->translator->trans('logbook.error.locked'));
+            $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
         } elseif ($suggestion->getStatus() === SuggestionStatus::OPEN) {
             $purpose = TripPurpose::tryFrom((string) $request->request->get('purpose')) ?? $suggestion->getPurpose();
             $vehicle = VehicleType::tryFrom((string) $request->request->get('vehicle')) ?? $suggestion->getVehicle() ?? $this->configuration->getDefaultVehicle($user);
@@ -143,9 +143,9 @@ class SuggestionController extends AbstractController
             $count++;
         }
 
-        $this->flashSuccess($this->translator->trans('suggestion.accepted_all', ['%count%' => $count]));
+        $this->flashSuccess($this->translator->trans('mileage.suggestion.accepted_all', ['%count%' => $count]));
         if ($locked > 0) {
-            $this->flashWarning($this->translator->trans('logbook.error.locked'));
+            $this->flashWarning($this->translator->trans('mileage.logbook.error.locked'));
         }
 
         return $this->redirectToRoute('mileage_suggestions', ['user' => $user->getId()]);

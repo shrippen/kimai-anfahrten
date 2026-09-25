@@ -79,7 +79,7 @@ class TripController extends AbstractController
         }
 
         return $this->render('@Mileage/trip/index.html.twig', [
-            'page_setup' => new PageSetup('menu.mileage'),
+            'page_setup' => new PageSetup('mileage.menu'),
             'year' => $year,
             'month' => $month,
             'target_user' => $user,
@@ -104,7 +104,7 @@ class TripController extends AbstractController
 
         $trip = $this->prefill($request, $user);
 
-        return $this->handleForm($request, $trip, 'trip.create');
+        return $this->handleForm($request, $trip, 'mileage.trip.create');
     }
 
     #[Route(path: '/trip/{id}/edit', name: 'mileage_trip_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
@@ -114,7 +114,7 @@ class TripController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        return $this->handleForm($request, $trip, 'trip.edit');
+        return $this->handleForm($request, $trip, 'mileage.trip.edit');
     }
 
     #[Route(path: '/trip/{id}/duplicate', name: 'mileage_trip_duplicate', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
@@ -137,7 +137,7 @@ class TripController extends AbstractController
             ->setProject($original->getProject())
             ->setAssignedVehicle($original->getAssignedVehicle());
 
-        return $this->handleForm($request, $trip, 'trip.create');
+        return $this->handleForm($request, $trip, 'mileage.trip.create');
     }
 
     #[Route(path: '/trip/{id}/delete', name: 'mileage_trip_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -152,7 +152,7 @@ class TripController extends AbstractController
 
         $redirect = $this->listRoute($trip);
         if (!$this->mayChangeLocked($trip)) {
-            $this->flashError($this->translator->trans('logbook.error.locked'));
+            $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
 
             return $this->redirectToRoute('mileage_trips', $redirect);
         }
@@ -187,12 +187,12 @@ class TripController extends AbstractController
             $dates = array_filter((array) $request->request->all('dates'), 'is_string');
 
             if ($km <= 0) {
-                $this->flashError($this->translator->trans('trip.error.commute_distance'));
+                $this->flashError($this->translator->trans('mileage.trip.error.commute_distance'));
             } else {
                 $result = $this->commuteGenerator->create($user, $dates, $km, $year, $month, $this->isGranted('edit_locked_mileage'));
-                $this->flashSuccess($this->translator->trans('commute.created', ['%count%' => $result['created']]));
+                $this->flashSuccess($this->translator->trans('mileage.commute.created', ['%count%' => $result['created']]));
                 if ($result['locked'] > 0) {
-                    $this->flashWarning($this->translator->trans('logbook.error.locked'));
+                    $this->flashWarning($this->translator->trans('mileage.logbook.error.locked'));
                 }
 
                 return $this->redirectToRoute('mileage_trips', ['year' => $year, 'month' => $month, 'user' => $user->getId()]);
@@ -200,7 +200,7 @@ class TripController extends AbstractController
         }
 
         return $this->render('@Mileage/trip/commutes.html.twig', [
-            'page_setup' => new PageSetup('commute.generate'),
+            'page_setup' => new PageSetup('mileage.commute.generate'),
             'year' => $year,
             'month' => $month,
             'target_user' => $user,
@@ -223,7 +223,7 @@ class TripController extends AbstractController
 
         try {
             $count = $this->dawarichClient->testConnection($user);
-            $this->flashSuccess($this->translator->trans('dawarich.test_ok', ['%count%' => $count]));
+            $this->flashSuccess($this->translator->trans('mileage.dawarich.test_ok', ['%count%' => $count]));
         } catch (DawarichException $e) {
             $this->flashError($this->translator->trans($e->getMessage(), $e->getParameters()));
         }
@@ -285,7 +285,7 @@ class TripController extends AbstractController
         $dawarich = $this->configuration->isDawarichConfigured($owner);
 
         if ($trip->getId() !== null && !$this->mayChangeLocked($trip)) {
-            $this->flashError($this->translator->trans('logbook.error.locked'));
+            $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
 
             return $this->redirectToRoute('mileage_trips', $this->listRoute($trip));
         }
@@ -309,7 +309,7 @@ class TripController extends AbstractController
             $form = $this->createForm(TripForm::class, $trip, $options);
         } elseif ($form->isSubmitted() && $form->isValid()) {
             if (!$this->mayChangeLocked($trip)) {
-                $form->get('date')->addError(new FormError($this->translator->trans('logbook.error.locked')));
+                $form->get('date')->addError(new FormError($this->translator->trans('mileage.logbook.error.locked')));
             } else {
                 // Take over tax category and plate when a concrete vehicle was picked.
                 $trip->setAssignedVehicle($trip->getAssignedVehicle());
@@ -345,7 +345,7 @@ class TripController extends AbstractController
         $to = $trip->getArrivalAt();
 
         if ($from === null || $to === null) {
-            $this->flashError($this->translator->trans('dawarich.error.time_window'));
+            $this->flashError($this->translator->trans('mileage.dawarich.error.time_window'));
 
             return;
         }
@@ -359,7 +359,7 @@ class TripController extends AbstractController
         }
 
         if ($result->usedPointCount < 2) {
-            $this->flashWarning($this->translator->trans('dawarich.no_points'));
+            $this->flashWarning($this->translator->trans('mileage.dawarich.no_points'));
 
             return;
         }
@@ -373,7 +373,7 @@ class TripController extends AbstractController
             $trip->setRoundTrip(false);
         }
 
-        $this->flashSuccess($this->translator->trans('dawarich.measured', [
+        $this->flashSuccess($this->translator->trans('mileage.dawarich.measured', [
             '%km%' => number_format($result->distanceKm, 1, ',', '.'),
             '%points%' => $result->usedPointCount,
         ]));

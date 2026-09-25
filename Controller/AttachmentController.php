@@ -112,7 +112,7 @@ class AttachmentController extends AbstractController
 
         $file = $request->files->get('file');
         if (!$file instanceof UploadedFile) {
-            $this->flashError($this->translator->trans('attachment.error.upload'));
+            $this->flashError($this->translator->trans('mileage.attachment.error.upload'));
 
             return;
         }

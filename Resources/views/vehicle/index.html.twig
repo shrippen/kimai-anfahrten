@@ -2,34 +2,34 @@
 
 {% block page_content %}
     {% include '@Mileage/_nav.html.twig' with {active: 'vehicles'} %}
-    <h2>{{ 'vehicle.list'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'vehicle.help'|trans }}</p>
+    <h2>{{ 'mileage.vehicle.list'|trans }} — {{ target_user.displayName }}</h2>
+    <p class="text-muted">{{ 'mileage.vehicle.help'|trans }}</p>
     {% if can_edit %}
-        <p><a href="{{ path('mileage_vehicle_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'vehicle.create'|trans }}</a></p>
+        <p><a href="{{ path('mileage_vehicle_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'mileage.vehicle.create'|trans }}</a></p>
     {% endif %}
     <div class="card">
         <div class="card-body p-0 table-responsive">
             <table class="table table-vcenter mb-0">
                 <thead>
                     <tr>
-                        <th>{{ 'vehicle.name'|trans }}</th>
-                        <th>{{ 'trip.vehicle'|trans }}</th>
-                        <th>{{ 'trip.license_plate'|trans }}</th>
-                        <th>{{ 'vehicle.valid_from'|trans }} – {{ 'vehicle.valid_to'|trans }}</th>
-                        <th>{{ 'vehicle.private_use'|trans }}</th>
+                        <th>{{ 'mileage.vehicle.name'|trans }}</th>
+                        <th>{{ 'mileage.trip.vehicle'|trans }}</th>
+                        <th>{{ 'mileage.trip.license_plate'|trans }}</th>
+                        <th>{{ 'mileage.vehicle.valid_from'|trans }} – {{ 'mileage.vehicle.valid_to'|trans }}</th>
+                        <th>{{ 'mileage.vehicle.private_use'|trans }}</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for v in vehicles %}
                         <tr class="{{ v.active ? '' : 'text-muted' }}">
-                            <td>{{ v.name }}{% if not v.active %} <span class="badge bg-secondary-lt">{{ 'vehicle.inactive'|trans }}</span>{% endif %}</td>
+                            <td>{{ v.name }}{% if not v.active %} <span class="badge bg-secondary-lt">{{ 'mileage.vehicle.inactive'|trans }}</span>{% endif %}</td>
                             <td><i class="{{ v.type.icon }} me-1"></i>{{ v.type.label|trans }}</td>
                             <td>{{ v.licensePlate }}</td>
                             <td>{{ v.validFrom ? v.validFrom|date('Y-m-d') : '…' }} – {{ v.validTo ? v.validTo|date('Y-m-d') : '…' }}</td>
                             <td>{{ v.businessAsset ? v.privateUse.label|trans : '–' }}</td>
                             <td class="text-end text-nowrap">
-                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('mileage_logbook', {id: v.id, year: year}) }}"><i class="fas fa-book me-1"></i>{{ 'logbook.title'|trans }}</a>
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ path('mileage_logbook', {id: v.id, year: year}) }}"><i class="fas fa-book me-1"></i>{{ 'mileage.logbook.title'|trans }}</a>
                                 {% if can_edit %}
                                     <a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_vehicle_edit', {id: v.id}) }}" title="{{ 'action.edit'|trans }}"><i class="fas fa-pen"></i></a>
                                     <form class="d-inline" method="post" action="{{ path('mileage_vehicle_delete', {id: v.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
@@ -40,7 +40,7 @@
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="6" class="text-muted">{{ 'vehicle.empty'|trans }}</td></tr>
+                        <tr><td colspan="6" class="text-muted">{{ 'mileage.vehicle.empty'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
