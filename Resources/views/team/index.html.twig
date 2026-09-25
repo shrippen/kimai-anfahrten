@@ -1,70 +1,79 @@
 {% extends 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/datatables.html.twig' as tables %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'team'} %}
-    {% set prev = month == 1 ? {year: year - 1, month: 12} : {year: year, month: month - 1} %}
-    {% set next = month == 12 ? {year: year + 1, month: 1} : {year: year, month: month + 1} %}
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <h2 class="me-auto mb-0">{{ 'mileage.approval.team'|trans }} — {{ '%02d/%d'|format(month, year) }}</h2>
-        <a href="{{ path('mileage_team', prev) }}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
-        <a href="{{ path('mileage_team', next) }}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
-    </div>
+{% set bulk_form = 'mileage-team-bulk' %}
 
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line(['mileage.approval.team_help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    {{ kit.period_nav(['month'], 'month', period.label, period.prev, period.next, period.today, {}) }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
     {% if not approval_enabled %}
-        <div class="alert alert-info">{{ 'mileage.approval.disabled_hint'|trans }}</div>
+        {{ alert({type: 'info', description: 'mileage.approval.disabled_hint'|trans, icon: 'info', dismissible: false, important: false}) }}
     {% endif %}
 
-    {% if pending|length > 0 %}
-        <div class="card mb-3 border-warning">
-            <div class="card-header"><h3 class="card-title">{{ 'mileage.approval.pending'|trans }} ({{ pending|length }})</h3></div>
-            <ul class="list-group list-group-flush">
-                {% for lock in pending %}
-                    <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
-                        <span class="me-auto">
-                            <strong>{{ lock.user.displayName }}</strong> — {{ '%02d/%d'|format(lock.month, lock.year) }}
-                            <span class="small text-muted">{{ 'mileage.approval.submitted_at'|trans }} {{ lock.lockedAt|date('Y-m-d H:i') }}</span>
-                            <a class="ms-2" href="{{ path('mileage_trips', {year: lock.year, month: lock.month, user: lock.user.id}) }}">{{ 'mileage.menu'|trans }}</a>
-                        </span>
-                        <form method="post" action="{{ path('mileage_team_review', {id: lock.id}) }}" class="d-flex gap-1">
-                            <input type="hidden" name="_token" value="{{ csrf_token('mileage_team_review' ~ lock.id) }}">
-                            <input type="text" name="comment" class="form-control form-control-sm" placeholder="{{ 'mileage.approval.reason'|trans }}" aria-label="{{ 'mileage.approval.reason'|trans }}" required>
-                            <button type="submit" name="decision" value="approve" class="btn btn-sm btn-success text-nowrap" formnovalidate>{{ 'mileage.approval.approve'|trans }}</button>
-                            <button type="submit" name="decision" value="reject" class="btn btn-sm btn-outline-danger text-nowrap">{{ 'mileage.approval.reject'|trans }}</button>
-                        </form>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+    {{ kit.kpi_bar([
+        {label: 'mileage.approval.pending'|trans, value: totals.submitted|amount, highlight: true},
+        {label: 'mileage.approval.status.approved'|trans, value: totals.approved|amount},
+        {label: 'mileage.logbook.km.business'|trans, value: mileage.km(totals.business, 0)},
+        {label: 'mileage.approval.amount'|trans, value: totals.amount|money('EUR')},
+    ]) }}
 
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'mileage.approval.user'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.tax.trips'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.logbook.km.business'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.logbook.km.commute'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.logbook.km.private'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.approval.amount'|trans }}</th>
-                        <th>{{ 'mileage.logbook.status'|trans }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in rows %}
-                        <tr>
-                            <td><a href="{{ path('mileage_trips', {year: year, month: month, user: row.user.id}) }}">{{ row.user.displayName }}</a></td>
-                            <td class="text-end">{{ row.trips }}</td>
-                            <td class="text-end">{{ row.km.business|number_format(0, ',', '.') }}</td>
-                            <td class="text-end">{{ row.km.commute|number_format(0, ',', '.') }}</td>
-                            <td class="text-end">{{ row.km.private|number_format(0, ',', '.') }}</td>
-                            <td class="text-end">{{ row.total|number_format(2, ',', '.') }} €</td>
-                            <td>{{ row.lock ? row.lock.status.label|trans : 'mileage.logbook.month_open'|trans }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    {% if rows is empty %}
+        {{ kit.empty_state('mileage.approval.no_members'|trans) }}
+    {% else %}
+        {% set columns = (bulk ? {'select': {class: 'alwaysVisible multiCheckbox w-min', title: false, html_after: kit.bulk_select_all(bulk_form)}} : {})|merge({
+            'user': {class: 'alwaysVisible', title: 'mileage.approval.user'},
+            'trips': {class: 'd-none d-sm-table-cell text-end w-min', title: 'mileage.tax.trips'},
+            'business': {class: 'd-none d-md-table-cell text-end w-min text-nowrap', title: 'mileage.logbook.km.business'},
+            'commute': {class: 'd-none d-lg-table-cell text-end w-min text-nowrap', title: 'mileage.logbook.km.commute'},
+            'private': {class: 'd-none d-lg-table-cell text-end w-min text-nowrap', title: 'mileage.logbook.km.private'},
+            'amount': {class: 'd-none d-sm-table-cell text-end w-min text-nowrap', title: 'mileage.approval.amount'},
+            'status': {class: 'alwaysVisible w-min', title: 'status'},
+            'actions': {class: 'actions alwaysVisible'},
+        }) %}
+        {{ tables.datatable_header('mileage_team', columns, null, {columnConfig: false, sticky: false, responsive: true}) }}
+            {% for row in rows %}
+                {% set user_param = row.user == app.user ? null : row.user.id %}
+                <tr>
+                    {% if bulk %}
+                        <td class="{{ datatable_column_class('mileage_team', 'select') }}">{% if row.can_approve %}{{ kit.bulk_checkbox(bulk_form, row.lock.id) }}{% endif %}</td>
+                    {% endif %}
+                    <td class="{{ datatable_column_class('mileage_team', 'user') }}"><a href="{{ path('mileage_trips', {year: year, month: month, user: user_param}) }}">{{ row.user.displayName }}</a></td>
+                    <td class="{{ datatable_column_class('mileage_team', 'trips') }}">{{ row.trips|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'business') }}">{{ mileage.km(row.km.business, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'commute') }}">{{ mileage.km(row.km.commute, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'private') }}">{{ mileage.km(row.km.private, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'amount') }}">{{ row.total|money('EUR') }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'status') }}">{{ mileage.month_status(row.lock) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'actions') }}">
+                        {% set event = actions(app.user, 'mileage_team_member', 'index', {lock_id: row.lock ? row.lock.id : null, can_approve: row.can_approve, year: year, month: month, user: user_param}) %}
+                        {{ widgets.table_actions(event.actions) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        {{ tables.data_table_footer(null, null, null) }}
+        {% if bulk %}
+            {{ kit.bulk_bar(bulk_form, [
+                {label: 'mileage.approval.approve'|trans, url: path('mileage_team_approve'), token: csrf_token('mileage_team'), icon: 'success', ajax: true},
+            ]) }}
+        {% endif %}
+    {% endif %}
 {% endblock %}

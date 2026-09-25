@@ -4,12 +4,16 @@ namespace KimaiPlugin\MileageBundle\Controller;
 
 use App\Controller\AbstractController;
 use App\Repository\UserRepository;
-use App\Utils\PageSetup;
+use App\Entity\Customer;
+use App\Form\Model\DateRange;
+use App\Repository\CustomerRepository;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
+use KimaiPlugin\MileageBundle\Form\OverviewFilterForm;
+use KimaiPlugin\MileageBundle\Service\MileagePages;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -31,6 +35,8 @@ class OverviewController extends AbstractController
         private readonly UserRepository $userRepository,
         private readonly RentalCostAllocator $allocator,
         private readonly TranslatorInterface $translator,
+        private readonly MileagePages $pages,
+        private readonly CustomerRepository $customerRepository,
     ) {
     }
 
@@ -38,13 +44,33 @@ class OverviewController extends AbstractController
     public function index(Request $request): Response
     {
         $user = $this->getTargetUser($request, $this->userRepository);
+        $userParam = $user === $this->getUser() ? null : $user->getId();
 
-        $from = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->query->get('from')) ?: new \DateTimeImmutable('first day of this month');
-        $to = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->query->get('to')) ?: new \DateTimeImmutable('last day of this month');
+        // former plain parameters (?from=Y-m-d&to=Y-m-d&customer=id) still work
+        $from = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->query->get('from')) ?: new \DateTimeImmutable('first day of this month 00:00');
+        $to = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $request->query->get('to')) ?: new \DateTimeImmutable('last day of this month 00:00');
+        $range = new DateRange();
+        $range->setBegin($from);
+        $range->setEnd($to);
+        $customer = $request->query->getInt('customer') > 0 ? $this->customerRepository->find($request->query->getInt('customer')) : null;
+
+        $filter = $this->container->get('form.factory')->createNamed('', OverviewFilterForm::class, ['daterange' => $range, 'customer' => $customer], [
+            'action' => $this->generateUrl('mileage_overview', ['user' => $userParam]),
+        ]);
+        if ($request->query->has('daterange')) {
+            $filter->submit(['daterange' => $request->query->get('daterange'), 'customer' => $request->query->get('customer')], false);
+        }
+        if ($filter->isSubmitted() && $filter->isValid()) {
+            /** @var array{daterange: DateRange, customer: ?Customer} $data */
+            $data = $filter->getData();
+            $from = \DateTimeImmutable::createFromInterface($data['daterange']->getBegin() ?? $from)->setTime(0, 0);
+            $to = \DateTimeImmutable::createFromInterface($data['daterange']->getEnd() ?? $to)->setTime(0, 0);
+            $customer = $data['customer'];
+        }
         if ($to < $from) {
             [$from, $to] = [$to, $from];
         }
-        $customerId = $request->query->getInt('customer');
+        $customerId = $customer?->getId() ?? 0;
 
         $all = array_values(array_filter(
             $this->tripRepository->findByUserBetween($user, $from, $to),
@@ -52,41 +78,47 @@ class OverviewController extends AbstractController
         ));
         $allocation = $this->allocator->allocateAll($this->tripRepository->findByUserBetween($user, $from, $to));
 
-        $customers = [];
         $groups = [];
         foreach ($all as $trip) {
-            $customer = $trip->getProject()?->getCustomer();
-            $id = $customer?->getId() ?? 0;
-            $customers[$id] = $customer?->getName() ?? $this->translator->trans('mileage.overview.no_customer');
+            $tripCustomer = $trip->getProject()?->getCustomer();
+            $id = $tripCustomer?->getId() ?? 0;
             if ($customerId > 0 && $id !== $customerId) {
                 continue;
             }
-            $groups[$id] ??= ['name' => $customers[$id], 'trips' => [], 'km' => 0.0, 'costs' => 0.0];
+            $groups[$id] ??= ['name' => $tripCustomer?->getName() ?? $this->translator->trans('mileage.overview.no_customer'), 'customer' => $tripCustomer, 'trips' => [], 'km' => 0.0, 'costs' => 0.0];
             $costs = (float) $trip->getCosts() + ($allocation[spl_object_id($trip)] ?? 0.0);
             $groups[$id]['trips'][] = ['trip' => $trip, 'costs' => $costs];
             $groups[$id]['km'] += $trip->getTotalDistanceKm();
             $groups[$id]['costs'] += $costs;
         }
-        asort($customers);
         uasort($groups, static fn (array $a, array $b) => strcmp($a['name'], $b['name']));
 
         if ($request->query->get('format') === 'csv') {
             return $this->csv($groups, $from, $to);
         }
 
+        $exportParameters = ['user' => $userParam, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'), 'customer' => $customerId > 0 ? $customerId : null, 'format' => 'csv'];
+
         return $this->render('@Mileage/overview/index.html.twig', [
-            'page_setup' => new PageSetup('mileage.overview.title'),
+            'page_setup' => $this->pages->create('mileage_overview', 'mileage.overview.title', $this->pages->dateLabel($from) . ' – ' . $this->pages->dateLabel($to), [
+                'export' => $this->generateUrl('mileage_overview', $exportParameters),
+            ]),
             'target_user' => $user,
             'from' => $from,
             'to' => $to,
-            'customer_id' => $customerId,
-            'customers' => $customers,
+            'customer' => $customer,
+            'filter' => $filter->createView(),
             'groups' => $groups,
+            'totals' => [
+                'trips' => array_sum(array_map(static fn (array $g) => \count($g['trips']), $groups)),
+                'km' => array_sum(array_column($groups, 'km')),
+                'costs' => array_sum(array_column($groups, 'costs')),
+            ],
         ]);
     }
 
     /**
-     * @param array<int, array{name: string, trips: list<array{trip: Trip, costs: float}>, km: float, costs: float}> $groups
+     * @param array<int, array{name: string, customer: ?Customer, trips: list<array{trip: Trip, costs: float}>, km: float, costs: float}> $groups
      */
     private function csv(array $groups, \DateTimeImmutable $from, \DateTimeImmutable $to): Response
     {

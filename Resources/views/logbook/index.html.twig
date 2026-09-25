@@ -1,81 +1,102 @@
 {% extends print ? '@Mileage/_print.html.twig' : 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/datatables.html.twig' as tables %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
-{% block page_content %}
-    {% if not print %}{% include '@Mileage/_nav.html.twig' with {active: 'vehicles'} %}{% endif %}
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <h2 class="me-auto mb-0">{{ 'mileage.logbook.title'|trans }} {{ year }} — {{ vehicle.label }}</h2>
-        {% if not print %}
-            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year - 1}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
-            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year + 1}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
-            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year, format: 'csv'}) }}" class="btn btn-sm btn-outline-success">CSV</a>
-            <a href="{{ path('mileage_logbook', {id: vehicle.id, year: year, print: 1}) }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="fas fa-print me-1"></i>{{ 'mileage.logbook.print'|trans }}</a>
-        {% endif %}
-    </div>
-    <p class="small text-muted">
-        {{ 'mileage.trip.license_plate'|trans }}: {{ vehicle.licensePlate|default('–') }} · {{ 'mileage.vehicle.holder'|trans }}: {{ vehicle.holder|default(target_user.displayName) }}
-        · {{ 'mileage.odometer.start'|trans }}: {{ analysis.odometer_start|default('–') }} · {{ 'mileage.odometer.end'|trans }}: {{ analysis.odometer_end|default('–') }}
-    </p>
+{% set km = analysis.km %}
+{% set total = km.business + km.commute + km.private + km.unrecorded %}
+{% set context = [
+    vehicle.label,
+    'mileage.vehicle.holder'|trans ~ ': ' ~ vehicle.holder|default(target_user.displayName),
+    'mileage.logbook.odometer_range'|trans({'%start%': analysis.odometer_start is null ? '–' : analysis.odometer_start|amount, '%end%': analysis.odometer_end is null ? '–' : analysis.odometer_end|amount}),
+] %}
 
-    {% set km = analysis.km %}
-    {% set total = km.business + km.commute + km.private + km.unrecorded %}
-    <div class="row mb-3 g-2">
-        {% for key, value in {business: km.business, commute: km.commute, private: km.private, unrecorded: km.unrecorded} %}
-            <div class="col-6 col-md-3">
-                <div class="card"><div class="card-body py-2">
-                    <div class="small text-muted">{{ ('mileage.logbook.km.' ~ key)|trans }}</div>
-                    <div class="fs-3">{{ value|number_format(0, ',', '.') }} km</div>
-                    {% if total > 0 %}<div class="small text-muted">{{ (100 * value / total)|number_format(1, ',', '.') }} %</div>{% endif %}
-                </div></div>
-            </div>
-        {% endfor %}
-    </div>
+{% block stylesheets %}{{ parent() }}{% if not print %}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endif %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% if not print %}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endif %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line(context) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    {{ kit.period_nav(['year'], 'year', year, period.prev, period.next, period.today, {}) }}
+{% endblock %}
+
+{% block print_header %}
+    <h1>{{ 'mileage.logbook.title'|trans }} · {{ year }}</h1>
+    <p>{{ context|join(' · ') }}</p>
+{% endblock %}
+
+{% block main %}
+    {% set tiles = [] %}
+    {% for key in ['business', 'commute', 'private', 'unrecorded'] %}
+        {% set tiles = tiles|merge([{
+            label: ('mileage.logbook.km.' ~ key)|trans,
+            value: mileage.km(km[key], 0),
+            hint: total > 0 ? 'mileage.logbook.share'|trans({'%share%': (100 * km[key] / total)|round(1)|amount}) : null,
+            highlight: key == 'business',
+        }]) %}
+    {% endfor %}
+    {{ kit.kpi_bar(tiles) }}
 
     {% if analysis.gaps|length > 0 %}
-        <div class="alert alert-warning">{{ 'mileage.logbook.gaps'|trans({'%count%': analysis.gaps|length}) }}</div>
+        {{ alert({type: 'warning', description: 'mileage.logbook.gaps'|trans({'%count%': analysis.gaps|length}), icon: 'warning', dismissible: false, important: false}) }}
     {% endif %}
 
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-sm table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'mileage.trip.date'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.odometer.start'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.odometer.end'|trans }}</th>
-                        <th class="text-end">km</th>
-                        <th>{{ 'mileage.trip.purpose'|trans }}</th>
-                        <th>{{ 'mileage.trip.destination'|trans }}</th>
-                        <th>{{ 'mileage.logbook.reason'|trans }}</th>
-                        <th>{{ 'mileage.logbook.partner'|trans }}</th>
-                        {% if not print %}<th></th>{% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in analysis.rows %}
-                        {% set t = row.trip %}
-                        {% set month_locked = locks[t.date|date('n')] is defined and locks[t.date|date('n')].locked %}
-                        <tr class="{{ row.warnings|length > 0 ? 'table-warning' : '' }}">
-                            <td class="text-nowrap">{{ t.date|date('Y-m-d') }}{% if t.departureAt %}<div class="small text-muted">{{ t.departureAt|date('H:i') }}–{{ t.arrivalAt ? t.arrivalAt|date('H:i') : '' }}</div>{% endif %}</td>
-                            <td class="text-end">{{ t.odometerStart }}</td>
-                            <td class="text-end">{{ t.odometerEnd }}</td>
-                            <td class="text-end">{{ (t.odometerStart is not null and t.odometerEnd is not null ? t.odometerEnd - t.odometerStart : t.totalDistanceKm)|number_format(0, ',', '.') }}</td>
-                            <td>{{ t.purpose.label|trans }}</td>
-                            <td>{{ t.destination }}</td>
-                            <td>{{ t.comment|default(t.project ? t.project.name : '') }}</td>
-                            <td>{{ t.project and t.project.customer ? t.project.customer.name : '' }}</td>
-                            {% if not print %}
-                                <td class="text-nowrap small">
-                                    {% if month_locked %}<i class="fas fa-lock text-muted me-1" title="{{ 'mileage.logbook.month_locked'|trans }}"></i>{% endif %}
-                                    {% for w in row.warnings %}<div class="text-warning">{{ w|trans }}</div>{% endfor %}
-                                    <a href="{{ path('mileage_trip_edit', {id: t.id}) }}"><i class="fas fa-pen"></i></a>
-                                </td>
-                            {% endif %}
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="9" class="text-muted">{{ 'mileage.logbook.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    {% if analysis.rows is empty %}
+        {{ kit.empty_state('mileage.logbook.empty'|trans) }}
+    {% else %}
+        {% set columns = {
+            'date': {class: 'alwaysVisible w-min', title: 'mileage.trip.date'},
+            'odometer_start': {class: 'd-none d-md-table-cell text-end w-min', title: 'mileage.odometer.start'},
+            'odometer_end': {class: 'd-none d-md-table-cell text-end w-min', title: 'mileage.odometer.end'},
+            'distance': {class: 'text-end w-min text-nowrap', title: 'mileage.trip.distance_short'},
+            'purpose': {class: 'd-none d-sm-table-cell', title: 'mileage.trip.purpose'},
+            'destination': {class: 'd-none d-sm-table-cell', title: 'mileage.trip.destination'},
+            'reason': {class: 'd-none d-lg-table-cell', title: 'mileage.logbook.reason'},
+            'partner': {class: 'd-none d-xl-table-cell', title: 'mileage.logbook.partner'},
+        }|merge(print ? {} : {
+            'status': {class: 'w-min', title: 'status'},
+            'actions': {class: 'actions alwaysVisible'},
+        }) %}
+        {{ tables.datatable_header('mileage_logbook', columns, null, {columnConfig: false, sticky: false, responsive: true}) }}
+            {% for row in analysis.rows %}
+                {% set t = row.trip %}
+                {% set lock = locks[t.date|date('n')] ?? null %}
+                {% set month_locked = lock is not null and lock.locked %}
+                <tr>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'date') }}">
+                        <span class="text-nowrap">{{ t.date|date_short }}</span>
+                        {% if t.departureAt %}<div class="text-body-secondary small text-nowrap">{{ t.departureAt|time }}–{{ t.arrivalAt ? t.arrivalAt|time : '' }}</div>{% endif %}
+                        {% if t.destination %}<div class="small d-sm-none">{{ t.destination }}</div>{% endif %}
+                    </td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_start') }}">{{ t.odometerStart is null ? '' : t.odometerStart|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_end') }}">{{ t.odometerEnd is null ? '' : t.odometerEnd|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'distance') }}">{{ mileage.km(t.odometerStart is not null and t.odometerEnd is not null ? t.odometerEnd - t.odometerStart : t.totalDistanceKm, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'purpose') }}">{{ t.purpose.label|trans }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'destination') }}">
+                        {{ t.destination }}
+                        {% if print %}{% for w in row.warnings %}<div class="small">{{ w|trans }}</div>{% endfor %}{% endif %}
+                    </td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'reason') }}">{{ t.comment|default(t.project ? t.project.name : '') }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'partner') }}">{{ t.project and t.project.customer ? t.project.customer.name : '' }}</td>
+                    {% if not print %}
+                        <td class="{{ datatable_column_class('mileage_logbook', 'status') }}">
+                            <div class="d-flex flex-wrap gap-1">
+                                {% if month_locked %}{{ mileage.month_status(lock) }}{% endif %}
+                                {% if row.warnings is not empty %}{{ kit.status_badge('warning', row.warnings|map(w => w|trans)|join(' · ')) }}{% endif %}
+                            </div>
+                        </td>
+                        <td class="{{ datatable_column_class('mileage_logbook', 'actions') }}">
+                            {% set event = actions(app.user, 'mileage_logbook_row', 'index', {trip: t, can_edit: can_edit and (not month_locked or edit_locked)}) %}
+                            {{ widgets.table_actions(event.actions) }}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        {{ tables.data_table_footer(null, null, null) }}
+    {% endif %}
 {% endblock %}

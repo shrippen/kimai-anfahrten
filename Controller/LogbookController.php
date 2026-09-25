@@ -5,7 +5,6 @@ namespace KimaiPlugin\MileageBundle\Controller;
 use App\Controller\AbstractController;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Utils\PageSetup;
 use KimaiPlugin\MileageBundle\Entity\Vehicle;
 use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
@@ -14,7 +13,9 @@ use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\LogbookService;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\MileagePages;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
+use KimaiPlugin\MileageBundle\Service\TeamService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -29,6 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class LogbookController extends AbstractController
 {
     use TargetUserTrait;
+    use MileageUiTrait;
 
     public function __construct(
         private readonly TripRepository $tripRepository,
@@ -39,6 +41,8 @@ class LogbookController extends AbstractController
         private readonly MonthLockService $lockService,
         private readonly TranslatorInterface $translator,
         private readonly MileageConfiguration $configuration,
+        private readonly MileagePages $pages,
+        private readonly TeamService $teamService,
     ) {
     }
 
@@ -59,14 +63,28 @@ class LogbookController extends AbstractController
             return $this->csv($vehicle, $year, $analysis['rows']);
         }
 
+        $userParam = $user === $this->getUser() ? null : $user->getId();
+        $currentYear = (int) date('Y');
+
         return $this->render('@Mileage/logbook/index.html.twig', [
-            'page_setup' => new PageSetup('mileage.logbook.title'),
+            'page_setup' => $this->pages->create('mileage_logbook', 'mileage.logbook.title', (string) $year, [
+                'vehicle' => $vehicle,
+                'year' => $year,
+                'back' => $this->generateUrl('mileage_vehicles', ['user' => $userParam]),
+            ]),
             'vehicle' => $vehicle,
             'target_user' => $user,
             'year' => $year,
             'analysis' => $analysis,
             'locks' => $this->lockRepository->findByUserAndYear($user, $year),
             'print' => $request->query->getBoolean('print'),
+            'can_edit' => $this->canEditTripsOf($user),
+            'edit_locked' => $this->isGranted('edit_locked_mileage'),
+            'period' => [
+                'prev' => $this->generateUrl('mileage_logbook', ['id' => $vehicle->getId(), 'year' => $year - 1]),
+                'next' => $this->generateUrl('mileage_logbook', ['id' => $vehicle->getId(), 'year' => $year + 1]),
+                'today' => $year === $currentYear ? null : $this->generateUrl('mileage_logbook', ['id' => $vehicle->getId(), 'year' => $currentYear]),
+            ],
         ]);
     }
 
@@ -75,24 +93,39 @@ class LogbookController extends AbstractController
     {
         $year ??= (int) date('Y');
         $user = $this->getTargetUser($request, $this->userRepository);
+        $userParam = $user === $this->getUser() ? null : $user->getId();
 
         $counts = array_fill(1, 12, 0);
         foreach ($this->tripRepository->findByUserAndYear($user, $year) as $trip) {
             $counts[(int) $trip->getDate()?->format('n')]++;
         }
+        $currentYear = (int) date('Y');
 
         return $this->render('@Mileage/logbook/months.html.twig', [
-            'page_setup' => new PageSetup('mileage.logbook.months'),
+            'page_setup' => $this->pages->create('mileage_months', 'mileage.logbook.months', (string) $year, [
+                'user' => $userParam,
+                'team' => $this->teamService->canSeeTeam(),
+            ]),
             'target_user' => $user,
+            'user_param' => $userParam,
             'year' => $year,
             'locks' => $this->lockRepository->findByUserAndYear($user, $year),
             'counts' => $counts,
             'can_lock' => $this->canLock($user),
             'can_unlock' => $this->isGranted('unlock_mileage'),
             'approval_enabled' => $this->configuration->isApprovalEnabled(),
+            'period' => [
+                'prev' => $this->generateUrl('mileage_months', ['year' => $year - 1, 'user' => $userParam]),
+                'next' => $this->generateUrl('mileage_months', ['year' => $year + 1, 'user' => $userParam]),
+                'today' => $year === $currentYear ? null : $this->generateUrl('mileage_months', ['year' => $currentYear, 'user' => $userParam]),
+            ],
         ]);
     }
 
+    /**
+     * Closes a month or hands it in for approval. Final for the user (unlocking needs a special permission), so
+     * the row menu asks with Kimai's confirmation first (data-kpu-question).
+     */
     #[Route(path: '/months/{year}/{month}/lock', name: 'mileage_month_lock', requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'], methods: ['POST'])]
     public function lock(Request $request, int $year, int $month): Response
     {
@@ -106,22 +139,67 @@ class LogbookController extends AbstractController
         $current = $this->getUser();
         $approval = $this->configuration->isApprovalEnabled();
         $this->lockService->lock($user, $year, $month, $current, $approval ? MonthStatus::SUBMITTED : MonthStatus::CLOSED);
-        $this->flashSuccess($this->translator->trans($approval ? 'mileage.approval.submitted' : 'mileage.logbook.locked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
+        $message = $this->translator->trans($approval ? 'mileage.approval.submitted' : 'mileage.logbook.locked', ['%month%' => $this->pages->monthLabel($year, $month)]);
 
-        return $this->redirectToRoute('mileage_months', ['year' => $year, 'user' => $user->getId()]);
+        return $this->actionResult($request, $message, null, 'mileage_months', ['year' => $year, 'user' => $user === $current ? null : $user->getId()]);
     }
 
+    /**
+     * Opens a month again (reversible: the undo puts back the lock with its approval state).
+     */
     #[Route(path: '/months/{year}/{month}/unlock', name: 'mileage_month_unlock', requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'], methods: ['POST'])]
     #[IsGranted('unlock_mileage')]
     public function unlock(Request $request, int $year, int $month): Response
     {
         $user = $this->getTargetUser($request, $this->userRepository);
         $this->assertCsrf($request, 'mileage_month_lock');
+        $list = ['year' => $year, 'user' => $user === $this->getUser() ? null : $user->getId()];
 
+        $lock = $this->lockRepository->findLock($user, $year, $month);
+        $undo = null;
+        if ($lock !== null) {
+            $action = $this->rememberUndo($request, 'month.unlock', [
+                'user' => $user->getId(), 'year' => $year, 'month' => $month, 'lock' => MonthLockService::snapshot($lock),
+            ]);
+            $undo = [
+                'url' => $this->generateUrl('mileage_month_unlock_undo', ['action' => $action]),
+                'token' => $this->csrfToken('mileage_month_lock'),
+                'ids' => [],
+            ];
+        }
         $this->lockService->unlock($user, $year, $month);
-        $this->flashSuccess($this->translator->trans('mileage.logbook.unlocked', ['%month%' => \sprintf('%02d/%d', $month, $year)]));
 
-        return $this->redirectToRoute('mileage_months', ['year' => $year, 'user' => $user->getId()]);
+        return $this->actionResult($request, $this->translator->trans('mileage.logbook.unlocked', ['%month%' => $this->pages->monthLabel($year, $month)]), $undo, 'mileage_months', $list);
+    }
+
+    /**
+     * Undo of the own "unlock" (GUIDELINES 3.5): same user and session, 15 minutes, only if the month has not been
+     * closed or handed in again since. The unlock permission is checked again.
+     */
+    #[Route(path: '/months/unlock/undo/{action}', name: 'mileage_month_unlock_undo', requirements: ['action' => '[a-f0-9]{16}'], methods: ['POST'])]
+    #[IsGranted('unlock_mileage')]
+    public function undoUnlock(Request $request, string $action): Response
+    {
+        $this->assertCsrf($request, 'mileage_month_lock');
+        $data = $this->takeUndo($request, 'month.unlock', $action);
+        if ($data === null) {
+            return $this->actionResult($request, $this->translator->trans('mileage.undo.expired'), null, 'mileage_months', [], 409);
+        }
+
+        $user = $this->userRepository->find((int) $data['user']);
+        if (!$user instanceof User || !$this->canViewTripsOf($user)) {
+            throw $this->createAccessDeniedException();
+        }
+        $year = (int) $data['year'];
+        $month = (int) $data['month'];
+        $list = ['year' => $year, 'user' => $user === $this->getUser() ? null : $user->getId()];
+        if ($this->lockRepository->findLock($user, $year, $month) !== null) {
+            return $this->actionResult($request, $this->translator->trans('mileage.undo.changed'), null, 'mileage_months', $list, 409);
+        }
+
+        $this->lockService->restore($user, $year, $month, null, $data['lock'], fn (int $id): ?User => $this->userRepository->find($id));
+
+        return $this->actionResult($request, $this->translator->trans('mileage.logbook.relocked', ['%month%' => $this->pages->monthLabel($year, $month)]), null, 'mileage_months', $list);
     }
 
     #[Route(path: '/history', name: 'mileage_history', methods: ['GET'])]
@@ -129,14 +207,22 @@ class LogbookController extends AbstractController
     {
         $user = $this->getTargetUser($request, $this->userRepository);
         $tripId = $request->query->getInt('trip');
+        $userParam = $user === $this->getUser() ? null : $user->getId();
 
         $entries = $tripId > 0 ? $this->auditRepository->findByTrip($tripId) : $this->auditRepository->findLatestByOwner($user, 200);
         // A trip id from the URL must belong to the user we may see.
         $entries = array_values(array_filter($entries, static fn ($e) => $e->getOwner() === $user));
 
+        $part = $tripId > 0 ? $this->translator->trans('mileage.logbook.history_trip', ['%id%' => $tripId]) : null;
+
         return $this->render('@Mileage/logbook/history.html.twig', [
-            'page_setup' => new PageSetup('mileage.logbook.history'),
+            'page_setup' => $this->pages->create('mileage_history', 'mileage.logbook.history', $part, [
+                'user' => $userParam,
+                'trip' => $tripId > 0 ? $tripId : null,
+                'back' => $this->generateUrl('mileage_trips', ['user' => $userParam]),
+            ]),
             'target_user' => $user,
+            'user_param' => $userParam,
             'entries' => $entries,
             'trip_id' => $tripId,
         ]);
@@ -154,12 +240,6 @@ class LogbookController extends AbstractController
         }
     }
 
-    private function assertCsrf(Request $request, string $id): void
-    {
-        if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
-    }
 
     /**
      * @param list<array{trip: \KimaiPlugin\MileageBundle\Entity\Trip, warnings: list<string>}> $rows
