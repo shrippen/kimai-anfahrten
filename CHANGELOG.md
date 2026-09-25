@@ -17,7 +17,9 @@ All notable changes to this project will be documented in this file.
   next trip from there starts at the same place; saving it in the form makes it a regular place. Dawarich places
   (`/api/v1/places`) are imported together with the areas. Addresses come from Dawarich's reverse geocoder
   (`/api/v1/places/nearby`), then from the plugin's geocoding server, and are kept on the place.
-- Renaming a detected trip's start/destination by hand detaches it from the place.
+- Meal allowance: legs of a journey are linked by place (same place or coordinates within the radius) instead of
+  by name, and the three-month rule counts per place; trips entered by hand still compare names. Renaming a
+  detected trip's start/destination by hand detaches it from the place.
 - Removed the settings `mileage.dawarich_max_accuracy` and `mileage.detect_stop_radius` (and the GPS jump and
   leading outlier filters): Dawarich's own analysis is used
 

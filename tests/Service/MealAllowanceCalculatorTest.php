@@ -3,6 +3,7 @@
 namespace KimaiPlugin\MileageBundle\Tests\Service;
 
 use App\Configuration\SystemConfiguration;
+use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Service\MealAllowanceCalculator;
@@ -143,6 +144,44 @@ class MealAllowanceCalculatorTest extends TestCase
         // unrelated legs (the second does not start where the first ended) still only add up their own times
         $trips[0]->setStartLocation('Kunde B');
         self::assertSame(0.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testDetectedLegsAreLinkedByPlaceNotByName(): void
+    {
+        $customer = (new Place())->setName('Kunde A')->setLatitude(52.4)->setLongitude(13.06);
+        $there = $this->trip('2026-03-02 08:00', '2026-03-02 09:00', 'Musterstraße 1, Potsdam', false, TripPurpose::BUSINESS, 'Büro')
+            ->setEndPlace($customer)->setEndCoordinates(52.4, 13.06);
+        // the way back got another label (e.g. the address was geocoded differently), but starts at the same place
+        $back = $this->trip('2026-03-02 17:00', '2026-03-02 18:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A, Potsdam')
+            ->setStartPlace($customer)->setStartCoordinates(52.4005, 13.06);
+
+        self::assertSame(14.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // no place, but coordinates within the radius (about 170 m)
+        $back->setStartPlace(null)->setStartCoordinates(52.4015, 13.06);
+        self::assertSame(14.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // coordinates 1 km apart: another place, although the names would match
+        $back->setStartLocation('Musterstraße 1, Potsdam')->setStartCoordinates(52.409, 13.06);
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // the radius comes from the settings
+        $wide = new MealAllowanceCalculator(new MileageConfiguration(new SystemConfiguration(['mileage.place_radius' => 1500])));
+        self::assertSame(14.0, $wide->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testThreeMonthRuleCountsPerPlace(): void
+    {
+        $site = (new Place())->setName('Baustelle');
+        (new \ReflectionProperty(Place::class, 'id'))->setValue($site, 7);
+        $trips = [];
+        for ($day = new \DateTimeImmutable('2026-01-05'); $day < new \DateTimeImmutable('2026-04-30'); $day = $day->modify('+7 days')) {
+            // the label changes, the place stays
+            $trips[] = $this->trip($day->format('Y-m-d') . ' 07:00', $day->format('Y-m-d') . ' 17:00', 'Baustelle ' . $day->format('W'))->setEndPlace($site);
+        }
+        $byDate = array_column((new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['days'], 'three_month', 'date');
+
+        self::assertTrue($byDate['2026-04-06']);
     }
 
     public function testLegsOfDifferentDaysAreNotJoined(): void

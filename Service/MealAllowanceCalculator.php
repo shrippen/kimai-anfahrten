@@ -12,19 +12,28 @@ use KimaiPlugin\MileageBundle\Enum\TripPurpose;
  * not stored); business trips without both times get no allowance and are reported as `missing_times`.
  *
  * - one-day absence of more than 8 hours: partial rate (several absences on one day add up)
- * - legs of one day that continue where the previous one ended (start = previous destination, e.g. the
- *   detected way there and back) form one absence from the first departure to the last arrival
+ * - legs of one day that continue where the previous one ended form one absence from the first departure to the
+ *   last arrival (e.g. the detected way there and back). "Where it ended" is the place of the detected trips
+ *   (the same place, or coordinates within the place radius); trips entered by hand compare the names
+ * - the three-month rule counts per destination place (per name for trips entered by hand)
  * - multi-day journey: partial rate on the days of departure and return, full rate in between;
  *   a journey spans several days when a trip ends on a later day or is marked "overnight"
  * - three-month rule: at the same destination the allowance ends after three months,
  *   a break of at least four weeks starts a new period
  *
- * Deliberate simplifications: no reduction for meals provided, destinations are compared by name.
+ * Deliberate simplification: no reduction for meals provided.
  */
 class MealAllowanceCalculator
 {
     private const MIN_HOURS = 8.0;
     private const BREAK_DAYS = 28;
+    private const DEFAULT_RADIUS = 200;
+
+    public function __construct(
+        private readonly ?MileageConfiguration $configuration = null,
+        private readonly DistanceCalculator $distanceCalculator = new DistanceCalculator(),
+    ) {
+    }
 
     /**
      * @param Trip[] $trips
@@ -53,7 +62,7 @@ class MealAllowanceCalculator
         }
         usort($business, static fn (Trip $a, Trip $b) => $a->getDepartureAt() <=> $b->getDepartureAt());
 
-        /** @var array<string, array{hours: float, kind: ?string, destination: ?string}> $days */
+        /** @var array<string, array{hours: float, kind: ?string, destination: ?string, key: ?string}> $days */
         $days = [];
         $journey = null;
 
@@ -69,7 +78,7 @@ class MealAllowanceCalculator
             $last = $end->format('Y-m-d');
 
             if ($first === $last) {
-                $days[$first] ??= ['hours' => 0.0, 'kind' => null, 'destination' => $journey['destination']];
+                $days[$first] ??= ['hours' => 0.0, 'kind' => null, 'destination' => $journey['destination'], 'key' => $journey['key']];
                 $days[$first]['hours'] += ($end->getTimestamp() - $start->getTimestamp()) / 3600;
 
                 return;
@@ -77,7 +86,7 @@ class MealAllowanceCalculator
 
             for ($day = new \DateTimeImmutable($first); $day->format('Y-m-d') <= $last; $day = $day->modify('+1 day')) {
                 $key = $day->format('Y-m-d');
-                $days[$key] ??= ['hours' => 0.0, 'kind' => null, 'destination' => $journey['destination']];
+                $days[$key] ??= ['hours' => 0.0, 'kind' => null, 'destination' => $journey['destination'], 'key' => $journey['key']];
                 $kind = ($key === $first || $key === $last) ? 'travel_day' : 'full_day';
                 // a full day beats a travel day beats a plain one-day absence
                 if ($days[$key]['kind'] !== 'full_day') {
@@ -93,15 +102,22 @@ class MealAllowanceCalculator
             /** @var \DateTimeImmutable $arr */
             $arr = $trip->getArrivalAt();
 
-            if ($journey !== null && ($journey['open'] || self::continues($journey, $trip, $timezone))) {
+            if ($journey !== null && ($journey['open'] || $this->continues($journey, $trip, $timezone))) {
                 $journey['end'] = max($journey['end'], $arr);
                 $journey['open'] = $trip->isOvernight();
-                $journey['at'] = $trip->getDestination();
+                $journey['last'] = $trip;
                 continue;
             }
 
             $close($journey);
-            $journey = ['start' => $dep, 'end' => $arr, 'open' => $trip->isOvernight(), 'destination' => $trip->getDestination(), 'at' => $trip->getDestination()];
+            $journey = [
+                'start' => $dep,
+                'end' => $arr,
+                'open' => $trip->isOvernight(),
+                'destination' => $trip->getDestination(),
+                'key' => self::destinationKey($trip),
+                'last' => $trip,
+            ];
         }
         $close($journey);
 
@@ -118,7 +134,7 @@ class MealAllowanceCalculator
             }
 
             $threeMonth = false;
-            $destination = self::normalize($day['destination']);
+            $destination = $day['key'];
             if ($destination !== null) {
                 $current = new \DateTimeImmutable($date);
                 $streak = $streaks[$destination] ?? null;
@@ -161,16 +177,49 @@ class MealAllowanceCalculator
     /**
      * The trip starts on the day the journey ended, after it, where the journey's last leg arrived.
      *
-     * @param array{end: \DateTimeImmutable, at: ?string} $journey
+     * @param array{end: \DateTimeImmutable, last: Trip} $journey
      */
-    private static function continues(array $journey, Trip $trip, \DateTimeZone $timezone): bool
+    private function continues(array $journey, Trip $trip, \DateTimeZone $timezone): bool
     {
         $departure = $trip->getDepartureAt();
-        $place = self::normalize($trip->getStartLocation());
 
-        return $departure !== null && $place !== null && $place === self::normalize($journey['at'])
+        return $departure !== null && $this->startsWhereArrived($journey['last'], $trip)
             && $departure >= $journey['end']
             && $departure->setTimezone($timezone)->format('Y-m-d') === $journey['end']->setTimezone($timezone)->format('Y-m-d');
+    }
+
+    /**
+     * Same place, otherwise coordinates within the place radius; names only when a trip has no coordinates.
+     */
+    private function startsWhereArrived(Trip $previous, Trip $next): bool
+    {
+        $arrived = $previous->getEndPlace();
+        $starts = $next->getStartPlace();
+        if ($arrived !== null && ($arrived === $starts || ($arrived->getId() !== null && $arrived->getId() === $starts?->getId()))) {
+            return true;
+        }
+
+        $to = $previous->getEndCoordinates();
+        $from = $next->getStartCoordinates();
+        if ($to !== null && $from !== null) {
+            $metres = 1000 * $this->distanceCalculator->haversine(new GpsPoint($to[0], $to[1]), new GpsPoint($from[0], $from[1]));
+
+            return $metres <= ($this->configuration?->getPlaceRadius() ?? self::DEFAULT_RADIUS);
+        }
+
+        $place = self::normalize($next->getStartLocation());
+
+        return $place !== null && $place === self::normalize($previous->getDestination());
+    }
+
+    /**
+     * Identity of a trip's destination for the three-month rule.
+     */
+    private static function destinationKey(Trip $trip): ?string
+    {
+        $id = $trip->getEndPlace()?->getId();
+
+        return $id !== null ? 'place:' . $id : self::normalize($trip->getDestination());
     }
 
     private static function normalize(?string $destination): ?string
