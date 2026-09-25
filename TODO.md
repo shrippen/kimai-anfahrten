@@ -128,8 +128,9 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   „Fahrt erfassen" am Zeiteintrag lässt Abfahrt/Ankunft leer. Fahrten ohne beide Zeiten: keine Pauschale, Hinweis
   „ohne Abfahrts-/Ankunftszeit" im Steuerbericht und in der Plausibilitätsprüfung (bestehende Regel). Etappen eines
   Tages, die dort beginnen, wo die vorige endete (Start = voriges Ziel, z. B. Hin- und Rückfahrt aus Vorschlägen),
-  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit 00:00–23:59
-  werden nicht automatisch geändert (CHANGELOG-Hinweis). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
+  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit genau
+  00:00–23:59 (Zeitzone des Nutzers, selber Tag) leert die Migration `Version20261003000000` (A-8; Sicherung in
+  `kimai2_ext_mileage_legacy_times`, `down()` stellt wieder her; Zählung in der Migrationsausgabe). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
   Zeiten, mehrtägig über Neujahr mit Etappen. Nachtest ✅: „Fahrt erfassen" an Zeiteintrag 34 → Von/Bis
   00:00–23:59, Abfahrt/Ankunft leer; Messung 10:00–18:00 gegen simuliertes Dawarich 46,6 km; gespeichert ohne Zeiten,
   Steuerbericht zählt sie unter `missing_times`.
