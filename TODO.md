@@ -3,7 +3,7 @@
 Stand: Review gegen Kimai 2.67 (Live-Testinstanz, MariaDB) und statische Analyse.
 
 Legende: ✅ = live reproduziert · 📖 = aus dem Code abgeleitet · **kein Fehler** = geprüft und widerlegt.
-Checkbox abgehakt = behoben (mit Test bzw. Live-Nachtest).
+Checkbox abgehakt = behoben (mit Unit-Test und/oder Live-Nachtest, siehe „Nachtest").
 
 Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 
@@ -24,25 +24,27 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 
 ## P0
 
-- [ ] ✅ **Stored XSS über Ortsnamen in der Karte** — `Resources/views/_map_script.html.twig:13`
+- [x] ✅ **Stored XSS über Ortsnamen in der Karte** — `Resources/views/_map_script.html.twig:13`
   Leaflets `bindTooltip(string)` setzt den Text als HTML. user1 legt einen Ort
   `XSS<img src=x onerror=…>` an; beim Öffnen von *Orte* (auch `?user=2` durch lead1 und admin) läuft das Skript
   im Kontext des Betrachters (live: `window.__xss` gesetzt bei user1, lead1, admin) → Rechteausweitung zum Admin.
   Gleiches gilt für Dawarich-Area-Namen (Import). **Fix:** Tooltip als Textknoten (`textContent`) übergeben.
+  Nachtest ✅: Playwright als user1/lead1/admin — Skript läuft nicht mehr, Tooltip zeigt den Text.
 
 ## P1
 
-- [ ] ✅ **500 statt Validierungsfehler bei zu langen Texten / zu großen Zahlen** —
+- [x] ✅ **500 statt Validierungsfehler bei zu langen Texten / zu großen Zahlen** —
   `Entity/Trip.php:50,53,62,77,104,109`, `Entity/Rental.php`, `Entity/Vehicle.php`, `Entity/Place.php`
   Web-Formular: Kennzeichen mit 40 Zeichen, Ziel mit 300 Zeichen, km-Stand 2147483648 → 500
   (`Data too long`, `Out of range`). API: `{"distanceKm": 1e999}` → 500 (`Incorrect double value: 'INF'`),
   `odometerStart: 3000000000` → 500. **Fix:** `Assert\Length` passend zu den Spalten, Obergrenzen (`Range`) für
   km, Kosten, km-Stand, Listenpreis; Mapper lehnt nicht-endliche Zahlen ab.
-- [ ] ✅ **API: Typ-Jonglage in `TripMapper::apply`** — `Service/TripMapper.php:84,155,167,206`
+  Nachtest ✅: alle Fälle liefern Formularfehler bzw. 400 mit Feldfehler; `tests/Service/TripMapperTest.php`.
+- [x] ✅ **API: Typ-Jonglage in `TripMapper::apply`** — `Service/TripMapper.php:84,155,167,206`
   `{"comment": ["x"]}` speichert den Text `"Array"` (live: Fahrt 3 von user1), Objekte/Arrays bei
   `purpose`/`vehicle`/`roundTrip`/`start`/… werden per `(string)` umgewandelt. **Fix:** nur Skalare akzeptieren,
-  sonst 400 mit Feldfehler.
-- [ ] ✅ **SSRF über die persönliche Dawarich-URL** — `Service/DawarichClient.php:196`,
+  sonst 400 mit Feldfehler. Nachtest ✅: `{"comment": ["x"]}` → 400 `expected a string`.
+- [x] ✅ **SSRF über die persönliche Dawarich-URL** — `Service/DawarichClient.php:196`,
   `Service/MileageConfiguration.php:134`
   Jeder Nutzer kann in seinen Einstellungen eine beliebige URL eintragen; der Server ruft sie mit
   „Verbindung testen", „Fahrten erkennen", Karte usw. auf und meldet Fehlertext bzw. HTTP-Status zurück.
@@ -50,52 +52,62 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   sind abtastbar, Redirects werden verfolgt. **Fix:** eigene URL pro Nutzer nur, wenn der Admin es in den
   Systemeinstellungen erlaubt (neue Einstellung `mileage.dawarich_user_url`; Migration schaltet sie für
   bestehende Installationen mit persönlichen URLs ein), nur `http`/`https`, keine Redirects.
-- [ ] ✅ **CSV-Formel-Injection in allen Exporten** — `Service/TripCsvExporter.php:44`,
+  Nachtest ✅: ohne Einstellung wird die persönliche URL ignoriert (Feld im Profil ausgeblendet, „nicht
+  eingerichtet"), `file://` wird auch mit Einstellung verworfen; Migration auf der Testinstanz ohne Wirkung
+  (keine persönlichen URLs). Unit-Tests in `DawarichClientTest`.
+- [x] ✅ **CSV-Formel-Injection in allen Exporten** — `Service/TripCsvExporter.php:44`,
   `Controller/LogbookController.php:173`, `Controller/OverviewController.php:99`
   Ziel `=HYPERLINK("http://evil","x")` / Bemerkung `+cmd|calc` landen unverändert im CSV; Admin/Teamleitung
   exportiert fremde Daten und öffnet sie in Excel. **Fix:** Textzellen, die mit `= + - @ Tab CR` beginnen,
-  mit `'` entschärfen (`Service/CsvSafe.php`).
+  mit `'` entschärfen (`Service/CsvSafe.php`); der Import entfernt das `'` wieder.
+  Nachtest ✅: Export und Kundenübersicht enthalten `'=HYPERLINK…` / `'+cmd|calc`.
 
 ## P2
 
-- [ ] ✅ **Teamleitung löst Dawarich-Anfragen mit den Zugangsdaten des Mitglieds aus** —
+- [x] ✅ **Teamleitung löst Dawarich-Anfragen mit den Zugangsdaten des Mitglieds aus** —
   `Controller/TripController.php:210` (`testDawarich`) prüft nur Sichtrecht. lead1 → `?user=2` erfolgreich,
   sieht dabei die Dawarich-URL des Mitglieds in der Fehlermeldung. **Fix:** Bearbeitungsrecht verlangen.
-- [ ] ✅ **Dawarich-API-Key im HTML** — `Form/Type/SecretType.php:21`
+  Nachtest ✅: 403.
+- [x] ✅ **Dawarich-API-Key im HTML** — `Form/Type/SecretType.php:21`
   Der Key steht als `value="…"` im Passwortfeld (Quelltext, Admin beim Bearbeiten fremder Einstellungen).
   **Fix:** Feld leer rendern, leer abgeschickt = bisherigen Wert behalten.
+  Nachtest ✅: kein `value`, Profil speichern behält den Key; `tests/Form/SecretTypeTest.php`.
 - [ ] ✅ **Dawarich-API-Key über Kimais User-API sichtbar** — `GET /api/users/me` und (Admin)
   `GET /api/users/2` liefern `mileage_dawarich_api_key` im Klartext (Kimai serialisiert alle Präferenzen).
   **Offen:** braucht eine Umbenennung auf eine interne Präferenz (`_…`) inkl. Datenmigration und Prüfung, ob Kimai
   solche Präferenzen im Formular noch anzeigt; nur für den Nutzer selbst und Admins sichtbar.
-- [ ] ✅ **Beleg-Dateien bleiben liegen** — `API/MileageApiController.php:136`, `Controller/RentalController.php:115`
+- [x] ✅ **Beleg-Dateien bleiben liegen** — `API/MileageApiController.php:136`, `Controller/RentalController.php:115`
   `DELETE /api/mileage/trips/2` löscht die DB-Zeile (FK-Cascade), die Datei unter `var/data/mileage/2/` bleibt
   (live: 2 Dateien vorher und nachher). Gleiches beim Löschen eines Mietvorgangs. **Fix:** Dateien mitlöschen.
-- [ ] ✅ **CSV-Import zerlegt Zeilenumbrüche in Anführungszeichen** — `Service/TripCsvImporter.php:54`
+  Nachtest ✅: API-Löschen und Mietvorgang-Löschen entfernen die Datei (3 → 2).
+- [x] ✅ **CSV-Import zerlegt Zeilenumbrüche in Anführungszeichen** — `Service/TripCsvImporter.php:54`
   `"Zeile1\nZeile2"` → Bemerkung abgeschnitten, Folgezeile „Distance missing" (live). Betrifft auch den eigenen
   Export mit mehrzeiligen Bemerkungen. **Fix:** Parsen mit `fgetcsv` über einen Stream.
-- [ ] ✅ **Arbeitswege/Import/Vorschläge in abgeschlossenen Monaten → 403-Fehlerseite** —
+  Nachtest ✅: Vorschau zeigt 2 gültige Zeilen; `ImportTest::testQuotedLineBreaks`.
+- [x] ✅ **Arbeitswege/Import/Vorschläge in abgeschlossenen Monaten → 403-Fehlerseite** —
   `Service/CommuteGenerator.php:76`, `Service/TripCsvImporter.php` (build), `Controller/SuggestionController.php:86,121`
   Live: `POST /mileage/commutes/2026/9` mit `dates[]=2026-07-15` (Juli abgeschlossen) → 403-Seite statt Meldung.
   Der Listener verhindert das Speichern, aber der Nutzer bekommt eine Fehlerseite (Import bricht komplett ab).
   **Fix:** gesperrte Tage/Zeilen vorher überspringen bzw. als Fehler markieren und melden.
-- [ ] 📖 **Arbeitswege: Datum außerhalb des Monats und Doppelte** — `Service/CommuteGenerator.php:76`
+  Nachtest ✅: Arbeitswege → Hinweis „Monat abgeschlossen", Import → Zeilenfehler, Vorschlag (Web) → Meldung,
+  „Alle übernehmen" → Hinweis, API → 403 mit Begründung.
+- [x] 📖 **Arbeitswege: Datum außerhalb des Monats und Doppelte** — `Service/CommuteGenerator.php:76`
   Der POST nimmt beliebige Daten an (auch andere Jahre) und legt für Tage mit vorhandenem Arbeitsweg einen zweiten an.
   **Fix:** nur Tage des gewählten Monats ohne vorhandenen Arbeitsweg.
-- [ ] 📖 **Mietvorgang speichern verknüpft Fahrten in abgeschlossenen Monaten** — `Service/TripService.php:94`
+- [x] 📖 **Mietvorgang speichern verknüpft Fahrten in abgeschlossenen Monaten** — `Service/TripService.php:94`
   Der Mietvorgang ist schon gespeichert, dann wirft der Listener beim Verknüpfen → 403-Seite.
-  **Fix:** gesperrte Fahrten nicht automatisch verknüpfen.
-- [ ] 📖 **Fahrtenbuch: falsche Lücke am Jahresanfang** — `Service/LogbookService.php:37`
+  **Fix:** gesperrte Fahrten nicht automatisch verknüpfen. Nachtest ✅: Mietvorgang für Juli (gesperrt) speicherbar.
+- [x] 📖 **Fahrtenbuch: falsche Lücke am Jahresanfang** — `Service/LogbookService.php:37`
   Ab dem zweiten Jahr wird der erste km-Stand mit dem *Anfangs*-km-Stand des Fahrzeugs verglichen statt mit dem
   letzten km-Stand des Vorjahres → Warnung „Lücke" und riesige „nicht erfasste km". **Fix:** Startwert aus der
   letzten Fahrt vor dem 1.1. ableiten.
-- [ ] 📖 **Verpflegungsmehraufwand zählt Tage des Folgejahres** — `Service/MealAllowanceCalculator.php:108`
+- [x] 📖 **Verpflegungsmehraufwand zählt Tage des Folgejahres** — `Service/MealAllowanceCalculator.php:108`
   Eine Reise vom 31.12. bis 2.1. landet komplett im Bericht des Abreisejahres (auch 1./2.1.).
   **Fix:** nur Tage des Steuerjahres zählen.
-- [ ] 📖 **„Strecke messen" ohne CSRF-Prüfung** — `Controller/TripController.php:297`
+- [x] 📖 **„Strecke messen" ohne CSRF-Prüfung** — `Controller/TripController.php:297`
   Der Dawarich-Button hat `validation_groups: false`; der Zweig ruft `lookupDistance()` ohne `isValid()` auf, also
   auch ohne gültiges CSRF-Token (Cross-Site-POST löst eine Dawarich-Anfrage aus). **Fix:** Token prüfen.
-- [ ] 📖 **API-Lücke: `timesheet` nicht setzbar** — `Service/TripMapper.php` / `API/MileageApiController.php:226`
+- [x] 📖 **API-Lücke: `timesheet` nicht setzbar** — `Service/TripMapper.php` / `API/MileageApiController.php:226`
   Die Fahrt-JSON enthält `timesheet`, aber POST/PATCH ignorieren es. **Fix:** `timesheet` (ID) annehmen, nur eigene
   Zeiteinträge des Fahrt-Nutzers, sonst 400.
 - [ ] 📖 **Verpflegungsmehraufwand hängt am Dawarich-Zeitfenster** — `Controller/TripController.php:401`,
@@ -122,3 +134,10 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   Tab-Leiste; Karten mit Inline-Styles (`height: 320px`).
 - Tabellen ohne einheitliche leere Zustände/Aktionen-Spalte, Aktionen teils als Icon-Buttons ohne Text.
 - 403-Fehlerseiten statt Flash-Meldungen bei Sperrverletzungen (teilweise behoben, siehe P2).
+
+## Werkzeuge
+
+- `php -l` auf alle PHP-Dateien: ok.
+- PHPUnit 10.5: 90 Tests / 284 Assertions grün (vorher 78). `composer install` scheitert im Sandbox-Netz an
+  GitHub-Zip-Downloads; installiert wurde per `--prefer-source` ohne PHPStan/CS-Fixer in einem separaten Ordner.
+- PHPStan 2.1 (Level 6, gegen Kimai 2.67.0-Quellen): keine Fehler. CS-Fixer nicht gelaufen (nicht installierbar).

@@ -4,8 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+
+- Stored XSS: place and Dawarich area names were rendered as HTML in the map tooltips
+- SSRF: personal Dawarich URLs now need the new system setting "Allow a personal Dawarich URL per user"
+  (off by default; the update switches it on where personal URLs are already in use). Only http(s) URLs,
+  redirects are not followed
+- CSV exports (trips, logbook, customer overview) escape cells that spreadsheets would run as formulas
+- The Dawarich API key is no longer written into the preferences page (leave the field empty to keep it)
+- The Dawarich connection test for another user needs edit rights (team leads could use a member's key)
+- "Measure with Dawarich" checks the CSRF token
+
+### Fixed
+
+- Too long texts and too large numbers (plate, locations, odometer, km, costs, …) caused HTTP 500 in forms,
+  API and import instead of a validation error; the API rejects arrays/objects for text fields (was stored as "Array")
+- Attachment files stayed on disk when a trip was deleted through the API or a rental was deleted
+- CSV import broke rows with quoted line breaks (e.g. multi-line comments of the own export)
+- Commutes, CSV rows and suggestions in closed months are skipped with a message instead of an error page;
+  saving a rental no longer fails on trips of closed months; the commute generator only creates days of the
+  chosen month that have no commute yet
+- Logbook of a later year reported a gap from the vehicle's initial odometer
+- Meal allowance of a journey over New Year counted the days of both years in one report
+
 ### Added
 
+- REST API: `timesheet` (id of an own timesheet entry) can be set when creating or updating a trip
 - Own sidebar section "Fahrten" (after time tracking) with all plugin pages
 - Dawarich transportation modes: walking, running and cycling parts of the tracks are excluded from
   trip detection and distance measurement (setting, on by default); bus/train/motorcycle suggest the vehicle.

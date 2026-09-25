@@ -135,7 +135,7 @@ Authentifizierung mit einem Kimai-API-Token (`Authorization: Bearer …`, *Profi
 |---|---|---|
 | GET | `/api/mileage/meta` | Arten, Fahrzeugtypen, Steuerprofile |
 | GET | `/api/mileage/trips?year=2026&month=9` | Fahrten |
-| POST | `/api/mileage/trips` | Fahrt anlegen, z. B. `{"distanceKm": 12.5, "destination": "Kunde"}` oder `{"purpose": "commute"}` |
+| POST | `/api/mileage/trips` | Fahrt anlegen, z. B. `{"distanceKm": 12.5, "destination": "Kunde"}` oder `{"purpose": "commute"}`; `"timesheet": 123` verknüpft einen eigenen Zeiteintrag |
 | GET / PATCH / DELETE | `/api/mileage/trips/{id}` | einzelne Fahrt |
 | GET | `/api/mileage/vehicles` | Fahrzeuge |
 | GET | `/api/mileage/suggestions` | erkannte Fahrten |
