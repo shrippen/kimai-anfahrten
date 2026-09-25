@@ -49,7 +49,7 @@ class DistanceCalculator
             ));
         }
 
-        $points = $this->dropLeadingOutliers(array_values($points));
+        $points = $this->dropLeadingOutliers($points);
 
         $distance = 0.0;
         $used = [];
@@ -95,25 +95,26 @@ class DistanceCalculator
     public function dropLeadingOutliers(array $points): array
     {
         $start = 0;
-        while ($start < self::MAX_LEADING_OUTLIERS) {
-            $cluster = \array_slice($points, $start + 1, self::LEADING_CLUSTER);
-            // with fewer than two following points there is no cluster to compare with
-            if (\count($cluster) < 2) {
-                break;
-            }
-            $implausible = 0;
-            foreach ($cluster as $point) {
-                if ($this->isLeadingJump($points[$start], $point)) {
-                    $implausible++;
-                }
-            }
-            if ($implausible * 2 <= \count($cluster)) {
-                break;
-            }
+        while ($start < self::MAX_LEADING_OUTLIERS && $this->isLeadingOutlier($points, $start)) {
             $start++;
         }
 
-        return $start > 0 ? \array_slice($points, $start) : $points;
+        return \array_slice($points, $start);
+    }
+
+    /**
+     * @param list<GpsPoint> $points
+     */
+    private function isLeadingOutlier(array $points, int $index): bool
+    {
+        $cluster = \array_slice($points, $index + 1, self::LEADING_CLUSTER);
+        // with fewer than two following points there is no cluster to compare with
+        if (\count($cluster) < 2) {
+            return false;
+        }
+        $implausible = \count(array_filter($cluster, fn (GpsPoint $point) => $this->isLeadingJump($points[$index], $point)));
+
+        return $implausible * 2 > \count($cluster);
     }
 
     private function isLeadingJump(GpsPoint $a, GpsPoint $b): bool
