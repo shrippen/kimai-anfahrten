@@ -4,6 +4,7 @@ namespace KimaiPlugin\MileageBundle\Tests\Service;
 
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
+use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\TripCsvExporter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Translation\IdentityTranslator;
@@ -30,6 +31,25 @@ class TripCsvExporterTest extends TestCase
         self::assertStringContainsString('2026-03-02', $lines[1]);
         self::assertStringContainsString('"Kunde; ""A"""', $lines[1]);
         self::assertStringContainsString(';12,50;x;25,00;3,20;', $lines[1]);
+    }
+
+    public function testFormulasAreEscaped(): void
+    {
+        $trip = (new Trip())
+            ->setDate(new \DateTimeImmutable('2026-03-02'))
+            ->setStartLocation('@SUM(1)')
+            ->setDestination('=HYPERLINK("http://evil","x")')
+            ->setComment('+cmd|calc')
+            ->setLicensePlate('-1')
+            ->setDistanceKm(3);
+
+        $csv = (new TripCsvExporter(new IdentityTranslator()))->export([$trip]);
+
+        self::assertStringContainsString(";'-1;'@SUM(1);\"'=HYPERLINK(\"\"http://evil\"\",\"\"x\"\")\";3,00;", $csv);
+        self::assertStringContainsString(";'+cmd|calc;", $csv);
+        self::assertSame('=a', CsvSafe::unescape(CsvSafe::cell('=a')));
+        self::assertSame("'normal", CsvSafe::unescape(CsvSafe::cell("'normal")));
+        self::assertSame('Kunde', CsvSafe::cell('Kunde'));
     }
 
     public function testTimesAreShownInUserTimezone(): void

@@ -51,23 +51,37 @@ class TripCsvImporter
     public function parse(string $content): array
     {
         $content = self::toUtf8($content);
-        $lines = preg_split('/\r\n|\n|\r/', $content) ?: [];
-        $lines = array_values(array_filter($lines, static fn (string $l) => trim($l) !== ''));
-        if ($lines === []) {
+        $firstLine = strtok(ltrim($content), "\r\n");
+        if ($firstLine === false || trim($firstLine) === '') {
             return ['columns' => [], 'rows' => []];
         }
+        $separator = self::detectSeparator($firstLine);
 
-        $separator = self::detectSeparator($lines[0]);
-        $header = str_getcsv($lines[0], $separator, '"', '');
-        $columns = array_map([self::class, 'column'], $header);
+        // Read with fgetcsv: quoted fields may contain line breaks (e.g. multi-line comments of our own export).
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, $content);
+        rewind($handle);
 
+        $columns = null;
         $rows = [];
-        foreach (\array_slice($lines, 1, self::MAX_ROWS) as $i => $line) {
-            $values = str_getcsv($line, $separator, '"', '');
+        $line = 0;
+        while (($values = fgetcsv($handle, null, $separator, '"', '')) !== false) {
+            $line++;
+            if ($values === [null] || implode('', array_map('trim', array_map('strval', $values))) === '') {
+                continue;
+            }
+            if ($columns === null) {
+                $columns = array_map([self::class, 'column'], array_map('strval', $values));
+                continue;
+            }
+            if (\count($rows) >= self::MAX_ROWS) {
+                break;
+            }
             $data = [];
             foreach ($columns as $index => $field) {
-                if ($field !== null && isset($values[$index]) && trim($values[$index]) !== '' && !isset($data[$field])) {
-                    $data[$field] = trim($values[$index]);
+                $value = trim((string) ($values[$index] ?? ''));
+                if ($field !== null && $value !== '' && !isset($data[$field])) {
+                    $data[$field] = CsvSafe::unescape($value);
                 }
             }
             $errors = [];
@@ -77,10 +91,11 @@ class TripCsvImporter
             if (!isset($data['distanceKm']) && !(isset($data['odometerStart'], $data['odometerEnd']))) {
                 $errors['distanceKm'] = 'import.error.distance_missing';
             }
-            $rows[] = ['line' => $i + 2, 'data' => $data, 'errors' => $errors];
+            $rows[] = ['line' => $line, 'data' => $data, 'errors' => $errors];
         }
+        fclose($handle);
 
-        return ['columns' => $columns, 'rows' => $rows];
+        return ['columns' => $columns ?? [], 'rows' => $rows];
     }
 
     /**

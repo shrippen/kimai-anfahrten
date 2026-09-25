@@ -11,6 +11,7 @@ use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
 use KimaiPlugin\MileageBundle\Repository\TripAuditRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
+use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\LogbookService;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
@@ -178,10 +179,10 @@ class LogbookController extends AbstractController
                 $trip->getOdometerEnd(),
                 number_format($trip->getOdometerStart() !== null && $trip->getOdometerEnd() !== null ? $trip->getOdometerEnd() - $trip->getOdometerStart() : $trip->getTotalDistanceKm(), 1, ',', ''),
                 $t($trip->getPurpose()->label()),
-                $trip->getStartLocation(),
-                $trip->getDestination(),
-                $trip->getComment() ?? $trip->getProject()?->getName(),
-                $trip->getProject()?->getCustomer()?->getName(),
+                CsvSafe::cell($trip->getStartLocation()),
+                CsvSafe::cell($trip->getDestination()),
+                CsvSafe::cell($trip->getComment() ?? $trip->getProject()?->getName()),
+                CsvSafe::cell($trip->getProject()?->getCustomer()?->getName()),
             ], ';', '"', '');
         }
         rewind($handle);

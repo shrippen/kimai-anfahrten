@@ -102,7 +102,8 @@ class ImportTest extends TestCase
             ->setDistanceKm(42.5)
             ->setRoundTrip(true)
             ->setCosts(12.3)
-            ->setComment('Wartung');
+            // multi-line and formula-like text survives export (escaped) and import (unescaped)
+            ->setComment("=Wartung\nzweite Zeile");
 
         $csv = (new TripCsvExporter($translator))->export([$original]);
         $trip = $this->importer()->build(new User(1), $this->importer()->parse($csv)['rows'])[0]['trip'];
@@ -111,6 +112,17 @@ class ImportTest extends TestCase
         foreach (['getPurpose', 'getVehicle', 'getLicensePlate', 'getStartLocation', 'getDestination', 'getDistanceKm', 'isRoundTrip', 'getCosts', 'getComment'] as $getter) {
             self::assertEquals($original->$getter(), $trip->$getter(), $getter);
         }
+    }
+
+    public function testQuotedLineBreaks(): void
+    {
+        $csv = "Datum;km;Ziel;Bemerkung\n2026-08-21;4;Kunde A;\"Zeile1\nZeile2\"\n\n2026-08-22;5;Kunde B;ok\n";
+        $rows = $this->importer()->parse($csv)['rows'];
+
+        self::assertCount(2, $rows);
+        self::assertSame([], $rows[0]['errors']);
+        self::assertSame("Zeile1\nZeile2", $rows[0]['data']['comment']);
+        self::assertSame('Kunde B', $rows[1]['data']['destination']);
     }
 
     public function testMapperParsers(): void
