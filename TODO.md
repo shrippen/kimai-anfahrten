@@ -72,10 +72,18 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   Der Key steht als `value="…"` im Passwortfeld (Quelltext, Admin beim Bearbeiten fremder Einstellungen).
   **Fix:** Feld leer rendern, leer abgeschickt = bisherigen Wert behalten.
   Nachtest ✅: kein `value`, Profil speichern behält den Key; `tests/Form/SecretTypeTest.php`.
-- [ ] ✅ **Dawarich-API-Key über Kimais User-API sichtbar** — `GET /api/users/me` und (Admin)
+- [x] ✅ **Dawarich-API-Key über Kimais User-API sichtbar** — `GET /api/users/me` und (Admin)
   `GET /api/users/2` liefern `mileage_dawarich_api_key` im Klartext (Kimai serialisiert alle Präferenzen).
-  **Offen:** braucht eine Umbenennung auf eine interne Präferenz (`_…`) inkl. Datenmigration und Prüfung, ob Kimai
-  solche Präferenzen im Formular noch anzeigt; nur für den Nutzer selbst und Admins sichtbar.
+  **Entscheidung:** eigene Tabelle statt Präferenz. Eine interne Präferenz (`_…`) hätte nur die User-API
+  abgedeckt — Kimai gibt *alle* Präferenzen auch an Rechnungsvorlagen (`user.meta.*`). Neu: Tabelle
+  `kimai2_ext_mileage_user_secret` (`Entity/UserSecret`), Migration `Version20261001000000` verschiebt die Keys und
+  löscht die alten Präferenzzeilen. Das Feld bleibt in *Profil → Einstellungen* (nur auf den Einstellungsseiten, nie
+  beim Request-Boot) mit einem Platzhalterwert; `Doctrine/DawarichKeyListener` nimmt den Wert aus dem Flush und
+  schreibt ihn in die Tabelle (leer = behalten, ein Leerzeichen = löschen — das Leerzeichen wurde vorher
+  weggetrimmt und löschte nicht). Nachtest ✅: vorher `"value":"test-key"` in `/api/users/me`, nach der Migration
+  weder in `/me` noch in `/api/users/2` (Admin) noch als Präferenzzeile; Formular leer/neu/Leerzeichen und
+  `PATCH /api/users/2/preferences` wirken auf die Tabelle; Fahrterkennung gegen simuliertes Dawarich mit dem Key
+  aus der Tabelle (6 Vorschläge); `doctrine:schema:update --dump-sql` ohne Abweichung.
 - [x] ✅ **Beleg-Dateien bleiben liegen** — `API/MileageApiController.php:136`, `Controller/RentalController.php:115`
   `DELETE /api/mileage/trips/2` löscht die DB-Zeile (FK-Cascade), die Datei unter `var/data/mileage/2/` bleibt
   (live: 2 Dateien vorher und nachher). Gleiches beim Löschen eines Mietvorgangs. **Fix:** Dateien mitlöschen.
@@ -110,18 +118,42 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 - [x] 📖 **API-Lücke: `timesheet` nicht setzbar** — `Service/TripMapper.php` / `API/MileageApiController.php:226`
   Die Fahrt-JSON enthält `timesheet`, aber POST/PATCH ignorieren es. **Fix:** `timesheet` (ID) annehmen, nur eigene
   Zeiteinträge des Fahrt-Nutzers, sonst 400.
-- [ ] 📖 **Verpflegungsmehraufwand hängt am Dawarich-Zeitfenster** — `Controller/TripController.php:401`,
+- [x] 📖 **Verpflegungsmehraufwand hängt am Dawarich-Zeitfenster** — `Controller/TripController.php:401`,
   `Service/MealAllowanceCalculator.php`
   „Fahrt erfassen" am Zeiteintrag setzt 00:00–23:59 (für die Messung); die Pauschale rechnet dieselben Zeiten als
   Abwesenheit → jede so erfasste Dienstreise ergibt 14 €. Umgekehrt ergeben getrennt erfasste Hin- und Rückfahrt
-  (Vorschläge) nur die Fahrzeit. **Offen:** Designentscheidung nötig (eigene Abwesenheitszeiten oder Fenster
-  = Zeiteintrag ± Puffer); bis dahin ist die Zeile im Steuerbericht manuell zu prüfen.
-- [ ] 📖 **Streckenmessung: Ausreißer als erster Punkt** — `Service/DistanceCalculator.php:42`
+  (Vorschläge) nur die Fahrzeit.
+  **Entscheidung:** Die Pauschale rechnet nur mit Abfahrt/Ankunft der Fahrt. Das Dawarich-Zeitfenster ist jetzt ein
+  eigenes, nicht gespeichertes Feldpaar „Von/Bis" im Fahrt-Formular (Vorgabe: Abfahrt/Ankunft, sonst der ganze Tag);
+  „Fahrt erfassen" am Zeiteintrag lässt Abfahrt/Ankunft leer. Fahrten ohne beide Zeiten: keine Pauschale, Hinweis
+  „ohne Abfahrts-/Ankunftszeit" im Steuerbericht und in der Plausibilitätsprüfung (bestehende Regel). Etappen eines
+  Tages, die dort beginnen, wo die vorige endete (Start = voriges Ziel, z. B. Hin- und Rückfahrt aus Vorschlägen),
+  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit 00:00–23:59
+  werden nicht automatisch geändert (CHANGELOG-Hinweis). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
+  Zeiten, mehrtägig über Neujahr mit Etappen. Nachtest ✅: „Fahrt erfassen" an Zeiteintrag 34 → Von/Bis
+  00:00–23:59, Abfahrt/Ankunft leer; Messung 10:00–18:00 gegen simuliertes Dawarich 46,6 km; gespeichert ohne Zeiten,
+  Steuerbericht zählt sie unter `missing_times`.
+- [x] 📖 **Streckenmessung: Ausreißer als erster Punkt** — `Service/DistanceCalculator.php:42`
   Ist der erste Punkt ein GPS-Sprung, werden alle folgenden verworfen, bis die Zeit groß genug ist, dann wird der
-  Sprung als Strecke gezählt. **Offen:** Algorithmus (z. B. Median-Filter/Neustart) — braucht echte Tracks zum Testen.
-- [ ] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
-  Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log). **Offen:** fachlich klären
-  (Belege nachreichen ist oft gewollt).
+  Sprung als Strecke gezählt.
+  **Entscheidung/Fix:** vor der Summierung `dropLeadingOutliers()`: ein Startpunkt wird verworfen, solange er von
+  mehr als der Hälfte der nächsten 4 Punkte mehr als 1 km entfernt ist *und* sie nur mit mehr als 200 km/h
+  (Durchschnitt) erreichbar wären; höchstens 10 Punkte, mindestens 2 Vergleichspunkte. Der Sprungfilter mitten in
+  der Spur (300 km/h) bleibt. Unit-Tests mit synthetischen Spuren: ein und zwei Ausreißer am Start, alter Fix
+  Minuten vor der Spur (früher +25 km), Glitch nach gutem Start, GPS-Rauschen < 1 km, lange geparkter echter Start,
+  nur 2 Punkte.
+- [x] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
+  Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log).
+  **Entscheidung:** Nachreichen (Hochladen) bleibt erlaubt, Ändern/Löschen nur mit `edit_locked_mileage`.
+  Zentral im `TripAuditListener` (Web, API, alle Wege; die API hat keine eigenen Beleg-Endpunkte), im Web vorher
+  geprüft mit Meldung „Belege können nachgereicht, aber nicht geändert oder gelöscht werden". Mietvorgänge gelten
+  als gesperrt, wenn ein Monat ihres Zeitraums abgeschlossen ist. Die Fahrt-Seite einer gesperrten Fahrt ist jetzt
+  schreibgeschützt statt Weiterleitung (Hinweis, Formular deaktiviert, Belege hochladbar, kein Löschen-Button);
+  Zeilenaktion „Belege" in der Fahrtenliste. Belege von Fahrten stehen im Änderungsprotokoll (`receipt_add`,
+  `receipt_delete`, mit Kennzeichen „Monat abgeschlossen"). Nachtest ✅: user1 lädt Beleg zu einer Juni-Fahrt
+  (Juni abgeschlossen) hoch → gespeichert + Protokoll; Löschen mit gültigem Token → Meldung, Zeile und Datei
+  bleiben; Formular-POST → Meldung, Fahrt unverändert; admin löscht → ok + Protokoll; Mietvorgang Mai–Juni: Beleg
+  hochladbar, kein Löschen-Button.
 - **kein Fehler** ✅ `GET /mileage/trip/{id}/track`: Teamleitung sieht die GPS-Spur der Fahrt eines Mitglieds —
   entspricht dem Sichtrecht auf die Fahrt (Zeitfenster der Fahrt); nur Hinweis für die Doku.
 
@@ -138,6 +170,7 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 ## Werkzeuge
 
 - `php -l` auf alle PHP-Dateien: ok.
-- PHPUnit 10.5: 90 Tests / 284 Assertions grün (vorher 78). `composer install` scheitert im Sandbox-Netz an
+- PHPUnit 10.5: 127 Tests / 579 Assertions grün (Folgerunde A-1…A-4; vorher 119). `composer install` scheitert im Sandbox-Netz an
   GitHub-Zip-Downloads; installiert wurde per `--prefer-source` ohne PHPStan/CS-Fixer in einem separaten Ordner.
-- PHPStan 2.1 (Level 6, gegen Kimai 2.67.0-Quellen): keine Fehler. CS-Fixer nicht gelaufen (nicht installierbar).
+- PHPStan 2.1 (Level 6, gegen Kimai 2.67.0-Quellen): keine Fehler (Pagerfanta für die Analyse separat eingebunden).
+- Unverändert per Entscheidung (A-5): Arbeitsweg-Vorschlag ohne Profil-Entfernung übernimmt die erkannte Strecke. CS-Fixer nicht gelaufen (nicht installierbar).

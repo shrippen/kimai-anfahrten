@@ -38,6 +38,11 @@ All notable changes to this project will be documented in this file.
 - The Dawarich API key is no longer written into the preferences page (leave the field empty to keep it)
 - The Dawarich connection test for another user needs edit rights (team leads could use a member's key)
 - "Measure with Dawarich" checks the CSRF token
+- The Dawarich API key is no longer a Kimai user preference: those are returned by `/api/users/me` and
+  `/api/users/{id}` and handed to invoice templates. It lives in the new table `kimai2_ext_mileage_user_secret`
+  (migration `Version20261001000000` moves existing keys and deletes the old preference rows). It is still edited in
+  *Profil → Einstellungen* (or with Kimai's `PATCH /api/users/{id}/preferences`); a single space now really deletes
+  the key (it was trimmed to empty and kept)
 
 ### Fixed
 
@@ -54,9 +59,23 @@ All notable changes to this project will be documented in this file.
   chosen month that have no commute yet
 - Logbook of a later year reported a gap from the vehicle's initial odometer
 - Meal allowance of a journey over New Year counted the days of both years in one report
+- Meal allowance used the Dawarich measuring window as absence: "Fahrt erfassen" at a timesheet stored
+  00:00–23:59 as departure/arrival, so every such business trip got 14 €. The window is now a separate
+  "From/To" pair in the trip form (not stored, defaults to departure/arrival or the whole day); departure/arrival
+  are the real times and the only base of the meal allowance (trips without them get none, as before, and are
+  listed as missing times). Existing trips with 00:00–23:59 are not changed automatically — please check them
+- Distance measurement: an outlier as first GPS point (e.g. a stale fix before the GPS lock) made the following
+  points look like jumps, so they were dropped and the jump was counted. Leading points that are more than 1 km
+  and more than 200 km/h away from most of the next four points are now dropped first
+- Meal allowance: legs of one day that start where the previous one ended (e.g. the detected way there and back)
+  count as one absence from the first departure to the last arrival instead of only the driving time
 
 ### Added
 
+- Receipts in closed months: adding one is allowed (handing in later), changing or deleting one needs
+  "edit_locked_mileage" (enforced for every way of writing, with a message in the web UI). A rental counts as
+  closed when a month of its period is closed. The trip page of a closed month is shown read-only with the
+  receipts instead of redirecting to the list (row action "Belege"); receipts of trips appear in the change log
 - REST API: `timesheet` (id of an own timesheet entry) can be set when creating or updating a trip
 - REST API: `GET /api/mileage/ping` (plugin version, API versions, features, permissions, profile with commute
   distance/default vehicle/whether Dawarich is set up, locked months of this and the previous year; needs only API

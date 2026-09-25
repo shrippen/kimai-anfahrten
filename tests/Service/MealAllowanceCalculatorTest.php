@@ -25,9 +25,10 @@ class MealAllowanceCalculatorTest extends TestCase
         return (new TaxRateSchedule(new MileageConfiguration(new SystemConfiguration())))->forYear(2026);
     }
 
-    private function trip(string $from, string $to, string $destination = 'Kunde A', bool $overnight = false, TripPurpose $purpose = TripPurpose::BUSINESS): Trip
+    private function trip(string $from, string $to, string $destination = 'Kunde A', bool $overnight = false, TripPurpose $purpose = TripPurpose::BUSINESS, ?string $start = null): Trip
     {
         return (new Trip())
+            ->setStartLocation($start)
             ->setDate(new \DateTimeImmutable(substr($from, 0, 10)))
             ->setPurpose($purpose)
             ->setDestination($destination)
@@ -124,5 +125,62 @@ class MealAllowanceCalculatorTest extends TestCase
 
         self::assertSame(0.0, $result['amount']);
         self::assertSame(1, $result['missing_times']);
+    }
+
+    public function testWayThereAndBackFormOneAbsence(): void
+    {
+        // detected legs (suggestions): office → customer, later customer → office; absent 08:00–18:00
+        $trips = [
+            $this->trip('2026-03-02 17:00', '2026-03-02 18:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A'),
+            $this->trip('2026-03-02 08:00', '2026-03-02 09:00', 'Kunde A', false, TripPurpose::BUSINESS, 'Büro'),
+        ];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(10.0, $result['days'][0]['hours']);
+        self::assertSame(14.0, $result['amount']);
+        self::assertSame('Kunde A', $result['days'][0]['destination']);
+
+        // unrelated legs (the second does not start where the first ended) still only add up their own times
+        $trips[0]->setStartLocation('Kunde B');
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testLegsOfDifferentDaysAreNotJoined(): void
+    {
+        $trips = [
+            $this->trip('2026-03-02 15:00', '2026-03-02 17:00', 'Kunde A', false, TripPurpose::BUSINESS, 'Büro'),
+            $this->trip('2026-03-03 08:00', '2026-03-03 10:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A'),
+        ];
+
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testOnlyTheTripTimesCount(): void
+    {
+        // "Fahrt erfassen" at a timesheet used to store the Dawarich window 00:00–23:59 as departure/arrival
+        // (always 14 €); now such a trip has no times until the real ones are entered
+        $withoutTimes = (new Trip())->setDate(new \DateTimeImmutable('2026-03-02'))->setPurpose(TripPurpose::BUSINESS)->setDestination('Kunde A');
+        $result = (new MealAllowanceCalculator())->calculate([$withoutTimes], $this->rates(), $this->tz);
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame(1, $result['missing_times']);
+
+        $withoutTimes->setDepartureAt(new \DateTimeImmutable('2026-03-02 10:00', $this->tz))->setArrivalAt(new \DateTimeImmutable('2026-03-02 13:00', $this->tz));
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate([$withoutTimes], $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testMultiDayJourneyOverNewYearWithLegs(): void
+    {
+        // outbound 30.12.2025 (overnight), local leg on 31.12., return 2.1.2026: 2026 gets 1.1. (full) and 2.1. (travel day)
+        $trips = [
+            $this->trip('2025-12-30 07:00', '2025-12-30 12:00', 'Hamburg', true, TripPurpose::BUSINESS, 'Zuhause'),
+            $this->trip('2025-12-31 09:00', '2025-12-31 09:30', 'Hamburg Kunde', true, TripPurpose::BUSINESS, 'Hamburg'),
+            $this->trip('2026-01-02 14:00', '2026-01-02 19:00', 'Zuhause', false, TripPurpose::BUSINESS, 'Hamburg'),
+        ];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['2026-01-01' => 'full_day', '2026-01-02' => 'travel_day'], array_column($result['days'], 'kind', 'date'));
+        self::assertSame(1, $result['full_days']);
+        self::assertSame(1, $result['partial_days']);
+        self::assertSame(42.0, $result['amount']);
     }
 }

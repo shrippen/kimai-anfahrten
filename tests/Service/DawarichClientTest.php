@@ -6,6 +6,7 @@ use App\Configuration\SystemConfiguration;
 use App\Entity\User;
 use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
+use KimaiPlugin\MileageBundle\Service\DawarichKeyStore;
 use KimaiPlugin\MileageBundle\Service\DistanceCalculator;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\TransportModeFilter;
@@ -19,14 +20,36 @@ class DawarichClientTest extends TestCase
     {
         $user = new User(1);
         $user->setPreferenceValue(MileageConfiguration::PREF_DAWARICH_URL, 'https://dawarich.test/');
-        $user->setPreferenceValue(MileageConfiguration::PREF_DAWARICH_API_KEY, 'secret');
 
         return $user;
     }
 
+    /**
+     * @param array<int, string> $keys
+     */
+    public static function keys(array $keys): DawarichKeyStore
+    {
+        return new class($keys) implements DawarichKeyStore {
+            /** @param array<int, string> $keys */
+            public function __construct(public array $keys)
+            {
+            }
+
+            public function getDawarichApiKey(User $user): ?string
+            {
+                return $this->keys[(int) $user->getId()] ?? null;
+            }
+
+            public function setDawarichApiKey(User $user, ?string $key): void
+            {
+                $this->keys[(int) $user->getId()] = (string) $key;
+            }
+        };
+    }
+
     private function client(MockHttpClient $http): DawarichClient
     {
-        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => true])), new DistanceCalculator(), new TransportModeFilter());
+        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => true]), self::keys([1 => 'secret'])), new DistanceCalculator(), new TransportModeFilter());
     }
 
     public function testFetchesAllPagesWithBearerToken(): void
@@ -100,11 +123,16 @@ class DawarichClientTest extends TestCase
     public function testSystemUrlIsFallback(): void
     {
         $user = new User(3);
-        $user->setPreferenceValue(MileageConfiguration::PREF_DAWARICH_API_KEY, 'k');
-        $config = new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_url' => 'https://system.test']));
+        $config = new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_url' => 'https://system.test']), self::keys([3 => 'k']));
 
         self::assertSame('https://system.test', $config->getDawarichUrl($user));
         self::assertTrue($config->isDawarichConfigured($user));
+
+        // the key is only read from the key store, never from the user preferences (they are public via the user API)
+        $user->setPreferenceValue(MileageConfiguration::PREF_DAWARICH_API_KEY, 'old');
+        $withoutKey = new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_url' => 'https://system.test']), self::keys([]));
+        self::assertNull($withoutKey->getDawarichApiKey($user));
+        self::assertFalse($withoutKey->isDawarichConfigured($user));
     }
 
     public function testPersonalUrlNeedsTheSystemSetting(): void

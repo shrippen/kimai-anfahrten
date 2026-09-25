@@ -3,7 +3,9 @@
 namespace KimaiPlugin\MileageBundle\Service;
 
 use App\Entity\User;
+use KimaiPlugin\MileageBundle\Entity\Attachment;
 use KimaiPlugin\MileageBundle\Entity\MonthLock;
+use KimaiPlugin\MileageBundle\Entity\Rental;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
@@ -30,6 +32,37 @@ class MonthLockService
         $date = $trip->getDate();
 
         return $user !== null && $date !== null && $this->isLocked($user, $date);
+    }
+
+    /**
+     * A rental belongs to every month of its period (its costs are spread over the trips of that time).
+     */
+    public function isRentalLocked(Rental $rental): bool
+    {
+        $user = $rental->getUser();
+        $start = $rental->getStartDate();
+        if ($user === null || $start === null) {
+            return false;
+        }
+        $end = $rental->getEndDate() ?? $start;
+        for ($month = $start->modify('first day of this month'); $month <= $end; $month = $month->modify('+1 month')) {
+            if ($this->isLocked($user, $month)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Receipts of a closed month can be added (handed in later), but not changed or deleted.
+     */
+    public function isAttachmentLocked(Attachment $attachment): bool
+    {
+        $trip = $attachment->getTrip();
+        $rental = $attachment->getRental();
+
+        return ($trip !== null && $this->isTripLocked($trip)) || ($rental !== null && $this->isRentalLocked($rental));
     }
 
     /**

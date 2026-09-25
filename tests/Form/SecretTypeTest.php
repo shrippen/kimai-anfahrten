@@ -24,6 +24,10 @@ class SecretTypeTest extends TestCase
         $form->submit('new-key');
         self::assertSame('new-key', $form->getData());
 
+        $form = $factory->create(SecretType::class, 'secret-key');
+        $form->submit(' ');
+        self::assertNull($form->getData());
+
         $form = $factory->create(SecretType::class, null);
         $form->submit('');
         self::assertNull($form->getData());

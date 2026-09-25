@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
 {% set show_map = trip.id and dawarich_configured and trip.departureAt and trip.arrivalAt and mileage_map_enabled() %}
 
@@ -21,6 +22,9 @@
 {% endblock %}
 
 {% block main %}
+    {% if read_only|default(false) %}
+        {{ alert({type: 'warning', description: 'mileage.trip.locked_readonly'|trans, icon: 'locked', dismissible: false, important: false}) }}
+    {% endif %}
     {% embed 'default/_form.html.twig' with {title: title|trans, form: form, back: back, reset: false, submit_button: 'action.save'} %}
         {% block form_body %}
             <div class="row">
@@ -60,7 +64,14 @@
                         <legend class="form-label float-none w-auto px-1 mb-0">{{ 'mileage.trip.time_window'|trans }}</legend>
                         {{ form_row(form.departureAt) }}
                         {{ form_row(form.arrivalAt) }}
+                    </fieldset>
+                    <fieldset class="border rounded p-3 mb-3">
+                        <legend class="form-label float-none w-auto px-1 mb-0">{{ 'mileage.dawarich.window'|trans }}</legend>
                         {% if form.dawarich is defined %}
+                            <div class="row">
+                                <div class="col-sm-6">{{ form_row(form.measureFrom) }}</div>
+                                <div class="col-sm-6">{{ form_row(form.measureTo) }}</div>
+                            </div>
                             {{ form_widget(form.dawarich) }}
                             <div class="form-text">{{ 'mileage.dawarich.lookup_help'|trans }}</div>
                         {% else %}

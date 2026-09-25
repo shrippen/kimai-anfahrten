@@ -27,7 +27,8 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - CSV-Import (erkennt Trennzeichen, Zeichensatz, deutsche/englische Spalten — auch den eigenen Export), REST-API
 
 **Dawarich**
-- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke
+- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke; ungenaue Punkte, GPS-Sprünge
+  (> 300 km/h) und Ausreißer am Anfang der Spur (> 1 km und > 200 km/h von den folgenden Punkten) zählen nicht
 - **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
   Fuß-, Lauf- und Radwege werden über den **Transportmodus von Dawarich** ausgeschlossen (abschaltbar);
   bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel vorgeschlagen.
@@ -44,7 +45,8 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   abziehbar ist nur der Anteil der Dienstreisen
 - Fahrtenbuch pro Fahrzeug und Jahr mit Prüfung auf km-Stand-Lücken und fehlende Angaben, CSV und Druck/PDF
 - **Monatsabschluss** (danach nur mit Sonderrecht änderbar) und **Änderungsprotokoll** für jede Fahrt
-- Belege (PDF, Fotos) zu Fahrten und Mietvorgängen
+- Belege (PDF, Fotos) zu Fahrten und Mietvorgängen — in abgeschlossenen Monaten können Belege nachgereicht, aber
+  nur mit `edit_locked_mileage` gelöscht werden
 
 ![Fahrtenbuch](docs/fahrtenbuch.png)
 
@@ -54,7 +56,9 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   0,38 € ab km 1), einmal pro Tag, 4.500-€-Deckel ohne PKW, höhere ÖPNV-Kosten
 - Dienstreisen: eigener PKW 0,30 €/km, Motorrad 0,20 €/km, sonst tatsächliche Kosten; Firmenwagen bzw.
   Betriebsvermögen ohne km-Pauschale
-- **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist
+- **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist — nur aus Abfahrt und
+  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Hin- und Rückfahrt eines Tages, die aneinander anschließen,
+  zählen als eine Abwesenheit). Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
 - Selbstständige: **Privatnutzung** betrieblicher Fahrzeuge (1-%-Regel inkl. E-Auto/Hybrid-Faktor,
   0,03-%-Zuschlag Wohnung–Betrieb, Privatanteil nach Fahrtenbuch)
 - **Plausibilitätsprüfung**: Arbeitswege ohne Arbeitszeit, am Wochenende, an Urlaubs-/Krankheitstagen
@@ -97,6 +101,8 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
 1. **Profil → Einstellungen**: Steuerprofil, Wohn- und Arbeitsadresse, Entfernung Wohnung–Arbeit,
    Standardfahrzeug, Kennzeichen, Dawarich-API-Key (in Dawarich unter *Account*) und — falls in den
    Systemeinstellungen erlaubt — eine eigene Dawarich-URL.
+   Der API-Key wird nicht angezeigt (leer lassen = behalten, ein Leerzeichen = löschen) und liegt in einer eigenen
+   Tabelle, nicht bei Kimais Benutzereinstellungen — `/api/users/me` und Rechnungsvorlagen enthalten ihn nicht.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
 3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
 4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:

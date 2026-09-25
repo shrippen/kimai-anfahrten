@@ -136,7 +136,7 @@
       </trans-unit>
       <trans-unit id="m033" resname="mileage.trip.time_window_help">
         <source>mileage.trip.time_window_help</source>
-        <target>Zeitfenster für die Streckenmessung mit Dawarich.</target>
+        <target>Tatsächliche Abfahrt und Ankunft. Nur daraus ergibt sich der Verpflegungsmehraufwand einer Dienstreise (ohne Zeiten keiner).</target>
       </trans-unit>
       <trans-unit id="m034" resname="mileage.trip.purpose">
         <source>mileage.trip.purpose</source>
@@ -268,7 +268,7 @@
       </trans-unit>
       <trans-unit id="m066" resname="mileage.dawarich.lookup_help">
         <source>mileage.dawarich.lookup_help</source>
-        <target>Lädt die GPS-Punkte im Zeitfenster aus Dawarich und übernimmt die gefahrene Strecke. Anschließend speichern.</target>
+        <target>Lädt die GPS-Punkte zwischen „Von“ und „Bis“ aus Dawarich und übernimmt die gefahrene Strecke. Anschließend speichern.</target>
       </trans-unit>
       <trans-unit id="m067" resname="mileage.dawarich.measured">
         <source>mileage.dawarich.measured</source>
@@ -288,7 +288,7 @@
       </trans-unit>
       <trans-unit id="m071" resname="mileage.dawarich.error.time_window">
         <source>mileage.dawarich.error.time_window</source>
-        <target>Für die Dawarich-Messung bitte Abfahrt und Ankunft angeben.</target>
+        <target>Für die Dawarich-Messung bitte „Von“ und „Bis“ angeben.</target>
       </trans-unit>
       <trans-unit id="m072" resname="mileage.dawarich.error.unauthorized">
         <source>mileage.dawarich.error.unauthorized</source>
@@ -1528,7 +1528,7 @@
       </trans-unit>
       <trans-unit id="m381" resname="mileage.trip.time_window">
         <source>mileage.trip.time_window</source>
-        <target>Zeitfenster</target>
+        <target>Abfahrt und Ankunft</target>
       </trans-unit>
       <trans-unit id="m382" resname="mileage.dawarich.setup">
         <source>mileage.dawarich.setup</source>
@@ -1737,6 +1737,38 @@
       <trans-unit id="m433" resname="mileage.commute.error.no_distance">
         <source>mileage.commute.error.no_distance</source>
         <target>Die Entfernung Wohnung – Arbeit ist nicht eingetragen. Bitte unter Profil → Einstellungen eintragen oder die Kilometer angeben.</target>
+      </trans-unit>
+      <trans-unit id="m434" resname="mileage.dawarich.window">
+        <source>mileage.dawarich.window</source>
+        <target>Streckenmessung mit Dawarich</target>
+      </trans-unit>
+      <trans-unit id="m435" resname="mileage.dawarich.window_from">
+        <source>mileage.dawarich.window_from</source>
+        <target>Von</target>
+      </trans-unit>
+      <trans-unit id="m436" resname="mileage.dawarich.window_to">
+        <source>mileage.dawarich.window_to</source>
+        <target>Bis</target>
+      </trans-unit>
+      <trans-unit id="m437" resname="mileage.attachment.label">
+        <source>mileage.attachment.label</source>
+        <target>Beleg</target>
+      </trans-unit>
+      <trans-unit id="m438" resname="mileage.logbook.action.receipt_add">
+        <source>mileage.logbook.action.receipt_add</source>
+        <target>Beleg hinzugefügt</target>
+      </trans-unit>
+      <trans-unit id="m439" resname="mileage.logbook.action.receipt_delete">
+        <source>mileage.logbook.action.receipt_delete</source>
+        <target>Beleg gelöscht</target>
+      </trans-unit>
+      <trans-unit id="m440" resname="mileage.attachment.error.locked">
+        <source>mileage.attachment.error.locked</source>
+        <target>Der Monat ist abgeschlossen: Belege können nachgereicht, aber nicht geändert oder gelöscht werden.</target>
+      </trans-unit>
+      <trans-unit id="m441" resname="mileage.trip.locked_readonly">
+        <source>mileage.trip.locked_readonly</source>
+        <target>Der Monat ist abgeschlossen. Die Fahrt kann nicht mehr geändert werden, Belege können aber nachgereicht werden.</target>
       </trans-unit>
     </body>
   </file>

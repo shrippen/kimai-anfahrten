@@ -136,7 +136,7 @@
       </trans-unit>
       <trans-unit id="m033" resname="mileage.trip.time_window_help">
         <source>mileage.trip.time_window_help</source>
-        <target>Time window used to measure the distance with Dawarich.</target>
+        <target>Actual departure and arrival. The meal allowance of a business trip is based on these times only (none without times).</target>
       </trans-unit>
       <trans-unit id="m034" resname="mileage.trip.purpose">
         <source>mileage.trip.purpose</source>
@@ -268,7 +268,7 @@
       </trans-unit>
       <trans-unit id="m066" resname="mileage.dawarich.lookup_help">
         <source>mileage.dawarich.lookup_help</source>
-        <target>Loads the GPS points of the time window from Dawarich and fills in the driven distance. Save afterwards.</target>
+        <target>Loads the GPS points between &quot;From&quot; and &quot;To&quot; from Dawarich and fills in the driven distance. Save afterwards.</target>
       </trans-unit>
       <trans-unit id="m067" resname="mileage.dawarich.measured">
         <source>mileage.dawarich.measured</source>
@@ -288,7 +288,7 @@
       </trans-unit>
       <trans-unit id="m071" resname="mileage.dawarich.error.time_window">
         <source>mileage.dawarich.error.time_window</source>
-        <target>Please enter departure and arrival to measure with Dawarich.</target>
+        <target>Please enter &quot;From&quot; and &quot;To&quot; to measure with Dawarich.</target>
       </trans-unit>
       <trans-unit id="m072" resname="mileage.dawarich.error.unauthorized">
         <source>mileage.dawarich.error.unauthorized</source>
@@ -1528,7 +1528,7 @@
       </trans-unit>
       <trans-unit id="m381" resname="mileage.trip.time_window">
         <source>mileage.trip.time_window</source>
-        <target>Time window</target>
+        <target>Departure and arrival</target>
       </trans-unit>
       <trans-unit id="m382" resname="mileage.dawarich.setup">
         <source>mileage.dawarich.setup</source>
@@ -1737,6 +1737,38 @@
       <trans-unit id="m433" resname="mileage.commute.error.no_distance">
         <source>mileage.commute.error.no_distance</source>
         <target>The distance home – work is not set. Please enter it under Profile → Preferences or give the distance.</target>
+      </trans-unit>
+      <trans-unit id="m434" resname="mileage.dawarich.window">
+        <source>mileage.dawarich.window</source>
+        <target>Measure with Dawarich</target>
+      </trans-unit>
+      <trans-unit id="m435" resname="mileage.dawarich.window_from">
+        <source>mileage.dawarich.window_from</source>
+        <target>From</target>
+      </trans-unit>
+      <trans-unit id="m436" resname="mileage.dawarich.window_to">
+        <source>mileage.dawarich.window_to</source>
+        <target>To</target>
+      </trans-unit>
+      <trans-unit id="m437" resname="mileage.attachment.label">
+        <source>mileage.attachment.label</source>
+        <target>Receipt</target>
+      </trans-unit>
+      <trans-unit id="m438" resname="mileage.logbook.action.receipt_add">
+        <source>mileage.logbook.action.receipt_add</source>
+        <target>Receipt added</target>
+      </trans-unit>
+      <trans-unit id="m439" resname="mileage.logbook.action.receipt_delete">
+        <source>mileage.logbook.action.receipt_delete</source>
+        <target>Receipt deleted</target>
+      </trans-unit>
+      <trans-unit id="m440" resname="mileage.attachment.error.locked">
+        <source>mileage.attachment.error.locked</source>
+        <target>This month is closed: receipts can be handed in later, but not changed or deleted.</target>
+      </trans-unit>
+      <trans-unit id="m441" resname="mileage.trip.locked_readonly">
+        <source>mileage.trip.locked_readonly</source>
+        <target>This month is closed. The trip cannot be changed anymore, but receipts can still be handed in.</target>
       </trans-unit>
     </body>
   </file>

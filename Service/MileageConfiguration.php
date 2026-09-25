@@ -23,9 +23,16 @@ class MileageConfiguration
     public const PREF_DEFAULT_VEHICLE = 'mileage_default_vehicle';
     public const PREF_LICENSE_PLATE = 'mileage_license_plate';
     public const PREF_TAX_PROFILE = 'mileage_tax_profile';
+    /**
+     * Stands in for a stored Dawarich API key in the preferences form (the key itself is never loaded
+     * into the user preferences); submitting it unchanged keeps the key.
+     */
+    public const SECRET_UNCHANGED = '********';
 
-    public function __construct(private readonly SystemConfiguration $configuration)
-    {
+    public function __construct(
+        private readonly SystemConfiguration $configuration,
+        private readonly ?DawarichKeyStore $keys = null,
+    ) {
     }
 
     /**
@@ -165,9 +172,12 @@ class MileageConfiguration
         return rtrim($url, '/');
     }
 
+    /**
+     * The key is stored in its own table ({@see DawarichKeyStore}), not in the user preferences.
+     */
     public function getDawarichApiKey(User $user): ?string
     {
-        return $this->userString($user, self::PREF_DAWARICH_API_KEY);
+        return $this->keys?->getDawarichApiKey($user);
     }
 
     public function isDawarichConfigured(User $user): bool
