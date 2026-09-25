@@ -1,30 +1,36 @@
-{# Params: attachments, upload_url, can_edit, can_delete #}
+{# Receipts of a trip or rental. Params: attachments, attachment_form (FormView|null), can_delete #}
 <div class="card mb-3">
-    <div class="card-header"><h3 class="card-title"><i class="fas fa-paperclip me-1"></i>{{ 'mileage.attachment.list'|trans }}</h3></div>
-    <ul class="list-group list-group-flush">
-        {% for a in attachments %}
-            <li class="list-group-item d-flex align-items-center">
-                <a href="{{ path('mileage_attachment_download', {id: a.id}) }}" target="_blank" rel="noopener" class="me-auto">{{ a.originalName }}</a>
-                <span class="text-muted small me-2">{{ (a.size / 1024)|number_format(0, ',', '.') }} KB</span>
-                {% if can_delete %}
-                    <form method="post" action="{{ path('mileage_attachment_delete', {id: a.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_delete' ~ a.id) }}">
-                        <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>
-                    </form>
-                {% endif %}
-            </li>
-        {% else %}
-            <li class="list-group-item text-muted">{{ 'mileage.attachment.empty'|trans }}</li>
-        {% endfor %}
-    </ul>
-    {% if can_edit %}
-        <div class="card-body">
-            <form method="post" action="{{ upload_url }}" enctype="multipart/form-data" class="d-flex gap-2">
-                <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_upload') }}">
-                <input type="file" name="file" class="form-control" accept="application/pdf,image/*" required>
-                <button type="submit" class="btn btn-outline-primary text-nowrap">{{ 'mileage.attachment.upload'|trans }}</button>
-            </form>
-            <div class="form-text">{{ 'mileage.attachment.help'|trans }}</div>
+    <div class="card-header">
+        <h3 class="card-title">{{ 'mileage.attachment.list'|trans }}</h3>
+    </div>
+    {% if attachments is empty %}
+        <div class="card-body text-body-secondary">{{ 'mileage.attachment.empty'|trans }}</div>
+    {% else %}
+        <div class="list-group list-group-flush">
+            {% for a in attachments %}
+                <div class="list-group-item d-flex align-items-center gap-2">
+                    <a href="{{ path('mileage_attachment_download', {id: a.id}) }}" target="_blank" rel="noopener" class="me-auto text-break">{{ a.originalName }}</a>
+                    <span class="text-body-secondary small text-nowrap">{{ 'mileage.unit.kb'|trans({'%size%': (a.size / 1024)|round(0, 'ceil')|amount}) }}</span>
+                    {% if can_delete %}
+                        <form method="post" action="{{ path('mileage_attachment_delete', {id: a.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('mileage_attachment_delete' ~ a.id) }}">
+                            <button class="btn btn-sm btn-icon btn-ghost-danger confirmation-link" type="submit" data-question="{{ 'confirm.delete'|trans }}" data-toggle="tooltip" title="{{ 'action.delete'|trans }}" aria-label="{{ 'action.delete'|trans }}">{{ icon('trash', true) }}</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if attachment_form is not null %}
+        <div class="card-footer">
+            {{ form_start(attachment_form, {attr: {class: 'd-flex flex-wrap gap-2 align-items-start'}}) }}
+                <div class="flex-grow-1">
+                    {{ form_label(attachment_form.file, null, {label_attr: {class: 'visually-hidden'}}) }}
+                    {{ form_widget(attachment_form.file) }}
+                    {{ form_help(attachment_form.file) }}
+                </div>
+                <button type="submit" class="btn btn-primary">{{ icon('upload', true) }} {{ 'mileage.attachment.upload'|trans }}</button>
+            {{ form_end(attachment_form) }}
         </div>
     {% endif %}
 </div>

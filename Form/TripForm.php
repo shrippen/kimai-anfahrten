@@ -3,6 +3,7 @@
 namespace KimaiPlugin\MileageBundle\Form;
 
 use App\Form\Type\DatePickerType;
+use App\Form\Type\DateTimePickerType;
 use App\Form\Type\ProjectType;
 use KimaiPlugin\MileageBundle\Entity\Rental;
 use KimaiPlugin\MileageBundle\Entity\Trip;
@@ -11,8 +12,8 @@ use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -77,20 +78,16 @@ class TripForm extends AbstractType
                 'label' => 'mileage.trip.license_plate',
                 'required' => false,
             ])
-            ->add('departureAt', DateTimeType::class, [
+            ->add('departureAt', DateTimePickerType::class, [
                 'label' => 'mileage.trip.departure',
                 // Kimai loads datetimes as UTC; the view uses the user's timezone.
                 'model_timezone' => 'UTC',
-                'widget' => 'single_text',
-                'input' => 'datetime_immutable',
                 'required' => false,
             ])
-            ->add('arrivalAt', DateTimeType::class, [
+            ->add('arrivalAt', DateTimePickerType::class, [
                 'label' => 'mileage.trip.arrival',
                 // Kimai loads datetimes as UTC; the view uses the user's timezone.
                 'model_timezone' => 'UTC',
-                'widget' => 'single_text',
-                'input' => 'datetime_immutable',
                 'required' => false,
                 'help' => 'mileage.trip.time_window_help',
             ])
@@ -134,6 +131,14 @@ class TripForm extends AbstractType
                 'label' => 'mileage.trip.comment',
                 'required' => false,
             ]);
+
+        // Kimai's date/time picker works with \DateTime, the entity with \DateTimeImmutable
+        $immutable = new CallbackTransformer(
+            static fn (?\DateTimeImmutable $value): ?\DateTime => $value !== null ? \DateTime::createFromImmutable($value) : null,
+            static fn (?\DateTimeInterface $value): ?\DateTimeImmutable => $value !== null ? \DateTimeImmutable::createFromInterface($value) : null,
+        );
+        $builder->get('departureAt')->addModelTransformer($immutable);
+        $builder->get('arrivalAt')->addModelTransformer($immutable);
 
         if ($options['dawarich']) {
             $builder->add('dawarich', SubmitType::class, [

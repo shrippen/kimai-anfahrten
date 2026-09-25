@@ -1,125 +1,98 @@
-{% extends 'base.html.twig' %}
+{% extends 'datatable.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
-{% set route_params = {user: target_user.id} %}
+{% set p = summary.profile.value == 'self_employed' ? 'mileage.tax.se.' : 'mileage.tax.emp.' %}
+{% set month_lock = month ? (locks[month] ?? null) : null %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'trips'} %}
-    {% set prev = month ? (month == 1 ? {year: year - 1, month: 12} : {year: year, month: month - 1}) : {year: year - 1} %}
-    {% set next = month ? (month == 12 ? {year: year + 1, month: 1} : {year: year, month: month + 1}) : {year: year + 1} %}
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
 
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <h2>
-                {{ 'mileage.menu'|trans }} — {{ target_user.displayName }} —
-                {{ month ? '%d-%02d'|format(year, month) : year }}
-            </h2>
-            <p class="d-flex flex-wrap gap-1">
-                <a href="{{ path('mileage_trips', prev|merge(route_params)) }}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
-                <a href="{{ path('mileage_trips', next|merge(route_params)) }}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
-                {% if month %}
-                    <a href="{{ path('mileage_trips', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-secondary">{{ 'mileage.trip.whole_year'|trans }}</a>
-                {% endif %}
-                {% if can_edit %}
-                    <a href="{{ path('mileage_trip_create', route_params) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'mileage.trip.create'|trans }}</a>
-                    <a href="{{ path('mileage_trip_create', {purpose: 'commute'}|merge(route_params)) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-house-laptop me-1"></i>{{ 'mileage.trip.create_commute'|trans }}</a>
-                    {% if month %}
-                        <a href="{{ path('mileage_commutes', {year: year, month: month}|merge(route_params)) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-wand-magic-sparkles me-1"></i>{{ 'mileage.commute.generate'|trans }}</a>
-                    {% endif %}
-                {% endif %}
-                {% if can_edit %}<a href="{{ path('mileage_import', route_params) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-import me-1"></i>{{ 'mileage.import.title'|trans }}</a>{% endif %}
-                <a href="{{ path('mileage_export', {year: year}|merge(route_params)) }}" class="btn btn-sm btn-outline-success">{{ 'action.export'|trans }} ({{ year }})</a>
-            </p>
-            {% if open_suggestions > 0 %}
-                <div class="alert alert-info py-2"><a href="{{ path('mileage_suggestions', route_params) }}">{{ 'mileage.suggestion.open_hint'|trans({'%count%': open_suggestions}) }}</a></div>
-            {% endif %}
-            {% if month and locks[month] is defined and locks[month].locked %}
-                <div class="alert alert-secondary py-2"><i class="fas fa-lock me-1"></i>{{ 'mileage.logbook.month_locked_hint'|trans }}</div>
-            {% endif %}
-            {% if not dawarich_configured %}
-                <div class="alert alert-info py-2">{{ 'mileage.dawarich.not_configured_hint'|trans }}</div>
-            {% elseif can_edit %}
-                <form method="post" action="{{ path('mileage_dawarich_test', route_params) }}" class="d-inline">
-                    <input type="hidden" name="_token" value="{{ csrf_token('mileage_dawarich_test') }}">
-                    <button type="submit" class="btn btn-sm btn-outline-info"><i class="fas fa-plug me-1"></i>{{ 'mileage.dawarich.test'|trans }}</button>
-                </form>
-            {% endif %}
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div>{{ 'mileage.trip.total_distance'|trans }}: <strong>{{ summary.total_km|number_format(1, ',', '.') }} km</strong></div>
-                    {% set p = summary.profile.value == 'self_employed' ? 'mileage.tax.se.' : 'mileage.tax.emp.' %}
-                    <div>{{ (p ~ 'commute')|trans }}: {{ summary.commute.days }} {{ 'mileage.tax.days'|trans }} · {{ summary.commute.amount|number_format(2, ',', '.') }} €</div>
-                    <div>{{ (p ~ 'business')|trans }}: {{ summary.business_total|number_format(2, ',', '.') }} €</div>
-                    {% if summary.meals.amount > 0 %}<div>{{ 'mileage.meal.title'|trans }}: {{ summary.meals.amount|number_format(2, ',', '.') }} €</div>{% endif %}
-                    <div class="mt-1"><strong>{{ (p ~ 'total')|trans }}: {{ summary.total|number_format(2, ',', '.') }} €</strong></div>
-                </div>
-            </div>
-        </div>
+{% block page_intro %}
+    {% set status %}{% if month %}{{ mileage.month_status(month_lock) }}{% endif %}{% endset %}
+    {{ kit.context_line([target_user.displayName, summary.profile.label|trans, status]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        {{ kit.period_nav(['month', 'year'], period.unit, period.label, period.prev, period.next, period.today, period.units) }}
+        {{ parent() }}
     </div>
+{% endblock %}
 
-    <div class="card">
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-striped table-vcenter mb-0">
-                <thead>
-                    <tr>
-                        <th>{{ 'mileage.trip.date'|trans }}</th>
-                        <th>{{ 'mileage.trip.purpose'|trans }}</th>
-                        <th>{{ 'mileage.trip.vehicle'|trans }}</th>
-                        <th>{{ 'mileage.trip.route'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.trip.total_distance'|trans }}</th>
-                        <th class="text-end">{{ 'mileage.trip.costs'|trans }}</th>
-                        <th>{{ 'mileage.trip.project'|trans }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in trips %}
-                        {% set locked = locks[t.date|date('n')] is defined and locks[t.date|date('n')].locked and t.date|date('Y') == year ~ '' %}
-                        {% set changeable = not locked or edit_locked %}
-                        <tr>
-                            <td class="text-nowrap">
-                                {{ t.date|date('Y-m-d') }}
-                                {% if t.departureAt and t.arrivalAt %}
-                                    <div class="small text-muted">{{ t.departureAt|date('H:i') }}–{{ t.arrivalAt|date('H:i') }}</div>
-                                {% endif %}
-                            </td>
-                            <td><i class="{{ t.purpose.icon }} me-1"></i>{{ t.purpose.label|trans }}</td>
-                            <td>
-                                <i class="{{ t.vehicle.icon }} me-1"></i>{{ t.vehicle.label|trans }}
-                                {% if t.licensePlate %}<div class="small text-muted">{{ t.licensePlate }}</div>{% endif %}
-                            </td>
-                            <td>
-                                {{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}
-                                {% if t.comment %}<div class="small text-muted">{{ t.comment }}</div>{% endif %}
-                            </td>
-                            <td class="text-end text-nowrap">
-                                {{ t.totalDistanceKm|number_format(1, ',', '.') }} km
-                                {% if t.source.value == 'dawarich' %}
-                                    <i class="fas fa-satellite-dish text-info ms-1" title="{{ 'mileage.trip.source.dawarich'|trans }} ({{ t.pointCount }})"></i>
-                                {% endif %}
-                            </td>
-                            <td class="text-end text-nowrap">{{ t.costs is not null ? t.costs|number_format(2, ',', '.') ~ ' €' : '' }}</td>
-                            <td>{{ t.project ? t.project.name : '' }}</td>
-                            <td class="text-end text-nowrap">
-                                {% if locked %}<i class="fas fa-lock text-muted me-1" title="{{ 'mileage.logbook.month_locked'|trans }}"></i>{% endif %}
-                                {% if can_edit and changeable %}
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_trip_edit', {id: t.id}) }}" title="{{ 'action.edit'|trans }}"><i class="fas fa-pen"></i></a>
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ path('mileage_trip_duplicate', {id: t.id}) }}" title="{{ 'action.duplicate'|trans }}"><i class="fas fa-copy"></i></a>
-                                {% endif %}
-                                {% if can_delete and changeable %}
-                                    <form class="d-inline" method="post" action="{{ path('mileage_trip_delete', {id: t.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('mileage_trip_delete' ~ t.id) }}">
-                                        <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ 'action.delete'|trans }}"><i class="fas fa-trash"></i></button>
-                                    </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="8" class="text-muted">{{ 'mileage.trip.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block datatable_column_value %}
+    {% set t = entry %}
+    {% set lock = locks[t.date|date('n')] ?? null %}
+    {% set locked = lock is not null and lock.locked and t.date|date('Y') == year ~ '' %}
+    {% if column == 'date' %}
+        <span class="text-nowrap">{{ t.date|date_short }}</span>
+        {% if t.departureAt and t.arrivalAt %}
+            <div class="text-body-secondary small text-nowrap">{{ t.departureAt|time }}–{{ t.arrivalAt|time }}</div>
+        {% endif %}
+    {% elseif column == 'purpose' %}
+        <i class="{{ t.purpose.icon }} fa-fw me-1" aria-hidden="true"></i>{{ t.purpose.label|trans }}
+    {% elseif column == 'vehicle' %}
+        <i class="{{ t.vehicle.icon }} fa-fw me-1" aria-hidden="true"></i>{{ t.vehicle.label|trans }}
+        {% if t.licensePlate %}<div class="text-body-secondary small">{{ t.licensePlate }}</div>{% endif %}
+    {% elseif column == 'route' %}
+        <i class="{{ t.purpose.icon }} fa-fw me-1 d-md-none" title="{{ t.purpose.label|trans }}" aria-label="{{ t.purpose.label|trans }}"></i>
+        {{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}
+        {% if t.comment %}<div class="text-body-secondary small">{{ t.comment }}</div>{% endif %}
+    {% elseif column == 'distance' %}
+        {{ mileage.km(t.totalDistanceKm) }}
+        {% if t.source.value == 'dawarich' %}
+            {% set source = 'mileage.trip.source.dawarich'|trans ~ ' · ' ~ 'mileage.trip.gps_points'|trans({'%count%': t.pointCount ?? 0}) %}
+            <i class="fas fa-satellite-dish text-info ms-1" data-toggle="tooltip" title="{{ source }}" aria-label="{{ source }}"></i>
+        {% endif %}
+    {% elseif column == 'costs' %}
+        {{ t.costs is not null ? t.costs|money('EUR') : '' }}
+    {% elseif column == 'project' %}
+        {{ t.project ? t.project.name : '' }}
+    {% elseif column == 'status' %}
+        {% if locked %}{{ mileage.month_status(lock) }}{% endif %}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'mileage_trip', 'index', {trip: t, can_edit: can_edit and (not locked or edit_locked), can_delete: can_delete and (not locked or edit_locked)}) %}
+        {{ widgets.table_actions(event.actions) }}
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    {% if open_suggestions > 0 %}
+        {% set hint %}{{ 'mileage.suggestion.open_hint'|trans({'%count%': open_suggestions}) }} <a class="alert-link" href="{{ path('mileage_suggestions', {user: user_param}) }}">{{ 'mileage.suggestion.review'|trans }}</a>{% endset %}
+        {{ alert({type: 'info', description: hint, icon: 'info', dismissible: false, important: false, raw: true}) }}
+    {% endif %}
+    {% if month and month_lock is not null and month_lock.locked %}
+        {{ alert({type: 'secondary', description: 'mileage.logbook.month_locked_hint'|trans, icon: 'locked', dismissible: false, important: false}) }}
+    {% endif %}
+
+    {% set details = [
+        {label: 'mileage.logbook.km.business'|trans, value: mileage.km(km.business, 0)},
+        {label: 'mileage.logbook.km.commute'|trans, value: mileage.km(km.commute, 0)},
+        {label: 'mileage.logbook.km.private'|trans, value: mileage.km(km.private, 0)},
+    ] %}
+    {% set total_details = summary.meals.amount > 0 ? [{label: 'mileage.kpi.meals'|trans, value: summary.meals.amount|money('EUR')}] : [] %}
+    {{ kit.kpi_bar([
+        {label: 'mileage.trip.total_distance'|trans, value: mileage.km(summary.total_km, 0), details: details},
+        {label: (p ~ 'commute')|trans, value: summary.commute.amount|money('EUR'), hint: 'mileage.tax.commute_days_count'|trans({'%count%': summary.commute.days})},
+        {label: (p ~ 'business')|trans, value: summary.business_total|money('EUR')},
+        {label: (p ~ 'total')|trans, value: summary.total|money('EUR'), highlight: true, details: total_details},
+    ]) }}
+
+    {% if not dataTable.hasResults() %}
+        {{ kit.empty_state(
+            (month ? 'mileage.trip.empty_period' : 'mileage.trip.empty_year')|trans({'%period%': period.label}),
+            can_edit ? path('mileage_trip_create', {user: user_param, date: month ? '%d-%02d-01'|format(year, month) : null}) : null,
+            can_edit ? 'mileage.trip.create'|trans : null
+        ) }}
+    {% else %}
+        {{ parent() }}
+    {% endif %}
 {% endblock %}

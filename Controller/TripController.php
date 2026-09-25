@@ -6,11 +6,14 @@ use App\Controller\AbstractController;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Utils\PageSetup;
+use App\Repository\Query\BaseQuery;
+use App\Utils\DataTable;
+use App\Utils\Pagination;
 use Doctrine\ORM\EntityManagerInterface;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
+use KimaiPlugin\MileageBundle\Form\CommuteForm;
 use KimaiPlugin\MileageBundle\Form\TripForm;
 use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
@@ -23,11 +26,13 @@ use KimaiPlugin\MileageBundle\Service\CommuteGenerator;
 use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\MileagePages;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\TaxCalculator;
 use KimaiPlugin\MileageBundle\Service\TripCsvExporter;
 use KimaiPlugin\MileageBundle\Service\TripService;
 use Symfony\Component\Form\ClickableInterface;
+use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,6 +45,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class TripController extends AbstractController
 {
     use TargetUserTrait;
+    use MileageUiTrait;
 
     public function __construct(
         private readonly TripRepository $tripRepository,
@@ -59,6 +65,7 @@ class TripController extends AbstractController
         private readonly AttachmentStorage $attachmentStorage,
         private readonly MonthLockService $lockService,
         private readonly MonthLockRepository $lockRepository,
+        private readonly MileagePages $pages,
     ) {
     }
 
@@ -70,6 +77,7 @@ class TripController extends AbstractController
             throw $this->createNotFoundException();
         }
         $user = $this->getTargetUser($request, $this->userRepository);
+        $userParam = $user === $this->getUser() ? null : $user->getId();
 
         if ($month === null) {
             $trips = $this->tripRepository->findByUserAndYear($user, $year);
@@ -78,19 +86,74 @@ class TripController extends AbstractController
             $trips = $this->tripRepository->findByUserBetween($user, $from, $from->modify('last day of this month'));
         }
 
+        $km = ['business' => 0.0, 'commute' => 0.0, 'private' => 0.0];
+        foreach ($trips as $trip) {
+            $km[$trip->getPurpose()->value] += $trip->getTotalDistanceKm();
+        }
+
+        $canEdit = $this->canEditTripsOf($user);
+        $label = $month !== null ? $this->pages->monthLabel($year, $month) : (string) $year;
+        $page = $this->pages->create('mileage_trips', 'mileage.menu', $label, [
+            'user' => $userParam,
+            'year' => $year,
+            'month' => $month,
+            'can_edit' => $canEdit,
+            'dawarich' => $this->configuration->isDawarichConfigured($user),
+        ]);
+
+        $table = new DataTable('mileage_trips', new BaseQuery());
+        $table->setPagination(new Pagination(new ArrayAdapter($trips)));
+        $table->setSticky(false);
+        $table->addColumn('date', ['class' => 'alwaysVisible w-min', 'orderBy' => false, 'title' => 'mileage.trip.date']);
+        $table->addColumn('purpose', ['class' => 'd-none d-md-table-cell', 'orderBy' => false, 'title' => 'mileage.trip.purpose']);
+        $table->addColumn('vehicle', ['class' => 'd-none d-xl-table-cell', 'orderBy' => false, 'title' => 'mileage.trip.vehicle']);
+        $table->addColumn('route', ['class' => 'alwaysVisible', 'orderBy' => false, 'title' => 'mileage.trip.route']);
+        $table->addColumn('distance', ['class' => 'text-end w-min text-nowrap', 'orderBy' => false, 'title' => 'mileage.trip.total_distance']);
+        $table->addColumn('costs', ['class' => 'd-none d-md-table-cell text-end w-min text-nowrap', 'orderBy' => false, 'title' => 'mileage.trip.costs']);
+        $table->addColumn('project', ['class' => 'd-none d-lg-table-cell', 'orderBy' => false, 'title' => 'mileage.trip.project']);
+        $table->addColumn('status', ['class' => 'd-none d-sm-table-cell w-min', 'orderBy' => false, 'title' => 'status']);
+        $table->addColumn('actions', ['class' => 'actions alwaysVisible']);
+        $page->setDataTable($table);
+
+        $currentYear = (int) date('Y');
+        $currentMonth = (int) date('n');
+        $route = fn (array $parameters): string => $this->generateUrl('mileage_trips', $parameters + ['user' => $userParam]);
+        if ($month !== null) {
+            $prev = $month === 1 ? ['year' => $year - 1, 'month' => 12] : ['year' => $year, 'month' => $month - 1];
+            $next = $month === 12 ? ['year' => $year + 1, 'month' => 1] : ['year' => $year, 'month' => $month + 1];
+            $today = $year === $currentYear && $month === $currentMonth ? null : $route(['year' => $currentYear, 'month' => $currentMonth]);
+        } else {
+            $prev = ['year' => $year - 1];
+            $next = ['year' => $year + 1];
+            $today = $year === $currentYear ? null : $route(['year' => $currentYear]);
+        }
+
         return $this->render('@Mileage/trip/index.html.twig', [
-            'page_setup' => new PageSetup('mileage.menu'),
+            'page_setup' => $page,
+            'dataTable' => $table,
             'year' => $year,
             'month' => $month,
             'target_user' => $user,
-            'trips' => $trips,
+            'user_param' => $userParam,
+            'km' => $km,
             'summary' => $this->taxCalculator->summarize($trips, $year, $this->configuration->getTaxProfile($user), $user->getDateTimezone()),
-            'can_edit' => $this->canEditTripsOf($user),
+            'can_edit' => $canEdit,
             'can_delete' => $this->canDeleteTripsOf($user),
             'dawarich_configured' => $this->configuration->isDawarichConfigured($user),
             'open_suggestions' => $this->suggestionRepository->countOpen($user),
             'locks' => $this->lockRepository->findByUserAndYear($user, $year),
             'edit_locked' => $this->isGranted('edit_locked_mileage'),
+            'period' => [
+                'unit' => $month !== null ? 'month' : 'year',
+                'label' => $label,
+                'prev' => $route($prev),
+                'next' => $route($next),
+                'today' => $today,
+                'units' => [
+                    'month' => $route(['year' => $year, 'month' => $month ?? ($year === $currentYear ? $currentMonth : 1)]),
+                    'year' => $route(['year' => $year]),
+                ],
+            ],
         ]);
     }
 
@@ -140,29 +203,44 @@ class TripController extends AbstractController
         return $this->handleForm($request, $trip, 'mileage.trip.create');
     }
 
-    #[Route(path: '/trip/{id}/delete', name: 'mileage_trip_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route(path: '/trip/{id}/delete', name: 'mileage_trip_delete', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function delete(Request $request, Trip $trip): Response
     {
         if (!$this->canDeleteTripsOf($trip->getUser())) {
             throw $this->createAccessDeniedException();
         }
-        if (!$this->isCsrfTokenValid('mileage_trip_delete' . $trip->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
 
         $redirect = $this->listRoute($trip);
-        if (!$this->mayChangeLocked($trip)) {
-            $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
+        $form = $this->createPlainForm('mileage_trip_delete' . $trip->getId(), $this->generateUrl('mileage_trip_delete', ['id' => $trip->getId()]));
 
-            return $this->redirectToRoute('mileage_trips', $redirect);
-        }
-        foreach ($this->attachmentRepository->findByTrip($trip) as $attachment) {
-            $this->attachmentStorage->delete($attachment);
-        }
-        $this->tripRepository->remove($trip);
-        $this->flashSuccess('action.delete.success');
+        if ($request->isMethod('POST')) {
+            $this->assertCsrf($request, 'mileage_trip_delete' . $trip->getId());
+            if (!$this->mayChangeLocked($trip)) {
+                $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
 
-        return $this->redirectToRoute('mileage_trips', $redirect);
+                return $this->kpuFormSuccess($request, 'mileage_trips', $redirect);
+            }
+            foreach ($this->attachmentRepository->findByTrip($trip) as $attachment) {
+                $this->attachmentStorage->delete($attachment);
+            }
+            $this->tripRepository->remove($trip);
+            $this->flashSuccess('action.delete.success');
+
+            return $this->kpuFormSuccess($request, 'mileage_trips', $redirect);
+        }
+
+        $name = $this->pages->dateLabel($trip->getDate() ?? new \DateTimeImmutable()) . ' · ' . $this->translator->trans($trip->getPurpose()->label());
+        if ($trip->getDestination() !== null) {
+            $name .= ' · ' . $trip->getDestination();
+        }
+
+        return $this->render('@Mileage/_delete.html.twig', [
+            'page_setup' => $this->pages->create('mileage_form', 'mileage.menu', $this->translator->trans('mileage.trip.delete'), ['back' => $this->generateUrl('mileage_trips', $redirect)]),
+            'form' => $form->createView(),
+            'item_name' => $name,
+            'message' => $this->translator->trans('mileage.trip.delete_message'),
+            'back' => $this->generateUrl('mileage_trips', $redirect),
+        ]);
     }
 
     #[Route(path: '/commutes/{year}/{month}', name: 'mileage_commutes', requirements: ['year' => '\d{4}', 'month' => '\d{1,2}'], methods: ['GET', 'POST'])]
@@ -175,37 +253,37 @@ class TripController extends AbstractController
         if (!$this->canEditTripsOf($user)) {
             throw $this->createAccessDeniedException();
         }
+        $userParam = $user === $this->getUser() ? null : $user->getId();
+        $list = ['year' => $year, 'month' => $month, 'user' => $userParam];
 
-        $defaultKm = $this->configuration->getCommuteKm($user);
+        $days = $this->commuteGenerator->suggestDays($user, $year, $month);
+        $form = $this->createForm(CommuteForm::class, ['distance' => $this->configuration->getCommuteKm($user), 'dates' => array_keys(array_filter($days, static fn (array $day) => !$day['has_commute']))], [
+            'days' => $days,
+            'action' => $this->generateUrl('mileage_commutes', ['year' => $year, 'month' => $month, 'user' => $userParam]),
+        ]);
+        $form->handleRequest($request);
 
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('mileage_commutes', (string) $request->request->get('_token'))) {
-                throw $this->createAccessDeniedException('Invalid CSRF token');
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array{distance: float, dates: list<string>} $data */
+            $data = $form->getData();
+            $result = $this->commuteGenerator->create($user, $data['dates'], (float) $data['distance'], $year, $month, $this->isGranted('edit_locked_mileage'));
+            $this->addFlash('kpu_result', $this->translator->trans('mileage.commute.created', ['%count%' => $result['created']]));
+            if ($result['locked'] > 0) {
+                $this->flashWarning($this->translator->trans('mileage.logbook.error.locked'));
             }
 
-            $km = (float) str_replace(',', '.', (string) $request->request->get('distance', $defaultKm ?? 0));
-            $dates = array_filter((array) $request->request->all('dates'), 'is_string');
-
-            if ($km <= 0) {
-                $this->flashError($this->translator->trans('mileage.trip.error.commute_distance'));
-            } else {
-                $result = $this->commuteGenerator->create($user, $dates, $km, $year, $month, $this->isGranted('edit_locked_mileage'));
-                $this->flashSuccess($this->translator->trans('mileage.commute.created', ['%count%' => $result['created']]));
-                if ($result['locked'] > 0) {
-                    $this->flashWarning($this->translator->trans('mileage.logbook.error.locked'));
-                }
-
-                return $this->redirectToRoute('mileage_trips', ['year' => $year, 'month' => $month, 'user' => $user->getId()]);
-            }
+            return $this->redirectToRoute('mileage_trips', $list);
         }
 
+        $label = $this->pages->monthLabel($year, $month);
+
         return $this->render('@Mileage/trip/commutes.html.twig', [
-            'page_setup' => new PageSetup('mileage.commute.generate'),
-            'year' => $year,
-            'month' => $month,
+            'page_setup' => $this->pages->create('mileage_form', 'mileage.commute.generate', $label, ['back' => $this->generateUrl('mileage_trips', $list)]),
+            'form' => $form->createView(),
+            'days' => $days,
             'target_user' => $user,
-            'days' => $this->commuteGenerator->suggestDays($user, $year, $month),
-            'distance' => $defaultKm,
+            'period_label' => $label,
+            'back' => $this->generateUrl('mileage_trips', $list),
         ]);
     }
 
@@ -217,18 +295,16 @@ class TripController extends AbstractController
         if (!$this->canEditTripsOf($user)) {
             throw $this->createAccessDeniedException();
         }
-        if (!$this->isCsrfTokenValid('mileage_dawarich_test', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
-        }
+        $this->assertCsrf($request, 'mileage_dawarich_test');
+        $list = ['user' => $user === $this->getUser() ? null : $user->getId()];
 
         try {
             $count = $this->dawarichClient->testConnection($user);
-            $this->flashSuccess($this->translator->trans('mileage.dawarich.test_ok', ['%count%' => $count]));
-        } catch (DawarichException $e) {
-            $this->flashError($this->translator->trans($e->getMessage(), $e->getParameters()));
-        }
 
-        return $this->redirectToRoute('mileage_trips', ['user' => $user->getId()]);
+            return $this->actionResult($request, $this->translator->trans('mileage.dawarich.test_ok', ['%count%' => $count]), null, 'mileage_trips', $list);
+        } catch (DawarichException $e) {
+            return $this->actionResult($request, $this->translator->trans($e->getMessage(), $e->getParameters()), null, 'mileage_trips', $list, 502);
+        }
     }
 
     /**
@@ -321,16 +397,28 @@ class TripController extends AbstractController
             }
         }
 
+        $list = $this->generateUrl('mileage_trips', $this->listRoute($trip));
+        $page = $this->pages->create('mileage_trip_form', 'mileage.menu', $this->translator->trans($title), [
+            'trip' => $trip,
+            'back' => $list,
+            'can_edit' => $this->canEditTripsOf($owner),
+            'can_delete' => $this->canDeleteTripsOf($owner),
+        ]);
+
         return $this->render('@Mileage/trip/edit.html.twig', [
-            'page_setup' => new PageSetup($title),
+            'page_setup' => $page,
             'title' => $title,
             'trip' => $trip,
             'form' => $form->createView(),
             'target_user' => $owner,
             'dawarich_configured' => $dawarich,
             'attachments' => $trip->getId() !== null ? $this->attachmentRepository->findByTrip($trip) : [],
+            'attachment_form' => $trip->getId() !== null && $this->canEditTripsOf($owner)
+                ? $this->createAttachmentForm($this->generateUrl('mileage_attachment_trip', ['id' => $trip->getId()]))->createView()
+                : null,
             'can_edit' => $this->canEditTripsOf($owner),
             'can_delete' => $this->canDeleteTripsOf($owner),
+            'back' => $list,
         ]);
     }
 
@@ -373,8 +461,9 @@ class TripController extends AbstractController
             $trip->setRoundTrip(false);
         }
 
-        $this->flashSuccess($this->translator->trans('mileage.dawarich.measured', [
-            '%km%' => number_format($result->distanceKm, 1, ',', '.'),
+        // Kimai hides success flashes: the measured distance is a result callout (kimai-plugin-ui GUIDELINES 3.6)
+        $this->addFlash('kpu_result', $this->translator->trans('mileage.dawarich.measured', [
+            '%km%' => $this->pages->number($result->distanceKm),
             '%points%' => $result->usedPointCount,
         ]));
     }
@@ -423,11 +512,12 @@ class TripController extends AbstractController
     private function listRoute(Trip $trip): array
     {
         $date = $trip->getDate() ?? new \DateTimeImmutable();
+        $user = $trip->getUser();
 
         return [
             'year' => (int) $date->format('Y'),
             'month' => (int) $date->format('n'),
-            'user' => $trip->getUser()?->getId(),
+            'user' => $user === null || $user === $this->getUser() ? null : $user->getId(),
         ];
     }
 }
