@@ -481,7 +481,11 @@ class TripController extends AbstractController
 
         if ($trip->getPurpose() === TripPurpose::COMMUTE) {
             $trip->setDestination($this->configuration->getWorkAddress($user));
-            $trip->setDistanceKm($this->configuration->getCommuteKm($user));
+            $commuteKm = $this->configuration->getCommuteKm($user);
+            $trip->setDistanceKm($commuteKm);
+            if ($commuteKm === null && $request->isMethod('GET')) {
+                $this->flashWarning($this->translator->trans('mileage.commute.error.no_distance'));
+            }
         }
 
         $timesheetId = $request->query->getInt('timesheet');

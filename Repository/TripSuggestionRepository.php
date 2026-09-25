@@ -26,6 +26,27 @@ class TripSuggestionRepository extends ServiceEntityRepository
         return $this->findBy(['user' => $user, 'status' => SuggestionStatus::OPEN], ['startAt' => 'ASC']);
     }
 
+    /**
+     * Open suggestions starting in [$from, $until).
+     *
+     * @return TripSuggestion[]
+     */
+    public function findOpenBetween(User $user, \DateTimeInterface $from, \DateTimeInterface $until): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.user = :user')
+            ->andWhere('s.status = :status')
+            ->andWhere('s.startAt >= :from')
+            ->andWhere('s.startAt < :until')
+            ->setParameter('user', $user)
+            ->setParameter('status', SuggestionStatus::OPEN)
+            ->setParameter('from', $from)
+            ->setParameter('until', $until)
+            ->orderBy('s.startAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countOpen(User $user): int
     {
         return $this->count(['user' => $user, 'status' => SuggestionStatus::OPEN]);

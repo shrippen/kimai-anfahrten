@@ -101,6 +101,9 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 - [x] Genehmigungs-Workflow (Monat einreichen, genehmigen, mit Begründung ablehnen), Teambericht;
       Teamleitungen sehen nur ihre Teammitglieder
 - [x] REST-API `/api/mileage/...` mit Kimai-API-Token
+- [x] API für externe Clients (z. B. Plasmai): `ping` mit Rechten, Profil und abgeschlossenen Monaten,
+      Zeitraum `from`/`to` für Fahrten und Vorschläge, Übernehmen mit Projekt/km/Bemerkung/Zeiteintrag,
+      Zeiteintrag an Fahrten und Vorschlägen
 - [x] CSV-Import mit Vorschau und Duplikaterkennung (Web und Konsole)
 
 ## 1.0 — Veröffentlichung

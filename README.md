@@ -133,14 +133,51 @@ Authentifizierung mit einem Kimai-API-Token (`Authorization: Bearer …`, *Profi
 
 | Methode | Pfad | |
 |---|---|---|
+| GET | `/api/mileage/ping` | Plugin installiert, Version, API-Versionen, Rechte, Profil und abgeschlossene Monate des Token-Inhabers (siehe unten) |
 | GET | `/api/mileage/meta` | Arten, Fahrzeugtypen, Steuerprofile |
-| GET | `/api/mileage/trips?year=2026&month=9` | Fahrten |
+| GET | `/api/mileage/trips?year=2026&month=9` | Fahrten eines Monats bzw. Jahres |
+| GET | `/api/mileage/trips?from=2026-09-01&to=2026-09-30` | Fahrten eines Zeitraums (beide Tage einschließlich, höchstens 366 Tage; hat Vorrang vor `year`/`month`) |
 | POST | `/api/mileage/trips` | Fahrt anlegen, z. B. `{"distanceKm": 12.5, "destination": "Kunde"}` oder `{"purpose": "commute"}`; `"timesheet": 123` verknüpft einen eigenen Zeiteintrag |
 | GET / PATCH / DELETE | `/api/mileage/trips/{id}` | einzelne Fahrt |
 | GET | `/api/mileage/vehicles` | Fahrzeuge |
-| GET | `/api/mileage/suggestions` | erkannte Fahrten |
-| POST | `/api/mileage/suggestions/{id}/accept` bzw. `/dismiss` | übernehmen (`{"purpose": "business", "vehicle": "own_car"}`) / verwerfen |
+| GET | `/api/mileage/suggestions` | offene erkannte Fahrten, optional `?from=…&to=…` wie bei den Fahrten |
+| POST | `/api/mileage/suggestions/{id}/accept` | übernehmen, optional `purpose`, `vehicle`, `project`, `distanceKm`, `comment`, `timesheet` |
+| POST | `/api/mileage/suggestions/{id}/dismiss` | verwerfen |
 | GET | `/api/mileage/tax/2026` | Jahreszusammenfassung |
+
+Andere Benutzer mit `?user=<id>` (nur mit den passenden Rechten, sonst 403). Ungültige Eingaben ergeben 400 mit
+`{"errors": {"feld": "Meldung"}}`, abgeschlossene Monate ohne `edit_locked_mileage` 403.
+
+**`{"purpose": "commute"}`** übernimmt Entfernung und Adressen aus *Profil → Einstellungen*. Ist dort keine
+Entfernung eingetragen (oder 0), gibt es ohne `distanceKm` einen Fehler 400 statt einer Fahrt mit 0 km.
+
+**`ping`** braucht nur API-Zugang (nicht das Recht `mileage`), damit ein Client „nicht installiert" (404) von
+„nicht erlaubt" (`permissions.view: false`) unterscheiden kann. Dawarich-URL und API-Key sind nie enthalten.
+
+```json
+{
+  "installed": true, "pluginVersion": "0.9.0", "apiVersions": ["v1"],
+  "permissions": {"view": true, "editOwn": true, "deleteOwn": true, "editLocked": false,
+                  "viewTeam": false, "viewOther": false, "editOther": false},
+  "features": ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck"],
+  "profile": {"commuteKm": 12.5, "defaultVehicle": "own_car", "defaultVehicleId": 6, "dawarichConfigured": true},
+  "lockedMonths": ["2025-12", "2026-01"]
+}
+```
+
+`lockedMonths` sind die abgeschlossenen, eingereichten oder genehmigten Monate des laufenden und des vorigen Jahres.
+`defaultVehicleId` ist das einzige aktive Fahrzeug, das heute gilt (sonst `null`).
+
+**Vorschlag übernehmen** mit Änderungen — `timesheet` muss ein Zeiteintrag des Benutzers des Vorschlags sein und
+setzt dessen Projekt, wenn `project` fehlt; ohne `distanceKm` gilt die erkannte Strecke bzw. bei Arbeitswegen die
+Entfernung aus dem Profil. Wird ein Arbeitsweg mit dem schon vorhandenen Arbeitsweg des Tages zusammengeführt, bleibt
+diese Fahrt unverändert. Die Vorschläge (`GET /suggestions`) enthalten dafür auch `timesheet` (id oder `null`).
+
+```bash
+curl -X POST https://kimai.example.com/api/mileage/suggestions/15/accept \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"timesheet": 34, "distanceKm": 31.5, "comment": "Kundentermin"}'
+```
 
 Beispiel für einen Handy-Kurzbefehl „Arbeitsweg heute":
 
