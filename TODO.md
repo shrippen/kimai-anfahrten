@@ -72,10 +72,18 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   Der Key steht als `value="…"` im Passwortfeld (Quelltext, Admin beim Bearbeiten fremder Einstellungen).
   **Fix:** Feld leer rendern, leer abgeschickt = bisherigen Wert behalten.
   Nachtest ✅: kein `value`, Profil speichern behält den Key; `tests/Form/SecretTypeTest.php`.
-- [ ] ✅ **Dawarich-API-Key über Kimais User-API sichtbar** — `GET /api/users/me` und (Admin)
+- [x] ✅ **Dawarich-API-Key über Kimais User-API sichtbar** — `GET /api/users/me` und (Admin)
   `GET /api/users/2` liefern `mileage_dawarich_api_key` im Klartext (Kimai serialisiert alle Präferenzen).
-  **Offen:** braucht eine Umbenennung auf eine interne Präferenz (`_…`) inkl. Datenmigration und Prüfung, ob Kimai
-  solche Präferenzen im Formular noch anzeigt; nur für den Nutzer selbst und Admins sichtbar.
+  **Entscheidung:** eigene Tabelle statt Präferenz. Eine interne Präferenz (`_…`) hätte nur die User-API
+  abgedeckt — Kimai gibt *alle* Präferenzen auch an Rechnungsvorlagen (`user.meta.*`). Neu: Tabelle
+  `kimai2_ext_mileage_user_secret` (`Entity/UserSecret`), Migration `Version20261001000000` verschiebt die Keys und
+  löscht die alten Präferenzzeilen. Das Feld bleibt in *Profil → Einstellungen* (nur auf den Einstellungsseiten, nie
+  beim Request-Boot) mit einem Platzhalterwert; `Doctrine/DawarichKeyListener` nimmt den Wert aus dem Flush und
+  schreibt ihn in die Tabelle (leer = behalten, ein Leerzeichen = löschen — das Leerzeichen wurde vorher
+  weggetrimmt und löschte nicht). Nachtest ✅: vorher `"value":"test-key"` in `/api/users/me`, nach der Migration
+  weder in `/me` noch in `/api/users/2` (Admin) noch als Präferenzzeile; Formular leer/neu/Leerzeichen und
+  `PATCH /api/users/2/preferences` wirken auf die Tabelle; Fahrterkennung gegen simuliertes Dawarich mit dem Key
+  aus der Tabelle (6 Vorschläge); `doctrine:schema:update --dump-sql` ohne Abweichung.
 - [x] ✅ **Beleg-Dateien bleiben liegen** — `API/MileageApiController.php:136`, `Controller/RentalController.php:115`
   `DELETE /api/mileage/trips/2` löscht die DB-Zeile (FK-Cascade), die Datei unter `var/data/mileage/2/` bleibt
   (live: 2 Dateien vorher und nachher). Gleiches beim Löschen eines Mietvorgangs. **Fix:** Dateien mitlöschen.

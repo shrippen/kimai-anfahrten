@@ -38,6 +38,11 @@ All notable changes to this project will be documented in this file.
 - The Dawarich API key is no longer written into the preferences page (leave the field empty to keep it)
 - The Dawarich connection test for another user needs edit rights (team leads could use a member's key)
 - "Measure with Dawarich" checks the CSRF token
+- The Dawarich API key is no longer a Kimai user preference: those are returned by `/api/users/me` and
+  `/api/users/{id}` and handed to invoice templates. It lives in the new table `kimai2_ext_mileage_user_secret`
+  (migration `Version20261001000000` moves existing keys and deletes the old preference rows). It is still edited in
+  *Profil → Einstellungen* (or with Kimai's `PATCH /api/users/{id}/preferences`); a single space now really deletes
+  the key (it was trimmed to empty and kept)
 
 ### Fixed
 

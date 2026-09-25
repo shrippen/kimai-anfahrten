@@ -25,7 +25,7 @@ class SecretType extends AbstractType
                 $stored = $event->getForm()->getData();
                 $event->setData(\is_scalar($stored) ? (string) $stored : null);
             }
-        });
+        }, 10); // before the trim listener, otherwise a single space would count as empty and keep the value
     }
 
     public function getParent(): string

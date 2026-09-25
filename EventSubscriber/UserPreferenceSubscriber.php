@@ -64,7 +64,12 @@ class UserPreferenceSubscriber implements EventSubscriberInterface
         if ($this->configuration->isUserDawarichUrlAllowed()) {
             $add(MileageConfiguration::PREF_DAWARICH_URL, UrlType::class, ['help' => 'mileage_dawarich_url_help', 'default_protocol' => 'https']);
         }
-        $add(MileageConfiguration::PREF_DAWARICH_API_KEY, SecretType::class, ['help' => 'mileage_dawarich_api_key_help']);
+        // Only on the preference pages (not while booting a request, e.g. for /api/users/me): the value is a
+        // stand-in, the key itself lives in its own table (see DawarichKeyListener).
+        if (!$event->isBooting()) {
+            $stored = $this->configuration->getDawarichApiKey($event->getUser()) !== null ? MileageConfiguration::SECRET_UNCHANGED : null;
+            $add(MileageConfiguration::PREF_DAWARICH_API_KEY, SecretType::class, ['help' => 'mileage_dawarich_api_key_help'], $stored);
+        }
         $add(MileageConfiguration::PREF_HOME_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_WORK_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_COMMUTE_KM, NumberType::class, ['help' => 'mileage_commute_km_help', 'scale' => 1, 'html5' => true]);

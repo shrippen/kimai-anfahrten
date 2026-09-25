@@ -97,6 +97,8 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
 1. **Profil → Einstellungen**: Steuerprofil, Wohn- und Arbeitsadresse, Entfernung Wohnung–Arbeit,
    Standardfahrzeug, Kennzeichen, Dawarich-API-Key (in Dawarich unter *Account*) und — falls in den
    Systemeinstellungen erlaubt — eine eigene Dawarich-URL.
+   Der API-Key wird nicht angezeigt (leer lassen = behalten, ein Leerzeichen = löschen) und liegt in einer eigenen
+   Tabelle, nicht bei Kimais Benutzereinstellungen — `/api/users/me` und Rechnungsvorlagen enthalten ihn nicht.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
 3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
 4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
