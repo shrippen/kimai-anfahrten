@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Dawarich: trips and distances come from the tracks Dawarich computes (`GET /api/v1/tracks`,
+  `GET /api/v1/tracks/{id}`) and their transportation-mode segments instead of the plugin's own stop detection on
+  raw GPS points. Consecutive driven segments form a trip; walking/running/cycling segments (if excluded) and
+  standstills of at least the stop duration end it. Distance is the sum of Dawarich's segment distances; a segment
+  cut by the measuring window counts in proportion to its time. "Test connection" checks the tracks API and counts
+  tracks. Dawarich versions without tracks are no longer supported: the plugin reports "no tracks" instead.
+- Removed the settings `mileage.dawarich_max_accuracy` and `mileage.detect_stop_radius` (and the GPS jump and
+  leading outlier filters): Dawarich's own analysis is used
+
 - User interface rebuilt with Kimai components and the shared UI kit
   ([kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) 0.2.0): page title with period and context line,
   page actions and row "…" menus instead of buttons in the content, period navigation (week/month/year where

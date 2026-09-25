@@ -50,14 +50,6 @@
         <source>mileage.dawarich_url_help</source>
         <target>e.g. https://dawarich.example.org — personal URLs per user only if allowed below.</target>
       </trans-unit>
-      <trans-unit id="m012" resname="mileage.dawarich_max_accuracy">
-        <source>mileage.dawarich_max_accuracy</source>
-        <target>Maximum GPS inaccuracy (m)</target>
-      </trans-unit>
-      <trans-unit id="m013" resname="mileage.dawarich_max_accuracy_help">
-        <source>mileage.dawarich_max_accuracy_help</source>
-        <target>Less accurate points are ignored when measuring distances.</target>
-      </trans-unit>
       <trans-unit id="m014" resname="mileage_dawarich_url">
         <source>mileage_dawarich_url</source>
         <target>Dawarich URL</target>
@@ -272,11 +264,11 @@
       </trans-unit>
       <trans-unit id="m067" resname="mileage.dawarich.measured">
         <source>mileage.dawarich.measured</source>
-        <target>Dawarich: measured %km% km from %points% GPS points. Please review and save.</target>
+        <target>Dawarich: measured %km% km from %segments% driving segments. Please review and save.</target>
       </trans-unit>
-      <trans-unit id="m068" resname="mileage.dawarich.no_points">
-        <source>mileage.dawarich.no_points</source>
-        <target>Dawarich returned no usable GPS points for this time window.</target>
+      <trans-unit id="m068" resname="mileage.dawarich.no_segments">
+        <source>mileage.dawarich.no_segments</source>
+        <target>Dawarich has only walks, bike rides or standstills in this time window, no driving segments.</target>
       </trans-unit>
       <trans-unit id="m069" resname="mileage.dawarich.not_configured_hint">
         <source>mileage.dawarich.not_configured_hint</source>
@@ -404,7 +396,7 @@
       </trans-unit>
       <trans-unit id="m100" resname="mileage.dawarich.test_ok">
         <source>mileage.dawarich.test_ok</source>
-        <target>{1}Dawarich connection OK — one GPS point in the last 30 days.|[0,Inf[Dawarich connection OK — %count% GPS points in the last 30 days.</target>
+        <target>{0}Dawarich connection OK — but no tracks in the last 30 days (tracks not computed yet?).|{1}Dawarich connection OK — one track in the last 30 days.|[2,Inf[Dawarich connection OK — %count% tracks in the last 30 days.</target>
       </trans-unit>
       <trans-unit id="m101" resname="mileage.geocoder_url">
         <source>mileage.geocoder_url</source>
@@ -436,11 +428,7 @@
       </trans-unit>
       <trans-unit id="m108" resname="mileage.detect_stop_minutes_help">
         <source>mileage.detect_stop_minutes_help</source>
-        <target>Staying this long at one place ends a trip.</target>
-      </trans-unit>
-      <trans-unit id="m109" resname="mileage.detect_stop_radius">
-        <source>mileage.detect_stop_radius</source>
-        <target>Stop radius (m)</target>
+        <target>Standing still this long within a Dawarich track (transportation mode "stationary") ends the trip.</target>
       </trans-unit>
       <trans-unit id="m110" resname="mileage.detect_min_km">
         <source>mileage.detect_min_km</source>
@@ -1416,7 +1404,7 @@
       </trans-unit>
       <trans-unit id="m353" resname="mileage.dawarich_exclude_non_motorized_help">
         <source>mileage.dawarich_exclude_non_motorized_help</source>
-        <target>Uses the transportation mode Dawarich detects for its tracks. Such parts are neither detected as trips nor measured.</target>
+        <target>Uses the transportation mode Dawarich detects for the segments of its tracks. Such segments are neither detected as trips nor measured, and they split two trips.</target>
       </trans-unit>
       <trans-unit id="m354" resname="mileage.dawarich.mode.walking">
         <source>mileage.dawarich.mode.walking</source>
@@ -1769,6 +1757,14 @@
       <trans-unit id="m441" resname="mileage.trip.locked_readonly">
         <source>mileage.trip.locked_readonly</source>
         <target>This month is closed. The trip cannot be changed anymore, but receipts can still be handed in.</target>
+      </trans-unit>
+      <trans-unit id="m442" resname="mileage.dawarich.error.no_tracks_api">
+        <source>mileage.dawarich.error.no_tracks_api</source>
+        <target>Dawarich returns no tracks (version too old, the tracks API is missing). Please update Dawarich.</target>
+      </trans-unit>
+      <trans-unit id="m443" resname="mileage.dawarich.error.no_tracks">
+        <source>mileage.dawarich.error.no_tracks</source>
+        <target>Dawarich has no tracks for this period (nothing recorded or tracks not computed yet).</target>
       </trans-unit>
     </body>
   </file>

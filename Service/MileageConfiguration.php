@@ -93,11 +93,6 @@ class MileageConfiguration
     }
 
     /** GPS points with a worse accuracy (in metres) are ignored for distance calculation. */
-    public function getMaxAccuracy(): int
-    {
-        return (int) $this->float('mileage.dawarich_max_accuracy', 100);
-    }
-
     public function getGeocoderUrl(): ?string
     {
         $url = $this->nonEmpty($this->configuration->find('mileage.geocoder_url'));
@@ -131,11 +126,6 @@ class MileageConfiguration
     public function getDetectMinKm(): float
     {
         return max(0.1, $this->float('mileage.detect_min_km', 1.0));
-    }
-
-    public function getDetectStopRadius(): float
-    {
-        return max(20.0, $this->float('mileage.detect_stop_radius', 200));
     }
 
     /**

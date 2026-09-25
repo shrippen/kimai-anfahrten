@@ -142,6 +142,8 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   der Spur (300 km/h) bleibt. Unit-Tests mit synthetischen Spuren: ein und zwei Ausreißer am Start, alter Fix
   Minuten vor der Spur (früher +25 km), Glitch nach gutem Start, GPS-Rauschen < 1 km, lange geparkter echter Start,
   nur 2 Punkte.
+  **Überholt:** mit der Umstellung auf die Dawarich-Tracks (siehe unten) ist die eigene Messung auf GPS-Punkten samt
+  Ausreißer- und Sprungfilter entfallen; Dawarich verwirft als Anomalie markierte Punkte selbst.
 - [x] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
   Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log).
   **Entscheidung:** Nachreichen (Hochladen) bleibt erlaubt, Ändern/Löschen nur mit `edit_locked_mileage`.
@@ -156,6 +158,16 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   hochladbar, kein Löschen-Button.
 - **kein Fehler** ✅ `GET /mileage/trip/{id}/track`: Teamleitung sieht die GPS-Spur der Fahrt eines Mitglieds —
   entspricht dem Sichtrecht auf die Fahrt (Zeitfenster der Fahrt); nur Hinweis für die Doku.
+
+## Dawarich-Tracks statt eigener Erkennung (Branch `claude/dawarich-tracks`)
+
+- [x] Fahrterkennung und Streckenmessung nutzen nur noch die Tracks und Transportmodus-Abschnitte von Dawarich
+  (`GET /api/v1/tracks`, `GET /api/v1/tracks/{id}`); `TripDetector`, der Punktfilter im `DistanceCalculator` und
+  `/api/v1/points` werden nicht mehr verwendet. Ohne Tracks-API (404) oder ohne Tracks im Zeitraum: Meldung statt
+  Rückfall auf GPS-Punkte. Einstellungen `mileage.dawarich_max_accuracy` und `mileage.detect_stop_radius` entfallen.
+- [ ] Gegen eine echte Dawarich-Instanz (≥ Version mit Transportmodi) prüfen: Feldnamen und Einheiten sind aus dem
+  Quellcode (Dawarich 1.15.2, `app/serializers/tracks/geojson_serializer.rb`) übernommen, getestet nur gegen den
+  nachgebauten Server in `tests/e2e/fake-dawarich`.
 
 ## UI-Beobachtungen (für die spätere UI-Kit-Integration, hier nicht geändert)
 

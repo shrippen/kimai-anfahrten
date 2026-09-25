@@ -1,9 +1,10 @@
 <?php
 
 /*
- * Minimal fake of the Dawarich API for end-to-end tests (points, areas, tracks with
- * transportation modes). Every weekday: home → office (car), a walk to lunch and back,
- * office → customer → home (car), and an evening bike ride.
+ * Minimal fake of the Dawarich API for end-to-end tests: areas and tracks with transportation-mode segments, in the
+ * shape of Dawarich's Api::V1::TracksController / Tracks::GeojsonSerializer. Every weekday is one track (the phone
+ * records all day, Dawarich only starts a new track after a 30-minute gap): home → office (car), a walk to lunch and
+ * back, office → customer → home (car), and an evening bike ride, with standstills in between.
  */
 header('Content-Type: application/json');
 if (($_SERVER['HTTP_AUTHORIZATION'] ?? '') !== 'Bearer test-key') {
@@ -29,47 +30,107 @@ if ($path === '/api/v1/areas') {
     return;
 }
 
+function metres(array $a, array $b): float
+{
+    $dLat = deg2rad($b[0] - $a[0]);
+    $dLon = deg2rad($b[1] - $a[1]);
+    $h = sin($dLat / 2) ** 2 + cos(deg2rad($a[0])) * cos(deg2rad($b[0])) * sin($dLon / 2) ** 2;
+
+    return 2 * 6371008.8 * asin(min(1.0, sqrt($h)));
+}
+
 /**
- * @return array{points: list<array{0: array{float, float}, 1: int}>, segments: list<array{mode: string, start_time: int, end_time: int}>}
+ * The track of one weekday.
+ *
+ * @return array{start: int, end: int, segments: list<array<string, mixed>>, coordinates: list<array{float, float}>}
  */
 function day(DateTimeImmutable $d): array
 {
-    $points = [];
     $segments = [];
     $t = fn (string $hm) => $d->modify($hm)->getTimestamp();
-    $stay = function (array $at, string $a, string $b) use (&$points, $t) {
-        for ($x = $t($a); $x <= $t($b); $x += 300) {
-            $points[] = [$at, $x];
-        }
-    };
-    $move = function (array $p, array $q, string $a, string $b, string $mode) use (&$points, &$segments, $t) {
+    $add = function (array $p, array $q, string $a, string $b, string $mode) use (&$segments, $t) {
         $from = $t($a);
         $to = $t($b);
-        $n = max(2, intdiv($to - $from, 30));
-        for ($i = 1; $i < $n; $i++) {
+        $step = $mode === 'stationary' ? 300 : 30;
+        $n = max(2, intdiv($to - $from, $step));
+        $coordinates = [];
+        $metres = 0.0;
+        for ($i = 0; $i <= $n; $i++) {
             $f = $i / $n;
-            $points[] = [[$p[0] + ($q[0] - $p[0]) * $f, $p[1] + ($q[1] - $p[1]) * $f], $from + (int) (($to - $from) * $f)];
+            $point = [$p[0] + ($q[0] - $p[0]) * $f, $p[1] + ($q[1] - $p[1]) * $f];
+            if ($coordinates !== []) {
+                $last = end($coordinates);
+                $metres += metres([$last[1], $last[0]], $point);
+            }
+            $coordinates[] = [round($point[1], 6), round($point[0], 6)];
         }
-        $segments[] = ['mode' => $mode, 'start_time' => $from, 'end_time' => $to];
+        $segments[] = [
+            'id' => count($segments) + 1,
+            'mode' => $mode,
+            'emoji' => '',
+            'color' => '#6366F1',
+            'start_index' => null,
+            'end_index' => null,
+            'coordinates' => $coordinates,
+            'distance' => (int) round($metres),
+            'duration' => $to - $from,
+            'avg_speed' => round($metres / max(1, $to - $from) * 3.6, 2),
+            'confidence' => 'high',
+            'start_time' => $from,
+            'end_time' => $to,
+        ];
     };
 
-    $stay(HOME, '06:00', '07:30');
-    $move(HOME, OFFICE, '07:30', '07:50', 'driving');
-    $stay(OFFICE, '07:50', '10:00');
-    $move(OFFICE, CAFE, '10:00', '10:25', 'walking');
-    $stay(CAFE, '10:25', '10:40');
-    $move(CAFE, OFFICE, '10:40', '11:05', 'walking');
-    $stay(OFFICE, '11:05', '12:00');
-    $move(OFFICE, CUSTOMER, '12:00', '12:35', 'driving');
-    $stay(CUSTOMER, '12:35', '16:00');
-    $move(CUSTOMER, HOME, '16:00', '16:45', 'driving');
-    $stay(HOME, '16:45', '18:00');
-    $move(HOME, LAKE, '18:00', '18:40', 'cycling');
-    $stay(LAKE, '18:40', '19:10');
-    $move(LAKE, HOME, '19:10', '19:50', 'cycling');
-    $stay(HOME, '19:50', '22:00');
+    $add(HOME, HOME, '06:00', '07:30', 'stationary');
+    $add(HOME, OFFICE, '07:30', '07:50', 'driving');
+    $add(OFFICE, OFFICE, '07:50', '10:00', 'stationary');
+    $add(OFFICE, CAFE, '10:00', '10:25', 'walking');
+    $add(CAFE, CAFE, '10:25', '10:40', 'stationary');
+    $add(CAFE, OFFICE, '10:40', '11:05', 'walking');
+    $add(OFFICE, OFFICE, '11:05', '12:00', 'stationary');
+    $add(OFFICE, CUSTOMER, '12:00', '12:35', 'driving');
+    $add(CUSTOMER, CUSTOMER, '12:35', '16:00', 'stationary');
+    $add(CUSTOMER, HOME, '16:00', '16:45', 'driving');
+    $add(HOME, HOME, '16:45', '18:00', 'stationary');
+    $add(HOME, LAKE, '18:00', '18:40', 'cycling');
+    $add(LAKE, LAKE, '18:40', '19:10', 'stationary');
+    $add(LAKE, HOME, '19:10', '19:50', 'cycling');
+    $add(HOME, HOME, '19:50', '22:00', 'stationary');
 
-    return ['points' => $points, 'segments' => $segments];
+    $coordinates = [];
+    foreach ($segments as $segment) {
+        array_push($coordinates, ...$segment['coordinates']);
+    }
+
+    return ['start' => $t('06:00'), 'end' => $t('22:00'), 'segments' => $segments, 'coordinates' => $coordinates];
+}
+
+/**
+ * GeoJSON feature like Tracks::GeojsonSerializer (segments only in the show action).
+ *
+ * @return array<string, mixed>
+ */
+function feature(int $id, array $day, bool $withSegments): array
+{
+    $distance = array_sum(array_column($day['segments'], 'distance'));
+    $properties = [
+        'id' => $id,
+        'color' => '#6366F1',
+        'start_at' => gmdate('Y-m-d\TH:i:s\Z', $day['start']),
+        'end_at' => gmdate('Y-m-d\TH:i:s\Z', $day['end']),
+        'distance' => $distance,
+        'avg_speed' => round($distance / ($day['end'] - $day['start']) * 3.6, 2),
+        'duration' => $day['end'] - $day['start'],
+        'revision' => 0,
+        'dominant_mode' => 'driving',
+        'dominant_mode_emoji' => '🚗',
+        'mode_timeline' => array_map(fn ($s) => ['start_time' => $s['start_time'], 'end_time' => $s['end_time'], 'emoji' => ''], $day['segments']),
+    ];
+    if ($withSegments) {
+        $properties['segments'] = $day['segments'];
+    }
+
+    return ['type' => 'Feature', 'geometry' => ['type' => 'LineString', 'coordinates' => $day['coordinates']], 'properties' => $properties];
 }
 
 /**
@@ -85,40 +146,33 @@ function weekdays(int $from, int $to): iterable
     }
 }
 
-// tracks: one track per weekday, the id is the date (Ymd)
+// tracks: one per weekday, the id is the date (Ymd); newest first and paginated like Tracks::IndexQuery
 if ($path === '/api/v1/tracks') {
+    $from = strtotime($_GET['start_at']);
+    $to = strtotime($_GET['end_at']);
     $features = [];
-    foreach (weekdays(strtotime($_GET['start_at']), strtotime($_GET['end_at'])) as $d) {
-        $features[] = ['type' => 'Feature', 'properties' => ['id' => (int) $d->format('Ymd'), 'dominant_mode' => 'driving']];
+    foreach (weekdays($from - 86400, $to) as $d) {
+        $day = day($d);
+        if ($day['end'] >= $from && $day['start'] <= $to) {
+            $features[] = feature((int) $d->format('Ymd'), $day, false);
+        }
     }
-    echo json_encode(['type' => 'FeatureCollection', 'features' => $features]);
+    $features = array_reverse($features);
+    $per = max(1, (int) ($_GET['per_page'] ?? 500));
+    $page = max(1, (int) ($_GET['page'] ?? 1));
+    header('X-Current-Page: ' . $page);
+    header('X-Total-Pages: ' . (int) ceil(count($features) / $per));
+    header('X-Total-Count: ' . count($features));
+    echo json_encode(['type' => 'FeatureCollection', 'features' => array_slice($features, ($page - 1) * $per, $per)]);
 
     return;
 }
 if (preg_match('#^/api/v1/tracks/(\d{8})$#', $path, $m)) {
     $d = new DateTimeImmutable($m[1], new DateTimeZone('Europe/Berlin'));
-    echo json_encode(['type' => 'FeatureCollection', 'features' => [['type' => 'Feature', 'properties' => ['id' => (int) $m[1], 'segments' => day($d)['segments']]]]]);
+    echo json_encode(['type' => 'FeatureCollection', 'features' => [feature((int) $m[1], day($d), true)]]);
 
     return;
 }
 
-if ($path !== '/api/v1/points') {
-    http_response_code(404);
-    echo '[]';
-
-    return;
-}
-
-$from = strtotime($_GET['start_at']);
-$to = strtotime($_GET['end_at']);
-$points = [];
-foreach (weekdays($from, $to) as $d) {
-    array_push($points, ...day($d)['points']);
-}
-$points = array_values(array_filter($points, fn ($p) => $p[1] >= $from && $p[1] <= $to));
-$rows = array_map(fn ($p) => ['latitude' => (string) $p[0][0], 'longitude' => (string) $p[0][1], 'timestamp' => $p[1], 'accuracy' => 8], $points);
-$per = (int) ($_GET['per_page'] ?? 100);
-$page = (int) ($_GET['page'] ?? 1);
-header('X-Total-Pages: ' . max(1, (int) ceil(count($rows) / $per)));
-header('X-Current-Page: ' . $page);
-echo json_encode(array_slice($rows, ($page - 1) * $per, $per));
+http_response_code(404);
+echo '{"error":"not found"}';

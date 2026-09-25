@@ -50,14 +50,6 @@
         <source>mileage.dawarich_url_help</source>
         <target>z. B. https://dawarich.example.org — eigene URLs pro Benutzer nur, wenn unten erlaubt.</target>
       </trans-unit>
-      <trans-unit id="m012" resname="mileage.dawarich_max_accuracy">
-        <source>mileage.dawarich_max_accuracy</source>
-        <target>Maximale GPS-Ungenauigkeit (m)</target>
-      </trans-unit>
-      <trans-unit id="m013" resname="mileage.dawarich_max_accuracy_help">
-        <source>mileage.dawarich_max_accuracy_help</source>
-        <target>Ungenauere Punkte werden bei der Streckenberechnung ignoriert.</target>
-      </trans-unit>
       <trans-unit id="m014" resname="mileage_dawarich_url">
         <source>mileage_dawarich_url</source>
         <target>Dawarich-URL</target>
@@ -272,11 +264,11 @@
       </trans-unit>
       <trans-unit id="m067" resname="mileage.dawarich.measured">
         <source>mileage.dawarich.measured</source>
-        <target>Dawarich: %km% km aus %points% GPS-Punkten gemessen. Bitte prüfen und speichern.</target>
+        <target>Dawarich: %km% km aus %segments% Fahrtabschnitten gemessen. Bitte prüfen und speichern.</target>
       </trans-unit>
-      <trans-unit id="m068" resname="mileage.dawarich.no_points">
-        <source>mileage.dawarich.no_points</source>
-        <target>Dawarich hat im Zeitfenster keine verwertbaren GPS-Punkte geliefert.</target>
+      <trans-unit id="m068" resname="mileage.dawarich.no_segments">
+        <source>mileage.dawarich.no_segments</source>
+        <target>Dawarich hat im Zeitfenster nur Fuß-/Radwege oder Standzeiten, aber keine gefahrenen Abschnitte.</target>
       </trans-unit>
       <trans-unit id="m069" resname="mileage.dawarich.not_configured_hint">
         <source>mileage.dawarich.not_configured_hint</source>
@@ -404,7 +396,7 @@
       </trans-unit>
       <trans-unit id="m100" resname="mileage.dawarich.test_ok">
         <source>mileage.dawarich.test_ok</source>
-        <target>{1}Verbindung zu Dawarich OK — ein GPS-Punkt in den letzten 30 Tagen.|[0,Inf[Verbindung zu Dawarich OK — %count% GPS-Punkte in den letzten 30 Tagen.</target>
+        <target>{0}Verbindung zu Dawarich OK — aber keine Tracks in den letzten 30 Tagen (Tracks noch nicht berechnet?).|{1}Verbindung zu Dawarich OK — ein Track in den letzten 30 Tagen.|[2,Inf[Verbindung zu Dawarich OK — %count% Tracks in den letzten 30 Tagen.</target>
       </trans-unit>
       <trans-unit id="m101" resname="mileage.geocoder_url">
         <source>mileage.geocoder_url</source>
@@ -436,11 +428,7 @@
       </trans-unit>
       <trans-unit id="m108" resname="mileage.detect_stop_minutes_help">
         <source>mileage.detect_stop_minutes_help</source>
-        <target>Wer so lange an einem Ort bleibt, beendet eine Fahrt.</target>
-      </trans-unit>
-      <trans-unit id="m109" resname="mileage.detect_stop_radius">
-        <source>mileage.detect_stop_radius</source>
-        <target>Stopp-Radius (m)</target>
+        <target>Steht man innerhalb eines Dawarich-Tracks so lange still (Transportmodus „stationär“), endet die Fahrt dort.</target>
       </trans-unit>
       <trans-unit id="m110" resname="mileage.detect_min_km">
         <source>mileage.detect_min_km</source>
@@ -1416,7 +1404,7 @@
       </trans-unit>
       <trans-unit id="m353" resname="mileage.dawarich_exclude_non_motorized_help">
         <source>mileage.dawarich_exclude_non_motorized_help</source>
-        <target>Nutzt den Transportmodus, den Dawarich für seine Tracks erkennt (ab Dawarich mit Tracks/Transportmodi). Solche Abschnitte werden weder als Fahrt erkannt noch mitgemessen.</target>
+        <target>Nutzt den Transportmodus, den Dawarich für die Abschnitte seiner Tracks erkennt. Solche Abschnitte werden weder als Fahrt erkannt noch mitgemessen und trennen zwei Fahrten.</target>
       </trans-unit>
       <trans-unit id="m354" resname="mileage.dawarich.mode.walking">
         <source>mileage.dawarich.mode.walking</source>
@@ -1769,6 +1757,14 @@
       <trans-unit id="m441" resname="mileage.trip.locked_readonly">
         <source>mileage.trip.locked_readonly</source>
         <target>Der Monat ist abgeschlossen. Die Fahrt kann nicht mehr geändert werden, Belege können aber nachgereicht werden.</target>
+      </trans-unit>
+      <trans-unit id="m442" resname="mileage.dawarich.error.no_tracks_api">
+        <source>mileage.dawarich.error.no_tracks_api</source>
+        <target>Dawarich liefert keine Tracks (Version zu alt, die Tracks-API fehlt). Bitte Dawarich aktualisieren.</target>
+      </trans-unit>
+      <trans-unit id="m443" resname="mileage.dawarich.error.no_tracks">
+        <source>mileage.dawarich.error.no_tracks</source>
+        <target>Dawarich liefert für diesen Zeitraum keine Tracks (keine Aufzeichnung oder Tracks noch nicht berechnet).</target>
       </trans-unit>
     </body>
   </file>

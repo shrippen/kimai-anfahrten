@@ -27,11 +27,15 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - CSV-Import (erkennt Trennzeichen, Zeichensatz, deutsche/englische Spalten — auch den eigenen Export), REST-API
 
 **Dawarich**
-- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke; ungenaue Punkte, GPS-Sprünge
-  (> 300 km/h) und Ausreißer am Anfang der Spur (> 1 km und > 200 km/h von den folgenden Punkten) zählen nicht
-- **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
-  Fuß-, Lauf- und Radwege werden über den **Transportmodus von Dawarich** ausgeschlossen (abschaltbar);
-  bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel vorgeschlagen.
+- Nutzt die **Tracks von Dawarich** (`/api/v1/tracks`) mit ihren Abschnitten und dem von Dawarich erkannten
+  **Transportmodus** — keine eigene Auswertung der GPS-Punkte. Voraussetzung ist eine Dawarich-Version mit Tracks;
+  ohne Tracks (zu alte Version oder noch nicht berechnet) gibt es eine Meldung statt einer Schätzung.
+- Strecke für ein Zeitfenster messen, Kartenvorschau der Strecke: Summe der Dawarich-Abschnittslängen im Fenster;
+  angeschnittene Abschnitte zählen anteilig nach der Zeit, Standzeiten ab der Stopp-Dauer zählen nicht
+- **Automatische Fahrterkennung**: aufeinanderfolgende gefahrene Abschnitte eines Tracks sind eine Fahrt.
+  Fuß-, Lauf- und Radwege (abschaltbar) und Standzeiten ab der Stopp-Dauer beenden eine Fahrt — ein Fußweg
+  zwischen zwei Autofahrten ergibt zwei Fahrten; bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel
+  vorgeschlagen.
   Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
   mit Projekt. Übernehmen, bearbeiten oder verwerfen.
 - Orte (Zuhause, Arbeit, Kunde) anlegen oder aus Dawarich-*Areas* übernehmen, optionale Adressauflösung

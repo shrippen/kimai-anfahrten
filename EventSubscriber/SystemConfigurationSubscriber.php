@@ -86,13 +86,6 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(TextType::class)
                         ->setValue('© OpenStreetMap contributors'),
-                    (new Configuration('mileage.dawarich_max_accuracy'))
-                        ->setLabel('mileage.dawarich_max_accuracy')
-                        ->setTranslationDomain('messages')
-                        ->setRequired(false)
-                        ->setType(IntegerType::class)
-                        ->setValue(100)
-                        ->setOptions(['help' => 'mileage.dawarich_max_accuracy_help']),
                 ])
         );
 
@@ -115,12 +108,6 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setType(IntegerType::class)
                         ->setValue(5)
                         ->setOptions(['help' => 'mileage.detect_stop_minutes_help']),
-                    (new Configuration('mileage.detect_stop_radius'))
-                        ->setLabel('mileage.detect_stop_radius')
-                        ->setTranslationDomain('messages')
-                        ->setRequired(false)
-                        ->setType(IntegerType::class)
-                        ->setValue(200),
                     $rate('mileage.detect_min_km', 1.0),
                 ])
         );

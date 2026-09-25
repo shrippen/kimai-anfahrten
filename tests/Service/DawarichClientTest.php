@@ -9,6 +9,7 @@ use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\DawarichKeyStore;
 use KimaiPlugin\MileageBundle\Service\DistanceCalculator;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\TrackAnalyzer;
 use KimaiPlugin\MileageBundle\Service\TransportModeFilter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -49,48 +50,7 @@ class DawarichClientTest extends TestCase
 
     private function client(MockHttpClient $http): DawarichClient
     {
-        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => true]), self::keys([1 => 'secret'])), new DistanceCalculator(), new TransportModeFilter());
-    }
-
-    public function testFetchesAllPagesWithBearerToken(): void
-    {
-        $requests = [];
-        $http = new MockHttpClient(function (string $method, string $url, array $options) use (&$requests) {
-            $requests[] = [$url, $options['normalized_headers']['authorization'][0] ?? null];
-            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
-            $page = (int) $query['page'];
-            $body = $page === 1
-                ? [['latitude' => '52.0', 'longitude' => '13.00', 'timestamp' => 1000, 'accuracy' => 5]]
-                : [['lonlat' => 'POINT (13.01 52.0)', 'timestamp' => 1600]];
-
-            return new MockResponse(json_encode($body), ['response_headers' => ['X-Total-Pages' => '2']]);
-        });
-
-        $from = new \DateTimeImmutable('2026-01-01 08:00:00+01:00');
-        $points = $this->client($http)->fetchPoints($this->user(), $from, $from->modify('+1 hour'));
-
-        self::assertCount(2, $points);
-        self::assertCount(2, $requests);
-        self::assertStringStartsWith('https://dawarich.test/api/v1/points?', $requests[0][0]);
-        self::assertStringContainsString('start_at=2026-01-01T08:00:00%2B01:00', $requests[0][0]);
-        self::assertSame('Authorization: Bearer secret', $requests[0][1]);
-        self::assertSame(13.01, $points[1]->longitude);
-        self::assertSame(5.0, $points[0]->accuracy);
-    }
-
-    public function testSkipsMalformedPoints(): void
-    {
-        $http = new MockHttpClient(new MockResponse(json_encode([
-            ['latitude' => 'abc', 'longitude' => '13', 'timestamp' => 1],
-            ['latitude' => '52', 'longitude' => '13', 'timestamp' => '2026-01-01T08:00:00Z'],
-            'garbage',
-        ])));
-
-        $from = new \DateTimeImmutable('2026-01-01 08:00');
-        $points = $this->client($http)->fetchPoints($this->user(), $from, $from->modify('+1 hour'));
-
-        self::assertCount(1, $points);
-        self::assertSame(strtotime('2026-01-01T08:00:00Z'), $points[0]->timestamp);
+        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => true]), self::keys([1 => 'secret'])), new TrackAnalyzer(new DistanceCalculator(), new TransportModeFilter()));
     }
 
     public function testNotConfigured(): void
@@ -99,7 +59,7 @@ class DawarichClientTest extends TestCase
         $this->expectExceptionMessage('mileage.dawarich.error.not_configured');
 
         $from = new \DateTimeImmutable();
-        $this->client(new MockHttpClient())->fetchPoints(new User(2), $from, $from->modify('+1 hour'));
+        $this->client(new MockHttpClient())->fetchTracks(new User(2), $from, $from->modify('+1 hour'));
     }
 
     public function testUnauthorized(): void
@@ -109,7 +69,7 @@ class DawarichClientTest extends TestCase
 
         $from = new \DateTimeImmutable();
         $this->client(new MockHttpClient(new MockResponse('{}', ['http_code' => 401])))
-            ->fetchPoints($this->user(), $from, $from->modify('+1 hour'));
+            ->fetchTracks($this->user(), $from, $from->modify('+1 hour'));
     }
 
     public function testRejectsInvertedWindow(): void
@@ -117,7 +77,7 @@ class DawarichClientTest extends TestCase
         $this->expectException(DawarichException::class);
 
         $from = new \DateTimeImmutable();
-        $this->client(new MockHttpClient())->fetchPoints($this->user(), $from, $from->modify('-1 hour'));
+        $this->client(new MockHttpClient())->fetchTracks($this->user(), $from, $from->modify('-1 hour'));
     }
 
     public function testSystemUrlIsFallback(): void
@@ -172,42 +132,93 @@ class DawarichClientTest extends TestCase
         self::assertSame(0, $options['max_redirects'] ?? null);
     }
 
-    public function testConnectionReportsPointCount(): void
+    public function testConnectionReportsTrackCount(): void
     {
-        $http = new MockHttpClient(new MockResponse(json_encode([['latitude' => 1, 'longitude' => 2, 'timestamp' => 3]]), [
-            'response_headers' => ['X-Total-Pages' => '4711'],
-        ]));
+        $url = null;
+        $http = new MockHttpClient(function (string $method, string $u) use (&$url) {
+            $url = $u;
 
-        self::assertSame(4711, $this->client($http)->testConnection($this->user()));
+            return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => [self::feature(1, 0, 60)]]), [
+                'response_headers' => ['X-Total-Count' => '42', 'X-Total-Pages' => '42'],
+            ]);
+        });
+
+        self::assertSame(42, $this->client($http)->testConnection($this->user()));
+        self::assertStringStartsWith('https://dawarich.test/api/v1/tracks?', (string) $url);
+        self::assertStringContainsString('per_page=1', (string) $url);
     }
 
-    public function testFetchesTransportSegmentsOfAllTracks(): void
+    /**
+     * A feature as Tracks::GeojsonSerializer renders it (the index has no "segments", the show action has them).
+     *
+     * @param list<array<string, mixed>>|null $segments
+     * @return array<string, mixed>
+     */
+    private static function feature(int $id, int $start, int $end, ?array $segments = null): array
+    {
+        $properties = [
+            'id' => $id,
+            'color' => '#6366F1',
+            'start_at' => gmdate('Y-m-d\\TH:i:s\\Z', $start),
+            'end_at' => gmdate('Y-m-d\\TH:i:s\\Z', $end),
+            'distance' => 12345,
+            'avg_speed' => 40.5,
+            'duration' => $end - $start,
+            'revision' => 0,
+            'dominant_mode' => 'driving',
+            'dominant_mode_emoji' => '🚗',
+            'mode_timeline' => [],
+        ];
+        if ($segments !== null) {
+            $properties['segments'] = $segments;
+        }
+
+        return ['type' => 'Feature', 'geometry' => ['type' => 'LineString', 'coordinates' => [[13.0, 52.0], [13.2, 52.1]]], 'properties' => $properties];
+    }
+
+    public function testFetchesTracksWithSegments(): void
     {
         $urls = [];
-        $http = new MockHttpClient(function (string $method, string $url) use (&$urls) {
-            $urls[] = $url;
+        $http = new MockHttpClient(function (string $method, string $url, array $options) use (&$urls) {
+            $urls[] = [$url, $options['normalized_headers']['authorization'][0] ?? null];
             $path = (string) parse_url($url, PHP_URL_PATH);
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
             if ($path === '/api/v1/tracks') {
-                return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => [
-                    ['properties' => ['id' => 7, 'dominant_mode' => 'driving']],
-                    ['properties' => ['id' => 9, 'dominant_mode' => 'walking']],
-                ]]));
-            }
-            $id = (int) basename($path);
+                // newest first, two pages
+                $features = (int) $query['page'] === 1 ? [self::feature(9, 5000, 6000)] : [self::feature(7, 1000, 2000)];
 
-            return new MockResponse(json_encode(['features' => [['properties' => ['segments' => [
-                ['mode' => $id === 7 ? 'driving' : 'walking', 'start_time' => $id * 100, 'end_time' => $id * 100 + 50],
+                return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => $features]), ['response_headers' => ['X-Total-Pages' => '2']]);
+            }
+            if ($path === '/api/v1/tracks/9') {
+                return new MockResponse('{"error":"not found"}', ['http_code' => 404]); // deleted meanwhile
+            }
+
+            return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => [self::feature(7, 1000, 2000, [
+                ['id' => 2, 'mode' => 'walking', 'start_index' => null, 'end_index' => null, 'coordinates' => null, 'distance' => 300, 'duration' => 400, 'avg_speed' => 2.7, 'confidence' => 'high', 'start_time' => 1600, 'end_time' => 2000],
+                ['id' => 1, 'mode' => 'driving', 'start_index' => null, 'end_index' => null, 'coordinates' => [[13.0, 52.0], [13.1, 52.05]], 'distance' => 12045, 'duration' => 600, 'avg_speed' => 72.3, 'confidence' => 'high', 'start_time' => 1000, 'end_time' => 1600],
                 ['mode' => 'unknown'], // legacy segment without times
-            ]]]]]));
+            ])]]));
         });
 
         $from = new \DateTimeImmutable('2026-01-01 00:00');
-        $segments = $this->client($http)->fetchTransportSegments($this->user(), $from, $from->modify('+1 day'));
+        $tracks = $this->client($http)->fetchTracks($this->user(), $from, $from->modify('+1 day'));
 
-        self::assertCount(2, $segments);
-        self::assertSame('driving', $segments[0]->mode);
-        self::assertSame(900, $segments[1]->start);
-        self::assertStringContainsString('/api/v1/tracks/9', $urls[2]);
+        self::assertCount(1, $tracks);
+        $track = $tracks[0];
+        self::assertSame(7, $track->id);
+        self::assertSame(1000, $track->start);
+        self::assertSame(12345, $track->distance);
+        self::assertSame('driving', $track->dominantMode);
+        self::assertCount(2, $track->path);
+        self::assertSame(52.1, $track->path[1]->latitude);
+        self::assertCount(2, $track->segments);
+        self::assertSame('driving', $track->segments[0]->mode, 'sorted by time');
+        self::assertSame(12045, $track->segments[0]->distance);
+        self::assertSame(13.1, $track->segments[0]->path[1]->longitude);
+        self::assertSame([], $track->segments[1]->path);
+        self::assertStringContainsString('start_at=2026-01-01T00:00:00', $urls[0][0]);
+        self::assertSame('Authorization: Bearer secret', $urls[0][1]);
+        self::assertStringEndsWith('/api/v1/tracks/9', $urls[2][0], 'show without start_at/end_at (clipped tracks have no segments)');
     }
 
     public function testOlderDawarichWithoutTracksApi(): void
@@ -215,6 +226,36 @@ class DawarichClientTest extends TestCase
         $http = new MockHttpClient(new MockResponse('Not Found', ['http_code' => 404]));
         $from = new \DateTimeImmutable('2026-01-01 00:00');
 
-        self::assertSame([], $this->client($http)->fetchTransportSegments($this->user(), $from, $from->modify('+1 day')));
+        $this->expectException(DawarichException::class);
+        $this->expectExceptionMessage('mileage.dawarich.error.no_tracks_api');
+        $this->client($http)->fetchTracks($this->user(), $from, $from->modify('+1 day'));
+    }
+
+    public function testMeasureWithoutTracks(): void
+    {
+        $http = new MockHttpClient(new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => []])));
+        $from = new \DateTimeImmutable('2026-01-01 00:00');
+
+        $this->expectException(DawarichException::class);
+        $this->expectExceptionMessage('mileage.dawarich.error.no_tracks');
+        $this->client($http)->measureDistance($this->user(), $from, $from->modify('+1 day'));
+    }
+
+    public function testMeasureUsesTheDrivenSegments(): void
+    {
+        $http = new MockHttpClient(function (string $method, string $url) {
+            $segments = (string) parse_url($url, PHP_URL_PATH) === '/api/v1/tracks' ? null : [
+                ['mode' => 'driving', 'distance' => 12045, 'coordinates' => [[13.0, 52.0], [13.1, 52.05]], 'start_time' => 1000, 'end_time' => 1600],
+                ['mode' => 'walking', 'distance' => 300, 'coordinates' => null, 'start_time' => 1600, 'end_time' => 2000],
+            ];
+
+            return new MockResponse(json_encode(['type' => 'FeatureCollection', 'features' => [self::feature(7, 1000, 2000, $segments)]]));
+        });
+
+        $result = $this->client($http)->measureDistance($this->user(), new \DateTimeImmutable('@0'), new \DateTimeImmutable('@3000'));
+
+        self::assertSame(12.0, $result->distanceKm);
+        self::assertSame(1, $result->segmentCount);
+        self::assertSame(2, $result->pointCount);
     }
 }

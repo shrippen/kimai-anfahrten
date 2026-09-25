@@ -24,7 +24,7 @@ class SuggestionService
 {
     public function __construct(
         private readonly DawarichClient $dawarichClient,
-        private readonly TripDetector $tripDetector,
+        private readonly TrackAnalyzer $trackAnalyzer,
         private readonly PlaceMatcher $placeMatcher,
         private readonly TimesheetMatcher $timesheetMatcher,
         private readonly GeocoderClient $geocoder,
@@ -34,78 +34,55 @@ class SuggestionService
         private readonly TripRepository $tripRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TripService $tripService,
-        private readonly TransportModeFilter $modeFilter,
     ) {
     }
 
     /**
-     * Detects trips day by day (a day is the user's local calendar day).
+     * Turns the Dawarich tracks of the period (the user's local calendar days, up to now) into suggestions.
+     * A trip belongs to the day it starts on; trips already suggested (same start) are skipped.
      *
      * @return int number of new suggestions
-     * @throws DawarichException
+     * @throws DawarichException also when Dawarich has no tracks for the period
      */
     public function detect(User $user, \DateTimeImmutable $from, \DateTimeImmutable $to): int
     {
         $timezone = $this->timezone($user);
-        $day = $from->setTimezone($timezone)->setTime(0, 0);
-        $last = $to->setTimezone($timezone)->setTime(0, 0);
-        $now = new \DateTimeImmutable('now', $timezone);
+        $first = $from->setTimezone($timezone)->setTime(0, 0);
+        $last = $to->setTimezone($timezone)->setTime(0, 0)->modify('+1 day');
+        $end = min($last, new \DateTimeImmutable('now', $timezone));
+        if ($end <= $first) {
+            return 0;
+        }
 
+        $tracks = $this->dawarichClient->fetchTracksOrFail($user, $first, $end);
         $places = $this->placeRepository->findByUser($user);
-        $known = $this->suggestionRepository->findKnownStarts($user, $day, $last->modify('+1 day'));
+        $known = $this->suggestionRepository->findKnownStarts($user, $first, $last);
+        $timesheets = [];
         $created = 0;
 
-        while ($day <= $last && $day <= $now) {
-            $next = $day->modify('+1 day');
-            $points = $this->dawarichClient->fetchPoints($user, $day, $next);
-            $detected = $points === [] ? [] : $this->detectTrips($user, $points, $day, $next);
-
-            $timesheets = $detected !== [] ? $this->findTimesheets($user, $day, $next) : [];
-
-            foreach ($detected as $trip) {
-                if (isset($known[$trip->start->timestamp])) {
+        foreach ($tracks as $track) {
+            foreach ($this->trackAnalyzer->trips(
+                $track,
+                $this->configuration->getExcludedTransportModes(),
+                $this->configuration->getDetectStopMinutes() * 60,
+                $this->configuration->getDetectMinKm(),
+            ) as $trip) {
+                $start = $trip->start->timestamp;
+                if ($start < $first->getTimestamp() || $start >= $end->getTimestamp() || isset($known[$start])) {
                     continue;
                 }
-                $known[$trip->start->timestamp] = true;
+                $known[$start] = true;
 
-                $this->suggestionRepository->save($this->createSuggestion($user, $trip, $places, $timesheets, $timezone), false);
+                $day = $trip->getStartAt($timezone)->setTime(0, 0);
+                $timesheets[$day->format('Y-m-d')] ??= $this->findTimesheets($user, $day, $day->modify('+1 day'));
+
+                $this->suggestionRepository->save($this->createSuggestion($user, $trip, $places, $timesheets[$day->format('Y-m-d')], $timezone), false);
                 $created++;
             }
-
-            $this->suggestionRepository->flush();
-            $day = $next;
         }
+        $this->suggestionRepository->flush();
 
         return $created;
-    }
-
-    /**
-     * Stay-point detection per stretch of motorized movement: walks and bike rides that
-     * Dawarich recognised are cut out first, so they never become (part of) a trip.
-     *
-     * @param GpsPoint[] $points
-     * @return DetectedTrip[]
-     */
-    private function detectTrips(User $user, array $points, \DateTimeImmutable $from, \DateTimeImmutable $to): array
-    {
-        $excluded = $this->configuration->getExcludedTransportModes();
-        $segments = $this->dawarichClient->fetchTransportSegments($user, $from, $to);
-        $chunks = $excluded !== [] ? $this->modeFilter->split($points, $segments, $excluded) : [$points];
-
-        $trips = [];
-        foreach ($chunks as $chunk) {
-            foreach ($this->tripDetector->detect(
-                $chunk,
-                $this->configuration->getDetectStopRadius(),
-                $this->configuration->getDetectStopMinutes(),
-                $this->configuration->getDetectMinKm(),
-                $this->configuration->getMaxAccuracy(),
-            ) as $trip) {
-                $trips[] = $trip->withMode($this->modeFilter->dominantMode($segments, $trip->start->timestamp, $trip->end->timestamp));
-            }
-        }
-
-        return $trips;
     }
 
     /**
