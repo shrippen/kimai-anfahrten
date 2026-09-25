@@ -1,0 +1,31 @@
+<?php
+
+namespace KimaiPlugin\MileageBundle\Form;
+
+use App\Form\Type\DatePickerType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+
+/**
+ * Period for the trip detection in the Dawarich history (at most 92 days, checked by the controller).
+ */
+class SuggestionDetectForm extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('from', DatePickerType::class, ['label' => 'mileage.suggestion.from', 'constraints' => [new NotBlank()]])
+            ->add('to', DatePickerType::class, ['label' => 'mileage.suggestion.to', 'constraints' => [new NotBlank()]]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'translation_domain' => 'messages',
+            'csrf_token_id' => 'mileage_suggestions_detect',
+            'attr' => ['data-form-event' => 'kpu.reload'],
+        ]);
+    }
+}

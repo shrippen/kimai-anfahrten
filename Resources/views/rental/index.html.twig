@@ -1,32 +1,54 @@
-{% extends 'base.html.twig' %}
+{% extends 'datatable.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'rentals'} %}
-    <h2>{{ 'mileage.rental.list'|trans }} — {{ target_user.displayName }} — {{ year }}</h2>
-    <p class="text-muted">{{ 'mileage.rental.help'|trans }}</p>
-    <p class="d-flex gap-1">
-        <a href="{{ path('mileage_rentals', {year: year - 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">&laquo; {{ year - 1 }}</a>
-        <a href="{{ path('mileage_rentals', {year: year + 1, user: target_user.id}) }}" class="btn btn-sm btn-outline-secondary">{{ year + 1 }} &raquo;</a>
-        {% if can_edit %}<a href="{{ path('mileage_rental_create', {user: target_user.id}) }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>{{ 'mileage.rental.create'|trans }}</a>{% endif %}
-    </p>
-    <div class="card">
-        <div class="card-body p-0">
-            <table class="table table-vcenter mb-0">
-                <thead><tr><th>{{ 'mileage.rental.provider'|trans }}</th><th>{{ 'mileage.rental.start'|trans }} – {{ 'mileage.rental.end'|trans }}</th><th>{{ 'mileage.trip.license_plate'|trans }}</th><th class="text-end">{{ 'mileage.rental.total'|trans }}</th><th></th></tr></thead>
-                <tbody>
-                    {% for r in rentals %}
-                        <tr>
-                            <td><a href="{{ path('mileage_rental_show', {id: r.id}) }}">{{ r.provider }}</a></td>
-                            <td>{{ r.startDate|date('Y-m-d') }} – {{ r.endDate|date('Y-m-d') }}</td>
-                            <td>{{ r.licensePlate }}</td>
-                            <td class="text-end">{{ r.totalCosts|number_format(2, ',', '.') }} €</td>
-                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ path('mileage_rental_show', {id: r.id}) }}"><i class="fas fa-eye"></i></a></td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="5" class="text-muted">{{ 'mileage.rental.empty'|trans }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, 'mileage.rental.help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block table_actions %}
+    {{ kit.period_nav(['year'], 'year', year, period.prev, period.next, period.today, {}) }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block datatable_column_value %}
+    {% set r = entry %}
+    {% if column == 'provider' %}
+        <a href="{{ path('mileage_rental_show', {id: r.id}) }}">{{ r.provider }}</a>
+        <div class="text-body-secondary small d-sm-none">{{ r.startDate|date_short }} – {{ r.endDate|date_short }}</div>
+    {% elseif column == 'period' %}
+        {{ r.startDate|date_short }} – {{ r.endDate|date_short }}
+    {% elseif column == 'plate' %}
+        {{ r.licensePlate }}
+    {% elseif column == 'total' %}
+        {{ r.totalCosts|money('EUR') }}
+    {% elseif column == 'actions' %}
+        {% set event = actions(app.user, 'mileage_rental', 'index', {rental: r, can_edit: can_edit, can_delete: can_delete}) %}
+        {{ widgets.table_actions(event.actions) }}
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    {% if not dataTable.hasResults() %}
+        {{ kit.empty_state(
+            'mileage.rental.empty_year'|trans({'%year%': year}),
+            can_edit ? path('mileage_rental_create', {user: user_param}) : null,
+            can_edit ? 'mileage.rental.create'|trans : null,
+            'modal-ajax-form'
+        ) }}
+    {% else %}
+        {{ kit.kpi_bar([
+            {label: 'mileage.rental.count'|trans, value: dataTable.pagination.nbResults|amount},
+            {label: 'mileage.rental.total'|trans, value: total|money('EUR'), highlight: true},
+        ]) }}
+        {{ parent() }}
+    {% endif %}
 {% endblock %}

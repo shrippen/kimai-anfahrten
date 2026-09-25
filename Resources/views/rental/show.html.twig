@@ -1,55 +1,59 @@
 {% extends 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'rentals'} %}
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <h2 class="me-auto mb-0">{{ 'mileage.rental.label'|trans }}: {{ rental.provider }} — {{ rental.startDate|date('Y-m-d') }} – {{ rental.endDate|date('Y-m-d') }}</h2>
-        <a href="{{ path('mileage_rentals', {year: rental.startDate|date('Y'), user: target_user.id}) }}" class="btn btn-sm btn-link">&laquo; {{ 'mileage.rental.list'|trans }}</a>
-        {% if can_edit %}
-            <a href="{{ path('mileage_rental_edit', {id: rental.id}) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-pen me-1"></i>{{ 'action.edit'|trans }}</a>
-            <form method="post" action="{{ path('mileage_rental_delete', {id: rental.id}) }}" onsubmit="return confirm('{{ 'confirm.delete'|trans|e('js') }}');">
-                <input type="hidden" name="_token" value="{{ csrf_token('mileage_rental_delete' ~ rental.id) }}">
-                <button class="btn btn-sm btn-outline-danger" type="submit"><i class="fas fa-trash"></i></button>
-            </form>
-        {% endif %}
-    </div>
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-3">
-                <div class="card-body p-0">
-                    <table class="table table-vcenter mb-0">
-                        <thead><tr><th>{{ 'mileage.trip.date'|trans }}</th><th>{{ 'mileage.trip.purpose'|trans }}</th><th>{{ 'mileage.trip.route'|trans }}</th><th class="text-end">km</th><th class="text-end">{{ 'mileage.rental.share'|trans }}</th></tr></thead>
-                        <tbody>
-                            {% set business = 0 %}
-                            {% for t in trips %}
-                                {% set share = allocation[t|mileage_object_id]|default(0) %}
-                                {% if t.purpose.value == 'business' %}{% set business = business + share %}{% endif %}
-                                <tr>
-                                    <td><a href="{{ path('mileage_trip_edit', {id: t.id}) }}">{{ t.date|date('Y-m-d') }}</a></td>
-                                    <td>{{ t.purpose.label|trans }}</td>
-                                    <td>{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
-                                    <td class="text-end">{{ t.totalDistanceKm|number_format(1, ',', '.') }}</td>
-                                    <td class="text-end">{{ share|number_format(2, ',', '.') }} €</td>
-                                </tr>
-                            {% else %}
-                                <tr><td colspan="5" class="text-muted">{{ 'mileage.rental.no_trips'|trans }}</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div>{{ 'mileage.rental.costs'|trans }}: {{ rental.rentalCosts|number_format(2, ',', '.') }} €</div>
-                    <div>{{ 'mileage.rental.fuel_costs'|trans }}: {{ rental.fuelCosts|number_format(2, ',', '.') }} €</div>
-                    <div class="fw-bold">{{ 'mileage.rental.total'|trans }}: {{ rental.totalCosts|number_format(2, ',', '.') }} €</div>
-                    <div class="mt-2 text-success">{{ 'mileage.rental.business_share'|trans }}: {{ business|number_format(2, ',', '.') }} €</div>
-                    {% if rental.comment %}<div class="text-muted small mt-2">{{ rental.comment }}</div>{% endif %}
-                </div>
-            </div>
-            {% include '@Mileage/_attachments.html.twig' with {upload_url: path('mileage_attachment_rental', {id: rental.id}), can_delete: can_edit} %}
-        </div>
-    </div>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
+
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, rental.startDate|date_short ~ ' – ' ~ rental.endDate|date_short, rental.licensePlate]) }}
+    {{ parent() }}
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
+{% endblock %}
+
+{% block main %}
+    {% set business = 0 %}
+    {% for t in trips %}
+        {% if t.purpose.value == 'business' %}{% set business = business + (allocation[t|mileage_object_id] ?? 0) %}{% endif %}
+    {% endfor %}
+    {{ kit.kpi_bar([
+        {label: 'mileage.rental.costs'|trans, value: rental.rentalCosts|money('EUR')},
+        {label: 'mileage.rental.fuel_costs'|trans, value: rental.fuelCosts|money('EUR')},
+        {label: 'mileage.rental.total'|trans, value: rental.totalCosts|money('EUR')},
+        {label: 'mileage.rental.business_share'|trans, value: business|money('EUR'), highlight: true},
+    ]) }}
+
+    {% if rental.comment %}
+        <p class="text-body-secondary">{{ rental.comment }}</p>
+    {% endif %}
+
+    {% if trips is empty %}
+        {{ kit.empty_state('mileage.rental.no_trips'|trans) }}
+    {% else %}
+        {% set columns = {
+            'date': {class: 'alwaysVisible w-min', title: 'mileage.trip.date'},
+            'purpose': {class: 'd-none d-sm-table-cell', title: 'mileage.trip.purpose'},
+            'route': {class: 'alwaysVisible', title: 'mileage.trip.route'},
+            'distance': {class: 'text-end w-min text-nowrap', title: 'mileage.trip.distance_short'},
+            'share': {class: 'd-none d-md-table-cell text-end w-min text-nowrap', title: 'mileage.rental.share'},
+        } %}
+        {{ tables.datatable_header('mileage_rental_trips', columns, null, {columnConfig: false, sticky: false, responsive: true}) }}
+            {% for t in trips %}
+                <tr>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'date') }}"><a href="{{ path('mileage_trip_edit', {id: t.id}) }}">{{ t.date|date_short }}</a></td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'purpose') }}">{{ t.purpose.label|trans }}</td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'route') }}">{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'distance') }}">{{ mileage.km(t.totalDistanceKm) }}</td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'share') }}">{{ (allocation[t|mileage_object_id] ?? 0)|money('EUR') }}</td>
+                </tr>
+            {% endfor %}
+        {{ tables.data_table_footer(null, null, null) }}
+    {% endif %}
+
+    {% include '@Mileage/_attachments.html.twig' with {can_delete: can_edit} %}
 {% endblock %}
