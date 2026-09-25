@@ -25,6 +25,22 @@ class LogbookTest extends TestCase
             ->setComment('Meeting');
     }
 
+    public function testLaterYearContinuesFromPreviousYear(): void
+    {
+        $vehicle = (new Vehicle())->setInitialOdometer(1000);
+        $service = new LogbookService();
+        $all = [$this->trip('2025-12-20', 1000, 1500), $this->trip('2026-01-05', 1500, 1600)];
+
+        $start = $service->suggestOdometerStart($vehicle, $all, new \DateTimeImmutable('2025-12-31'));
+        $result = $service->analyse($vehicle, [$all[1]], $start);
+
+        self::assertSame(1500, $start);
+        self::assertSame([], $result['gaps']);
+        self::assertSame(0, $result['km']['unrecorded']);
+        // without the start value the first trip of 2026 looks like a 500 km gap
+        self::assertSame(500, $service->analyse($vehicle, [$all[1]])['km']['unrecorded']);
+    }
+
     public function testContinuousLogbookHasNoWarnings(): void
     {
         $vehicle = (new Vehicle())->setInitialOdometer(1000);

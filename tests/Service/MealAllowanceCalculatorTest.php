@@ -46,6 +46,16 @@ class MealAllowanceCalculatorTest extends TestCase
         self::assertSame(8.5, $result['days'][0]['hours']);
     }
 
+    public function testOnlyDaysOfTheTaxYearCount(): void
+    {
+        // New Year journey: 31.12.2025 (travel day) belongs to 2025, 1.1. and 2.1.2026 to 2026
+        $trips = [$this->trip('2025-12-31 09:00', '2026-01-02 18:00', 'Kunde A', true)];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['2026-01-01', '2026-01-02'], array_column($result['days'], 'date'));
+        self::assertSame(28.0 + 14.0, $result['amount']);
+    }
+
     public function testEightHoursExactlyIsNotEnough(): void
     {
         $result = (new MealAllowanceCalculator())->calculate([$this->trip('2026-03-02 08:00', '2026-03-02 16:00')], $this->rates(), $this->tz);

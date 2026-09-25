@@ -66,7 +66,7 @@ class ImportController extends AbstractController
             }
 
             $parsed = $this->importer->parse($content);
-            $built = $this->importer->build($user, $parsed['rows']);
+            $built = $this->importer->build($user, $parsed['rows'], $this->isGranted('edit_locked_mileage'));
 
             if ($request->request->get('action') === 'import') {
                 $result = $this->importer->import($built, $request->request->getBoolean('skip_duplicates', true));

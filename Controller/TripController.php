@@ -189,8 +189,11 @@ class TripController extends AbstractController
             if ($km <= 0) {
                 $this->flashError($this->translator->trans('trip.error.commute_distance'));
             } else {
-                $created = $this->commuteGenerator->create($user, $dates, $km);
-                $this->flashSuccess($this->translator->trans('commute.created', ['%count%' => $created]));
+                $result = $this->commuteGenerator->create($user, $dates, $km, $year, $month, $this->isGranted('edit_locked_mileage'));
+                $this->flashSuccess($this->translator->trans('commute.created', ['%count%' => $result['created']]));
+                if ($result['locked'] > 0) {
+                    $this->flashWarning($this->translator->trans('logbook.error.locked'));
+                }
 
                 return $this->redirectToRoute('mileage_trips', ['year' => $year, 'month' => $month, 'user' => $user->getId()]);
             }
@@ -210,6 +213,10 @@ class TripController extends AbstractController
     public function testDawarich(Request $request): Response
     {
         $user = $this->getTargetUser($request, $this->userRepository);
+        // Uses the user's Dawarich credentials: seeing someone's trips is not enough.
+        if (!$this->canEditTripsOf($user)) {
+            throw $this->createAccessDeniedException();
+        }
         if (!$this->isCsrfTokenValid('mileage_dawarich_test', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token');
         }
@@ -294,7 +301,8 @@ class TripController extends AbstractController
         $form->handleRequest($request);
 
         $lookup = $dawarich ? $form->get('dawarich') : null;
-        if ($form->isSubmitted() && $lookup instanceof ClickableInterface && $lookup->isClicked()) {
+        // The lookup button skips validation, so check the CSRF token (a form-level error) explicitly.
+        if ($form->isSubmitted() && $lookup instanceof ClickableInterface && $lookup->isClicked() && \count($form->getErrors()) === 0) {
             $this->lookupDistance($trip);
 
             // Re-create the form so the measured distance replaces the submitted value.

@@ -15,9 +15,11 @@ use KimaiPlugin\MileageBundle\Enum\TaxProfile;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
+use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 use KimaiPlugin\MileageBundle\Repository\VehicleRepository;
+use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
@@ -57,6 +59,8 @@ class MileageApiController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly AttachmentStorage $attachmentStorage,
     ) {
     }
 
@@ -134,6 +138,10 @@ class MileageApiController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         $this->assertNotLocked($trip);
+        // the rows go with the trip (FK cascade), the files have to be removed here
+        foreach ($this->attachmentRepository->findByTrip($trip) as $attachment) {
+            $this->attachmentStorage->delete($attachment);
+        }
         $this->tripRepository->remove($trip);
 
         return new Response(null, Response::HTTP_NO_CONTENT);
@@ -180,6 +188,9 @@ class MileageApiController extends AbstractController
         $this->assertCanEdit($user);
         if ($suggestion->getStatus() !== SuggestionStatus::OPEN) {
             return $this->json(['error' => 'suggestion is not open'], Response::HTTP_CONFLICT);
+        }
+        if ($this->lockService->isLocked($user, $suggestion->getDate()) && !$this->isGranted('edit_locked_mileage')) {
+            throw $this->createAccessDeniedException('This month of the logbook is closed.');
         }
         $data = $this->payload($request);
         $purpose = TripMapper::parsePurpose($data['purpose'] ?? '') ?? $suggestion->getPurpose();

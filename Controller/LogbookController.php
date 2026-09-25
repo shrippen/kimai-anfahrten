@@ -50,7 +50,10 @@ class LogbookController extends AbstractController
         $user = $vehicle->getUser();
         $this->assertCanView($user);
 
-        $analysis = $this->logbookService->analyse($vehicle, $this->tripRepository->findByVehicle($vehicle, $year));
+        $all = $this->tripRepository->findByVehicle($vehicle);
+        $inYear = array_values(array_filter($all, static fn ($t) => (int) $t->getDate()?->format('Y') === $year));
+        $startOdometer = $this->logbookService->suggestOdometerStart($vehicle, $all, new \DateTimeImmutable(\sprintf('%d-12-31', $year - 1)));
+        $analysis = $this->logbookService->analyse($vehicle, $inYear, $startOdometer);
 
         if ($request->query->get('format') === 'csv') {
             return $this->csv($vehicle, $year, $analysis['rows']);

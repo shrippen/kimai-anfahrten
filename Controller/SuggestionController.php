@@ -13,6 +13,7 @@ use KimaiPlugin\MileageBundle\Enum\VehicleType;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
+use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +36,7 @@ class SuggestionController extends AbstractController
         private readonly SuggestionService $suggestionService,
         private readonly MileageConfiguration $configuration,
         private readonly TranslatorInterface $translator,
+        private readonly MonthLockService $lockService,
     ) {
     }
 
@@ -89,7 +91,9 @@ class SuggestionController extends AbstractController
         $user = $suggestion->getUser();
         $this->assertEditable($user, $request, 'mileage_suggestion' . $suggestion->getId());
 
-        if ($suggestion->getStatus() === SuggestionStatus::OPEN) {
+        if ($suggestion->getStatus() === SuggestionStatus::OPEN && $this->isLockedFor($user, $suggestion)) {
+            $this->flashError($this->translator->trans('logbook.error.locked'));
+        } elseif ($suggestion->getStatus() === SuggestionStatus::OPEN) {
             $purpose = TripPurpose::tryFrom((string) $request->request->get('purpose')) ?? $suggestion->getPurpose();
             $vehicle = VehicleType::tryFrom((string) $request->request->get('vehicle')) ?? $suggestion->getVehicle() ?? $this->configuration->getDefaultVehicle($user);
             $trip = $this->suggestionService->accept($suggestion, $purpose, $vehicle);
@@ -125,9 +129,14 @@ class SuggestionController extends AbstractController
 
         $vehicle = $this->configuration->getDefaultVehicle($user);
         $count = 0;
+        $locked = 0;
         foreach ($this->suggestionRepository->findOpen($user) as $suggestion) {
             // Private trips are not needed for the tax return — only take the relevant ones.
             if ($suggestion->getPurpose() === TripPurpose::PRIVATE) {
+                continue;
+            }
+            if ($this->isLockedFor($user, $suggestion)) {
+                $locked++;
                 continue;
             }
             $this->suggestionService->accept($suggestion, $suggestion->getPurpose(), $suggestion->getVehicle() ?? $vehicle);
@@ -135,8 +144,16 @@ class SuggestionController extends AbstractController
         }
 
         $this->flashSuccess($this->translator->trans('suggestion.accepted_all', ['%count%' => $count]));
+        if ($locked > 0) {
+            $this->flashWarning($this->translator->trans('logbook.error.locked'));
+        }
 
         return $this->redirectToRoute('mileage_suggestions', ['user' => $user->getId()]);
+    }
+
+    private function isLockedFor(User $user, TripSuggestion $suggestion): bool
+    {
+        return !$this->isGranted('edit_locked_mileage') && $this->lockService->isLocked($user, $suggestion->getDate());
     }
 
     private function assertEditable(User $user, Request $request, string $csrfId): void

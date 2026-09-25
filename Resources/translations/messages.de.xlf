@@ -72,7 +72,7 @@
       </trans-unit>
       <trans-unit id="m017" resname="mileage_dawarich_api_key_help">
         <source>mileage_dawarich_api_key_help</source>
-        <target>Zu finden in Dawarich unter Konto → API-Key.</target>
+        <target>Zu finden in Dawarich unter Konto → API-Key. Ein gespeicherter Key wird nicht angezeigt; leer lassen, um ihn zu behalten.</target>
       </trans-unit>
       <trans-unit id="m018" resname="mileage_home_address">
         <source>mileage_home_address</source>

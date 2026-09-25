@@ -72,7 +72,7 @@
       </trans-unit>
       <trans-unit id="m017" resname="mileage_dawarich_api_key_help">
         <source>mileage_dawarich_api_key_help</source>
-        <target>Found in Dawarich under Account → API key.</target>
+        <target>Found in Dawarich under Account → API key. A stored key is not shown; leave empty to keep it.</target>
       </trans-unit>
       <trans-unit id="m018" resname="mileage_home_address">
         <source>mileage_home_address</source>

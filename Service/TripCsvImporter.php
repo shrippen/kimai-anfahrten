@@ -42,6 +42,7 @@ class TripCsvImporter
         private readonly TripService $tripService,
         private readonly TripRepository $tripRepository,
         private readonly ValidatorInterface $validator,
+        private readonly ?MonthLockService $lockService = null,
     ) {
     }
 
@@ -104,7 +105,7 @@ class TripCsvImporter
      * @param list<array{line: int, data: array<string, string>, errors: array<string, string>}> $rows
      * @return list<array{line: int, data: array<string, string>, errors: array<string, string>, trip: ?Trip, duplicate: bool}>
      */
-    public function build(User $user, array $rows): array
+    public function build(User $user, array $rows, bool $mayEditLocked = false): array
     {
         $existing = [];
         $result = [];
@@ -126,6 +127,10 @@ class TripCsvImporter
 
                 foreach ($this->validator->validate($trip) as $violation) {
                     $errors[$violation->getPropertyPath() ?: 'trip'] = (string) $violation->getMessage();
+                }
+                // Closed months are refused when saving anyway; report it per row instead of failing the whole import.
+                if ($errors === [] && !$mayEditLocked && $this->lockService?->isTripLocked($trip) === true) {
+                    $errors['date'] = 'logbook.error.locked';
                 }
 
                 if ($errors === [] && ($day = $trip->getDate()) !== null) {
