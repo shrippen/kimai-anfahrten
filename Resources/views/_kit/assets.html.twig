@@ -1,5 +1,5 @@
 {#
-    kimai-plugin-ui kit 0.2.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
+    kimai-plugin-ui kit 0.3.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
     Nicht von Hand ändern.
 
     Einbinden (einmal pro Seite, CSS im Kopf, JS am Seitenende):
@@ -8,7 +8,7 @@
 #}
 {% set kpu_part = kpu_part ?? 'all' %}
 {% if kpu_part == 'all' or kpu_part == 'css' %}
-<style data-kpu-version="0.2.0">
+<style data-kpu-version="0.3.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – CSS
@@ -57,6 +57,7 @@
 }
 .kpu-kpis-1 { grid-template-columns: minmax(0, 1fr); }
 .kpu-kpi {
+    min-width: 0;
     margin-bottom: 0;
     color: inherit;
     text-decoration: none;
@@ -83,10 +84,24 @@ a.kpu-kpi:hover {
     font-size: .8125rem;
     font-variant-numeric: tabular-nums;
 }
+/* Ein Eintrag bricht nie in sich um: Label und Wert bleiben auf einer Zeile. Wird die Kachel zu schmal (2 Spalten
+   bei 360–390 px), kürzt das Label mit "…" (voller Text im title), der Wert bleibt immer ganz sichtbar. Ganze
+   Einträge dürfen in die nächste Zeile rutschen. */
 .kpu-kpi-detail {
+    display: inline-flex;
+    align-items: baseline;
+    gap: .25rem;
+    min-width: 0;
+    max-width: 100%;
     white-space: nowrap;
 }
+.kpu-kpi-detail-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .kpu-kpi-detail-value {
+    flex: 0 0 auto;
     color: var(--tblr-body-color);
     font-weight: var(--tblr-font-weight-medium);
 }
@@ -225,7 +240,7 @@ tr.kpu-group-row > td {
 </style>
 {% endif %}
 {% if kpu_part == 'all' or kpu_part == 'js' %}
-<script data-kpu-version="0.2.0">
+<script data-kpu-version="0.3.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – JavaScript (ohne Abhängigkeiten)
@@ -240,6 +255,12 @@ tr.kpu-group-row > td {
  *   KimaiPluginUi.reloadWithToast(message, undo?)  – Seite neu laden und danach den Hinweis zeigen
  *   KimaiPluginUi.post(url, token, ids, params?)   – POST (FormData: _token, ids[], params) und JSON-Antwort
  *   KimaiPluginUi.setTranslations({...})           – Texte (setzt assets.html.twig aus der Domain "kpu")
+ *   KimaiPluginUi.escapeHtml(text)                 – (seit 0.3) Text für HTML maskieren, z. B. vor eigenen Aufrufen von
+ *                                                    kimai.getPlugin('alert').question()/error()/…, die HTML einsetzen
+ *
+ * Sicherheit: kit.js setzt nie HTML aus Attributen oder Antworten ein (nur textContent). Texte für Kimais alert-Plugin
+ * (data-kpu-question, Fehlermeldungen) werden maskiert – data-kpu-question ist reiner Text, HTML darin wird angezeigt,
+ * nicht ausgeführt.
  *
  * Markup, das kit.js ohne eigenes Skript versteht:
  *   input.kpu-select[data-kpu-form][data-kpu-groups="g1 g2"]  – Zeilen-Checkbox (kit.bulk_checkbox), Gruppen-Schlüssel optional
@@ -249,7 +270,7 @@ tr.kpu-group-row > td {
  *   [data-kpu-post="<url>"][data-kpu-token][data-kpu-ids="1,2"][data-kpu-params='{"k":"v"}'][data-kpu-question]
  *        – Sofort-Aktion per Klick (z. B. Eintrag im "…"-Menü): POST mit _token, ids[], params; Accept: application/json.
  *          JSON {message, undo?} -> Seite neu laden + Hinweis (mit "Rückgängig"); andere Antwort -> Seite neu laden;
- *          Fehler -> Kimai-Alert. data-kpu-question nur für Endgültiges (Kimai-Bestätigungsmodal vorher).
+ *          Fehler -> Kimai-Alert. data-kpu-question nur für Endgültiges (Kimai-Bestätigungsmodal vorher; reiner Text).
  *   Event "kpu.reload" auf document (z. B. data-form-event eines Modal-Formulars) -> Seite neu laden
  *
  * Events (bubbles):
@@ -266,7 +287,7 @@ tr.kpu-group-row > td {
 (function (window, document) {
     'use strict';
 
-    var VERSION = '0.2.0';
+    var VERSION = '0.3.0';
     if (window.KimaiPluginUi && window.KimaiPluginUi.version) {
         return; // bereits von einem anderen Plugin auf dieser Seite geladen
     }
@@ -453,19 +474,31 @@ tr.kpu-group-row > td {
         update(form);
     }
 
+    /**
+     * Text für HTML maskieren. Kimais alert-Plugin (question, error, warning, info, success) setzt seine Texte als HTML
+     * ein (template.innerHTML) – Texte aus Attributen (data-kpu-question) oder Server-Antworten ({message}) müssen
+     * deshalb vorher maskiert werden, sonst wird z. B. ein Benutzer- oder Projektname im Text als HTML ausgeführt.
+     */
+    function escapeHtml(text) {
+        return String(text === null || text === undefined ? '' : text).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
     function ask(question, callback) {
         var alert = getPlugin('alert');
         if (alert !== null && typeof alert.question === 'function') {
-            alert.question(question, callback);
+            alert.question(escapeHtml(question), callback); // Kimai setzt den Text als HTML ein
         } else {
-            callback(window.confirm(question));
+            callback(window.confirm(question)); // nur Text, kein HTML
         }
     }
 
     function showError(message) {
         var alert = getPlugin('alert');
         if (alert !== null) {
-            alert.error(t('error'), message || null);
+            // Kimai setzt Titel und Text als HTML ein; message kommt aus der Server-Antwort
+            alert.error(escapeHtml(t('error')), message ? escapeHtml(message) : null);
         } else {
             window.alert(t('error') + (message ? '\n' + message : ''));
         }
@@ -796,6 +829,7 @@ tr.kpu-group-row > td {
         select: select,
         undoToast: undoToast,
         reloadWithToast: reloadWithToast,
+        escapeHtml: escapeHtml,
         setTranslations: setTranslations
     };
 
