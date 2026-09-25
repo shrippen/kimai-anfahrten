@@ -110,6 +110,7 @@
     tiles: [{ label: '…', value: '…', hint: '…'?, highlight: bool?, url: '…'?, details: [{label, value}]? }]
     value ist bereits formatiert (|duration, |money(currency), |amount …).
     details (seit 0.2): Aufschlüsselung unter dem Wert, z. B. Zuschläge je Stufe; label/value bereits übersetzt/formatiert.
+             Ein Eintrag bricht nie um (seit 0.3); ist die Kachel zu schmal, kürzt das Label mit "…" (voller Text im title).
     Beispiel: {{ kit.kpi_bar([{label: 'holiday.kpi.taken'|trans, value: 3|amount}, {label: 'holiday.kpi.left'|trans, value: 12|amount, highlight: true}]) }}
               {{ kit.kpi_bar([{label: 'drehzettel.kpi.surcharges'|trans, value: total|money(cur),
                                details: [{label: '25 %', value: a|money(cur)}, {label: '50 %', value: b|money(cur)}]}]) }}
@@ -130,7 +131,7 @@
                     {%- if tile.details is defined and tile.details is not empty %}
                         <div class="kpu-kpi-details text-body-secondary">
                             {%- for detail in tile.details %}
-                                <span class="kpu-kpi-detail"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value">{{ detail.value }}</span></span>
+                                <span class="kpu-kpi-detail" title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value">{{ detail.value }}</span></span>
                             {%- endfor %}
                         </div>
                     {%- endif %}
@@ -205,7 +206,7 @@
     {%- set html -%}
         {{ text }}
         {%- if link_url and link_label %} <a class="alert-link kpu-empty-link{% if link_class %} {{ link_class }}{% endif %}" href="{{ link_url }}"
-            {%- for name, value in link_attr ?? {} %} {{ name }}="{{ value }}"{% endfor %}>{{ link_label }}</a>{% endif -%}
+            {%- for name, value in link_attr ?? {} %} {{ name|e('html_attr') }}="{{ value }}"{% endfor %}>{{ link_label }}</a>{% endif -%}
     {%- endset -%}
     {{ alert({type: 'info', description: html, icon: 'info', dismissible: false, important: false, raw: true, class: 'kpu-empty'}) }}
 {%- endmacro %}
