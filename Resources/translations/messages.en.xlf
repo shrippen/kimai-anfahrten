@@ -1750,6 +1750,26 @@
         <source>mileage.dawarich.window_to</source>
         <target>To</target>
       </trans-unit>
+      <trans-unit id="m437" resname="mileage.attachment.label">
+        <source>mileage.attachment.label</source>
+        <target>Receipt</target>
+      </trans-unit>
+      <trans-unit id="m438" resname="mileage.logbook.action.receipt_add">
+        <source>mileage.logbook.action.receipt_add</source>
+        <target>Receipt added</target>
+      </trans-unit>
+      <trans-unit id="m439" resname="mileage.logbook.action.receipt_delete">
+        <source>mileage.logbook.action.receipt_delete</source>
+        <target>Receipt deleted</target>
+      </trans-unit>
+      <trans-unit id="m440" resname="mileage.attachment.error.locked">
+        <source>mileage.attachment.error.locked</source>
+        <target>This month is closed: receipts can be handed in later, but not changed or deleted.</target>
+      </trans-unit>
+      <trans-unit id="m441" resname="mileage.trip.locked_readonly">
+        <source>mileage.trip.locked_readonly</source>
+        <target>This month is closed. The trip cannot be changed anymore, but receipts can still be handed in.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

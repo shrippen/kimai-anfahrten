@@ -45,7 +45,8 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   abziehbar ist nur der Anteil der Dienstreisen
 - Fahrtenbuch pro Fahrzeug und Jahr mit Prüfung auf km-Stand-Lücken und fehlende Angaben, CSV und Druck/PDF
 - **Monatsabschluss** (danach nur mit Sonderrecht änderbar) und **Änderungsprotokoll** für jede Fahrt
-- Belege (PDF, Fotos) zu Fahrten und Mietvorgängen
+- Belege (PDF, Fotos) zu Fahrten und Mietvorgängen — in abgeschlossenen Monaten können Belege nachgereicht, aber
+  nur mit `edit_locked_mileage` gelöscht werden
 
 ![Fahrtenbuch](docs/fahrtenbuch.png)
 

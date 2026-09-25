@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% from '@theme/components/alert.html.twig' import alert %}
 
 {% set show_map = trip.id and dawarich_configured and trip.departureAt and trip.arrivalAt and mileage_map_enabled() %}
 
@@ -21,6 +22,9 @@
 {% endblock %}
 
 {% block main %}
+    {% if read_only|default(false) %}
+        {{ alert({type: 'warning', description: 'mileage.trip.locked_readonly'|trans, icon: 'locked', dismissible: false, important: false}) }}
+    {% endif %}
     {% embed 'default/_form.html.twig' with {title: title|trans, form: form, back: back, reset: false, submit_button: 'action.save'} %}
         {% block form_body %}
             <div class="row">

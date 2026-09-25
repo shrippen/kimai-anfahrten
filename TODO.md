@@ -142,9 +142,18 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   der Spur (300 km/h) bleibt. Unit-Tests mit synthetischen Spuren: ein und zwei Ausreißer am Start, alter Fix
   Minuten vor der Spur (früher +25 km), Glitch nach gutem Start, GPS-Rauschen < 1 km, lange geparkter echter Start,
   nur 2 Punkte.
-- [ ] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
-  Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log). **Offen:** fachlich klären
-  (Belege nachreichen ist oft gewollt).
+- [x] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
+  Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log).
+  **Entscheidung:** Nachreichen (Hochladen) bleibt erlaubt, Ändern/Löschen nur mit `edit_locked_mileage`.
+  Zentral im `TripAuditListener` (Web, API, alle Wege; die API hat keine eigenen Beleg-Endpunkte), im Web vorher
+  geprüft mit Meldung „Belege können nachgereicht, aber nicht geändert oder gelöscht werden". Mietvorgänge gelten
+  als gesperrt, wenn ein Monat ihres Zeitraums abgeschlossen ist. Die Fahrt-Seite einer gesperrten Fahrt ist jetzt
+  schreibgeschützt statt Weiterleitung (Hinweis, Formular deaktiviert, Belege hochladbar, kein Löschen-Button);
+  Zeilenaktion „Belege" in der Fahrtenliste. Belege von Fahrten stehen im Änderungsprotokoll (`receipt_add`,
+  `receipt_delete`, mit Kennzeichen „Monat abgeschlossen"). Nachtest ✅: user1 lädt Beleg zu einer Juni-Fahrt
+  (Juni abgeschlossen) hoch → gespeichert + Protokoll; Löschen mit gültigem Token → Meldung, Zeile und Datei
+  bleiben; Formular-POST → Meldung, Fahrt unverändert; admin löscht → ok + Protokoll; Mietvorgang Mai–Juni: Beleg
+  hochladbar, kein Löschen-Button.
 - **kein Fehler** ✅ `GET /mileage/trip/{id}/track`: Teamleitung sieht die GPS-Spur der Fahrt eines Mitglieds —
   entspricht dem Sichtrecht auf die Fahrt (Zeitfenster der Fahrt); nur Hinweis für die Doku.
 
@@ -161,6 +170,7 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 ## Werkzeuge
 
 - `php -l` auf alle PHP-Dateien: ok.
-- PHPUnit 10.5: 90 Tests / 284 Assertions grün (vorher 78). `composer install` scheitert im Sandbox-Netz an
+- PHPUnit 10.5: 127 Tests / 579 Assertions grün (Folgerunde A-1…A-4; vorher 119). `composer install` scheitert im Sandbox-Netz an
   GitHub-Zip-Downloads; installiert wurde per `--prefer-source` ohne PHPStan/CS-Fixer in einem separaten Ordner.
-- PHPStan 2.1 (Level 6, gegen Kimai 2.67.0-Quellen): keine Fehler. CS-Fixer nicht gelaufen (nicht installierbar).
+- PHPStan 2.1 (Level 6, gegen Kimai 2.67.0-Quellen): keine Fehler (Pagerfanta für die Analyse separat eingebunden).
+- Unverändert per Entscheidung (A-5): Arbeitsweg-Vorschlag ohne Profil-Entfernung übernimmt die erkannte Strecke. CS-Fixer nicht gelaufen (nicht installierbar).

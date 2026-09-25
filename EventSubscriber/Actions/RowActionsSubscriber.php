@@ -73,6 +73,9 @@ final class RowActionsSubscriber extends AbstractActionsSubscriber
         if ($payload['can_edit'] ?? false) {
             $event->addEdit($this->path('mileage_trip_edit', ['id' => $trip->getId()]), false);
             $event->addAction('copy', ['url' => $this->path('mileage_trip_duplicate', ['id' => $trip->getId()]), 'title' => 'mileage.trip.duplicate']);
+        } elseif ($payload['receipts'] ?? false) {
+            // closed month: the trip page is read-only, but receipts can still be handed in
+            $event->addAction('upload', ['url' => $this->path('mileage_trip_edit', ['id' => $trip->getId()]), 'title' => 'mileage.attachment.list']);
         }
         $user = $trip->getUser();
         $event->addAction('audit', [

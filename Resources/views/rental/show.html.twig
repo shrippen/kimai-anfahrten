@@ -55,5 +55,5 @@
         {{ tables.data_table_footer(null, null, null) }}
     {% endif %}
 
-    {% include '@Mileage/_attachments.html.twig' with {can_delete: can_edit} %}
+    {% include '@Mileage/_attachments.html.twig' with {can_delete: can_delete_attachments} %}
 {% endblock %}

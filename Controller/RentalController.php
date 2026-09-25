@@ -17,6 +17,7 @@ use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
 use KimaiPlugin\MileageBundle\Service\TripService;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
+use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,7 @@ class RentalController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly AttachmentStorage $attachmentStorage,
         private readonly MileagePages $pages,
+        private readonly MonthLockService $lockService,
     ) {
     }
 
@@ -129,6 +131,8 @@ class RentalController extends AbstractController
             'attachments' => $this->attachmentRepository->findByRental($rental),
             'attachment_form' => $canEdit ? $this->createAttachmentForm($this->generateUrl('mileage_attachment_rental', ['id' => $rental->getId()]))->createView() : null,
             'can_edit' => $canEdit,
+            // receipts of a closed month can be added, but not deleted
+            'can_delete_attachments' => $canEdit && ($this->isGranted('edit_locked_mileage') || !$this->lockService->isRentalLocked($rental)),
         ]);
     }
 

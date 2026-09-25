@@ -72,6 +72,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Receipts in closed months: adding one is allowed (handing in later), changing or deleting one needs
+  "edit_locked_mileage" (enforced for every way of writing, with a message in the web UI). A rental counts as
+  closed when a month of its period is closed. The trip page of a closed month is shown read-only with the
+  receipts instead of redirecting to the list (row action "Belege"); receipts of trips appear in the change log
 - REST API: `timesheet` (id of an own timesheet entry) can be set when creating or updating a trip
 - REST API: `GET /api/mileage/ping` (plugin version, API versions, features, permissions, profile with commute
   distance/default vehicle/whether Dawarich is set up, locked months of this and the previous year; needs only API

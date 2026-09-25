@@ -7,6 +7,7 @@ use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
+use KimaiPlugin\MileageBundle\Entity\Attachment;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Entity\TripAudit;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
@@ -18,6 +19,9 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  * Central guard for every way a trip is written (UI, API, import, suggestions):
  * - closed months can only be changed with "edit_locked_mileage"
  * - each change is written to the audit log (electronic logbook requirement)
+ *
+ * Receipts: adding one to a closed month is allowed (handing in later), changing or deleting needs
+ * "edit_locked_mileage". Receipts of trips are listed in the trip's audit log.
  */
 #[AsDoctrineListener(event: Events::onFlush, priority: 50)]
 #[AsDoctrineListener(event: Events::postFlush)]
@@ -50,6 +54,20 @@ class TripAuditListener
             if ($entity instanceof Trip) {
                 $this->assertWritable($entity);
                 $this->inserted[] = $entity;
+            } elseif ($entity instanceof Attachment && $entity->getTrip()?->getId() !== null) {
+                $this->auditReceipt($args, $entity, TripAudit::RECEIPT_ADD);
+            }
+        }
+
+        foreach ([...$uow->getScheduledEntityUpdates(), ...$uow->getScheduledEntityDeletions()] as $entity) {
+            if (!$entity instanceof Attachment) {
+                continue;
+            }
+            if ($this->lockService->isAttachmentLocked($entity)) {
+                $this->assertMayEditLocked();
+            }
+            if ($uow->isScheduledForDelete($entity) && $entity->getTrip()?->getId() !== null && !$uow->isScheduledForDelete($entity->getTrip())) {
+                $this->auditReceipt($args, $entity, TripAudit::RECEIPT_DELETE);
             }
         }
 
@@ -122,6 +140,16 @@ class TripAuditListener
         } finally {
             $this->flushing = false;
         }
+    }
+
+    private function auditReceipt(OnFlushEventArgs $args, Attachment $attachment, string $action): void
+    {
+        $em = $args->getObjectManager();
+        /** @var Trip $trip */
+        $trip = $attachment->getTrip();
+        $audit = new TripAudit((int) $trip->getId(), $trip->getUser(), $this->currentUser(), $action, ['receipt' => [null, $attachment->getOriginalName()]], $this->lockService->isTripLocked($trip));
+        $em->persist($audit);
+        $em->getUnitOfWork()->computeChangeSet($em->getClassMetadata(TripAudit::class), $audit);
     }
 
     private function assertWritable(Trip $trip): void

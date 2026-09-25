@@ -360,10 +360,12 @@ class TripController extends AbstractController
         $owner = $trip->getUser();
         $dawarich = $this->configuration->isDawarichConfigured($owner);
 
-        if ($trip->getId() !== null && !$this->mayChangeLocked($trip)) {
+        // Closed month without "edit_locked_mileage": the trip is shown read-only, receipts can still be added.
+        $readOnly = $trip->getId() !== null && !$this->mayChangeLocked($trip);
+        if ($readOnly && $request->isMethod('POST')) {
             $this->flashError($this->translator->trans('mileage.logbook.error.locked'));
 
-            return $this->redirectToRoute('mileage_trips', $this->listRoute($trip));
+            return $this->redirectToRoute('mileage_trip_edit', ['id' => $trip->getId()]);
         }
 
         $year = (int) ($trip->getDate() ?? new \DateTimeImmutable())->format('Y');
@@ -371,6 +373,7 @@ class TripController extends AbstractController
             'dawarich' => $dawarich,
             'vehicles' => $this->vehicleRepository->findByUser($owner),
             'rentals' => array_merge($this->rentalRepository->findByUserAndYear($owner, $year - 1), $this->rentalRepository->findByUserAndYear($owner, $year)),
+            'disabled' => $readOnly,
         ];
 
         $form = $this->createForm(TripForm::class, $trip, $options);
@@ -410,8 +413,8 @@ class TripController extends AbstractController
         $page = $this->pages->create('mileage_trip_form', 'mileage.menu', $this->translator->trans($title), [
             'trip' => $trip,
             'back' => $list,
-            'can_edit' => $this->canEditTripsOf($owner),
-            'can_delete' => $this->canDeleteTripsOf($owner),
+            'can_edit' => $this->canEditTripsOf($owner) && !$readOnly,
+            'can_delete' => $this->canDeleteTripsOf($owner) && !$readOnly,
         ]);
 
         return $this->render('@Mileage/trip/edit.html.twig', [
@@ -425,8 +428,9 @@ class TripController extends AbstractController
             'attachment_form' => $trip->getId() !== null && $this->canEditTripsOf($owner)
                 ? $this->createAttachmentForm($this->generateUrl('mileage_attachment_trip', ['id' => $trip->getId()]))->createView()
                 : null,
-            'can_edit' => $this->canEditTripsOf($owner),
-            'can_delete' => $this->canDeleteTripsOf($owner),
+            'can_edit' => $this->canEditTripsOf($owner) && !$readOnly,
+            'can_delete' => $this->canDeleteTripsOf($owner) && !$readOnly,
+            'read_only' => $readOnly,
             'back' => $list,
         ]);
     }

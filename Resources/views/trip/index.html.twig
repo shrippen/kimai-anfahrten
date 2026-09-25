@@ -59,7 +59,7 @@
     {% elseif column == 'status' %}
         {% if locked %}{{ mileage.month_status(lock) }}{% endif %}
     {% elseif column == 'actions' %}
-        {% set event = actions(app.user, 'mileage_trip', 'index', {trip: t, can_edit: can_edit and (not locked or edit_locked), can_delete: can_delete and (not locked or edit_locked)}) %}
+        {% set event = actions(app.user, 'mileage_trip', 'index', {trip: t, can_edit: can_edit and (not locked or edit_locked), can_delete: can_delete and (not locked or edit_locked), receipts: can_edit and locked and not edit_locked}) %}
         {{ widgets.table_actions(event.actions) }}
     {% endif %}
 {% endblock %}

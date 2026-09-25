@@ -19,6 +19,9 @@ class TripAudit
     public const CREATE = 'create';
     public const UPDATE = 'update';
     public const DELETE = 'delete';
+    /** A receipt was added to / deleted from the trip. */
+    public const RECEIPT_ADD = 'receipt_add';
+    public const RECEIPT_DELETE = 'receipt_delete';
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]

@@ -1750,6 +1750,26 @@
         <source>mileage.dawarich.window_to</source>
         <target>Bis</target>
       </trans-unit>
+      <trans-unit id="m437" resname="mileage.attachment.label">
+        <source>mileage.attachment.label</source>
+        <target>Beleg</target>
+      </trans-unit>
+      <trans-unit id="m438" resname="mileage.logbook.action.receipt_add">
+        <source>mileage.logbook.action.receipt_add</source>
+        <target>Beleg hinzugefügt</target>
+      </trans-unit>
+      <trans-unit id="m439" resname="mileage.logbook.action.receipt_delete">
+        <source>mileage.logbook.action.receipt_delete</source>
+        <target>Beleg gelöscht</target>
+      </trans-unit>
+      <trans-unit id="m440" resname="mileage.attachment.error.locked">
+        <source>mileage.attachment.error.locked</source>
+        <target>Der Monat ist abgeschlossen: Belege können nachgereicht, aber nicht geändert oder gelöscht werden.</target>
+      </trans-unit>
+      <trans-unit id="m441" resname="mileage.trip.locked_readonly">
+        <source>mileage.trip.locked_readonly</source>
+        <target>Der Monat ist abgeschlossen. Die Fahrt kann nicht mehr geändert werden, Belege können aber nachgereicht werden.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

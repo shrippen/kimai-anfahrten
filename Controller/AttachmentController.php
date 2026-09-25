@@ -9,6 +9,7 @@ use KimaiPlugin\MileageBundle\Entity\Rental;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
+use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Receipts for trips and rentals.
+ * Receipts for trips and rentals. In a closed month receipts can be added (handed in later), but deleting
+ * one needs "edit_locked_mileage" (also enforced for every other way by the TripAuditListener).
  */
 #[Route(path: '/mileage/attachments')]
 #[IsGranted('mileage')]
@@ -31,6 +33,7 @@ class AttachmentController extends AbstractController
         private readonly AttachmentRepository $attachmentRepository,
         private readonly AttachmentStorage $storage,
         private readonly TranslatorInterface $translator,
+        private readonly MonthLockService $lockService,
     ) {
     }
 
@@ -87,9 +90,14 @@ class AttachmentController extends AbstractController
 
         $trip = $attachment->getTrip();
         $rental = $attachment->getRental();
-        $this->storage->delete($attachment);
-        $this->attachmentRepository->remove($attachment);
-        $this->flashSuccess('action.delete.success');
+        if ($this->lockService->isAttachmentLocked($attachment) && !$this->isGranted('edit_locked_mileage')) {
+            $this->flashError($this->translator->trans('mileage.attachment.error.locked'));
+        } else {
+            // the database first: the file stays when the delete is refused
+            $this->attachmentRepository->remove($attachment);
+            $this->storage->delete($attachment);
+            $this->flashSuccess('action.delete.success');
+        }
 
         if ($rental !== null) {
             return $this->redirectToRoute('mileage_rental_show', ['id' => $rental->getId()]);
