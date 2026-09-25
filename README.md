@@ -54,7 +54,9 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   0,38 € ab km 1), einmal pro Tag, 4.500-€-Deckel ohne PKW, höhere ÖPNV-Kosten
 - Dienstreisen: eigener PKW 0,30 €/km, Motorrad 0,20 €/km, sonst tatsächliche Kosten; Firmenwagen bzw.
   Betriebsvermögen ohne km-Pauschale
-- **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist
+- **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist — nur aus Abfahrt und
+  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Hin- und Rückfahrt eines Tages, die aneinander anschließen,
+  zählen als eine Abwesenheit). Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
 - Selbstständige: **Privatnutzung** betrieblicher Fahrzeuge (1-%-Regel inkl. E-Auto/Hybrid-Faktor,
   0,03-%-Zuschlag Wohnung–Betrieb, Privatanteil nach Fahrtenbuch)
 - **Plausibilitätsprüfung**: Arbeitswege ohne Arbeitszeit, am Wochenende, an Urlaubs-/Krankheitstagen

@@ -141,6 +141,17 @@ class TripForm extends AbstractType
         $builder->get('arrivalAt')->addModelTransformer($immutable);
 
         if ($options['dawarich']) {
+            // The measuring window is not stored: departure/arrival are the real times of the trip
+            // (meal allowance, logbook), the window usually covers more (e.g. the whole day).
+            foreach (['measureFrom' => 'mileage.dawarich.window_from', 'measureTo' => 'mileage.dawarich.window_to'] as $field => $label) {
+                $builder->add($field, DateTimePickerType::class, [
+                    'label' => $label,
+                    'mapped' => false,
+                    'model_timezone' => 'UTC',
+                    'required' => false,
+                ]);
+                $builder->get($field)->addModelTransformer($immutable);
+            }
             $builder->add('dawarich', SubmitType::class, [
                 'label' => 'mileage.dawarich.lookup',
                 'validation_groups' => false,

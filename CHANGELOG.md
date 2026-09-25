@@ -59,6 +59,13 @@ All notable changes to this project will be documented in this file.
   chosen month that have no commute yet
 - Logbook of a later year reported a gap from the vehicle's initial odometer
 - Meal allowance of a journey over New Year counted the days of both years in one report
+- Meal allowance used the Dawarich measuring window as absence: "Fahrt erfassen" at a timesheet stored
+  00:00–23:59 as departure/arrival, so every such business trip got 14 €. The window is now a separate
+  "From/To" pair in the trip form (not stored, defaults to departure/arrival or the whole day); departure/arrival
+  are the real times and the only base of the meal allowance (trips without them get none, as before, and are
+  listed as missing times). Existing trips with 00:00–23:59 are not changed automatically — please check them
+- Meal allowance: legs of one day that start where the previous one ended (e.g. the detected way there and back)
+  count as one absence from the first departure to the last arrival instead of only the driving time
 
 ### Added
 

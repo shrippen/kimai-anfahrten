@@ -118,12 +118,21 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
 - [x] 📖 **API-Lücke: `timesheet` nicht setzbar** — `Service/TripMapper.php` / `API/MileageApiController.php:226`
   Die Fahrt-JSON enthält `timesheet`, aber POST/PATCH ignorieren es. **Fix:** `timesheet` (ID) annehmen, nur eigene
   Zeiteinträge des Fahrt-Nutzers, sonst 400.
-- [ ] 📖 **Verpflegungsmehraufwand hängt am Dawarich-Zeitfenster** — `Controller/TripController.php:401`,
+- [x] 📖 **Verpflegungsmehraufwand hängt am Dawarich-Zeitfenster** — `Controller/TripController.php:401`,
   `Service/MealAllowanceCalculator.php`
   „Fahrt erfassen" am Zeiteintrag setzt 00:00–23:59 (für die Messung); die Pauschale rechnet dieselben Zeiten als
   Abwesenheit → jede so erfasste Dienstreise ergibt 14 €. Umgekehrt ergeben getrennt erfasste Hin- und Rückfahrt
-  (Vorschläge) nur die Fahrzeit. **Offen:** Designentscheidung nötig (eigene Abwesenheitszeiten oder Fenster
-  = Zeiteintrag ± Puffer); bis dahin ist die Zeile im Steuerbericht manuell zu prüfen.
+  (Vorschläge) nur die Fahrzeit.
+  **Entscheidung:** Die Pauschale rechnet nur mit Abfahrt/Ankunft der Fahrt. Das Dawarich-Zeitfenster ist jetzt ein
+  eigenes, nicht gespeichertes Feldpaar „Von/Bis" im Fahrt-Formular (Vorgabe: Abfahrt/Ankunft, sonst der ganze Tag);
+  „Fahrt erfassen" am Zeiteintrag lässt Abfahrt/Ankunft leer. Fahrten ohne beide Zeiten: keine Pauschale, Hinweis
+  „ohne Abfahrts-/Ankunftszeit" im Steuerbericht und in der Plausibilitätsprüfung (bestehende Regel). Etappen eines
+  Tages, die dort beginnen, wo die vorige endete (Start = voriges Ziel, z. B. Hin- und Rückfahrt aus Vorschlägen),
+  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit 00:00–23:59
+  werden nicht automatisch geändert (CHANGELOG-Hinweis). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
+  Zeiten, mehrtägig über Neujahr mit Etappen. Nachtest ✅: „Fahrt erfassen" an Zeiteintrag 34 → Von/Bis
+  00:00–23:59, Abfahrt/Ankunft leer; Messung 10:00–18:00 gegen simuliertes Dawarich 46,6 km; gespeichert ohne Zeiten,
+  Steuerbericht zählt sie unter `missing_times`.
 - [ ] 📖 **Streckenmessung: Ausreißer als erster Punkt** — `Service/DistanceCalculator.php:42`
   Ist der erste Punkt ein GPS-Sprung, werden alle folgenden verworfen, bis die Zeit groß genug ist, dann wird der
   Sprung als Strecke gezählt. **Offen:** Algorithmus (z. B. Median-Filter/Neustart) — braucht echte Tracks zum Testen.

@@ -8,7 +8,12 @@ use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 /**
  * Verpflegungsmehraufwand (§ 9 Abs. 4a EStG, for self-employed via § 4 Abs. 5 Nr. 5 EStG).
  *
+ * Only the departure and arrival times of the trips count (never the Dawarich measuring window, which is
+ * not stored); business trips without both times get no allowance and are reported as `missing_times`.
+ *
  * - one-day absence of more than 8 hours: partial rate (several absences on one day add up)
+ * - legs of one day that continue where the previous one ended (start = previous destination, e.g. the
+ *   detected way there and back) form one absence from the first departure to the last arrival
  * - multi-day journey: partial rate on the days of departure and return, full rate in between;
  *   a journey spans several days when a trip ends on a later day or is marked "overnight"
  * - three-month rule: at the same destination the allowance ends after three months,
@@ -88,14 +93,15 @@ class MealAllowanceCalculator
             /** @var \DateTimeImmutable $arr */
             $arr = $trip->getArrivalAt();
 
-            if ($journey !== null && $journey['open']) {
+            if ($journey !== null && ($journey['open'] || self::continues($journey, $trip, $timezone))) {
                 $journey['end'] = max($journey['end'], $arr);
                 $journey['open'] = $trip->isOvernight();
+                $journey['at'] = $trip->getDestination();
                 continue;
             }
 
             $close($journey);
-            $journey = ['start' => $dep, 'end' => $arr, 'open' => $trip->isOvernight(), 'destination' => $trip->getDestination()];
+            $journey = ['start' => $dep, 'end' => $arr, 'open' => $trip->isOvernight(), 'destination' => $trip->getDestination(), 'at' => $trip->getDestination()];
         }
         $close($journey);
 
@@ -150,6 +156,21 @@ class MealAllowanceCalculator
         }
 
         return ['days' => $result, 'missing_times' => $missing] + $totals;
+    }
+
+    /**
+     * The trip starts on the day the journey ended, after it, where the journey's last leg arrived.
+     *
+     * @param array{end: \DateTimeImmutable, at: ?string} $journey
+     */
+    private static function continues(array $journey, Trip $trip, \DateTimeZone $timezone): bool
+    {
+        $departure = $trip->getDepartureAt();
+        $place = self::normalize($trip->getStartLocation());
+
+        return $departure !== null && $place !== null && $place === self::normalize($journey['at'])
+            && $departure >= $journey['end']
+            && $departure->setTimezone($timezone)->format('Y-m-d') === $journey['end']->setTimezone($timezone)->format('Y-m-d');
     }
 
     private static function normalize(?string $destination): ?string

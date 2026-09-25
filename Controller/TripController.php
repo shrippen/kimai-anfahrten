@@ -374,15 +374,24 @@ class TripController extends AbstractController
         ];
 
         $form = $this->createForm(TripForm::class, $trip, $options);
+        if ($dawarich) {
+            [$from, $to] = $this->measureWindow($trip, $owner);
+            $form->get('measureFrom')->setData($from);
+            $form->get('measureTo')->setData($to);
+        }
         $form->handleRequest($request);
 
         $lookup = $dawarich ? $form->get('dawarich') : null;
         // The lookup button skips validation, so check the CSRF token (a form-level error) explicitly.
         if ($form->isSubmitted() && $lookup instanceof ClickableInterface && $lookup->isClicked() && \count($form->getErrors()) === 0) {
-            $this->lookupDistance($trip);
+            $from = $form->get('measureFrom')->getData();
+            $to = $form->get('measureTo')->getData();
+            $this->lookupDistance($trip, $from instanceof \DateTimeImmutable ? $from : null, $to instanceof \DateTimeImmutable ? $to : null);
 
             // Re-create the form so the measured distance replaces the submitted value.
             $form = $this->createForm(TripForm::class, $trip, $options);
+            $form->get('measureFrom')->setData($from);
+            $form->get('measureTo')->setData($to);
         } elseif ($form->isSubmitted() && $form->isValid()) {
             if (!$this->mayChangeLocked($trip)) {
                 $form->get('date')->addError(new FormError($this->translator->trans('mileage.logbook.error.locked')));
@@ -427,12 +436,27 @@ class TripController extends AbstractController
         return !$this->lockService->isTripLocked($trip) || $this->isGranted('edit_locked_mileage');
     }
 
-    private function lookupDistance(Trip $trip): void
+    /**
+     * Default Dawarich window: departure to arrival when both are known, otherwise the whole day of the trip
+     * (so the way there and back is covered). Only the window, never stored as departure/arrival: those are
+     * the real times of the trip and the base of the meal allowance.
+     *
+     * @return array{?\DateTimeImmutable, ?\DateTimeImmutable}
+     */
+    private function measureWindow(Trip $trip, User $owner): array
     {
-        $from = $trip->getDepartureAt();
-        $to = $trip->getArrivalAt();
+        $date = $trip->getDate();
+        if ($date === null) {
+            return [$trip->getDepartureAt(), $trip->getArrivalAt()];
+        }
+        $day = new \DateTimeImmutable($date->format('Y-m-d'), new \DateTimeZone($owner->getTimezone()));
 
-        if ($from === null || $to === null) {
+        return [$trip->getDepartureAt() ?? $day->setTime(0, 0), $trip->getArrivalAt() ?? $day->setTime(23, 59)];
+    }
+
+    private function lookupDistance(Trip $trip, ?\DateTimeImmutable $from, ?\DateTimeImmutable $to): void
+    {
+        if ($from === null || $to === null || $to <= $from) {
             $this->flashError($this->translator->trans('mileage.dawarich.error.time_window'));
 
             return;
@@ -496,10 +520,9 @@ class TripController extends AbstractController
                 $trip->setProject($timesheet->getProject());
                 if ($timesheet->getBegin() !== null) {
                     $begin = \DateTimeImmutable::createFromInterface($timesheet->getBegin());
+                    // No departure/arrival: the working time is not the travel time. The Dawarich window
+                    // defaults to the whole day (see measureWindow()).
                     $trip->setDate($begin);
-                    // Default window: the whole working day, so the way there and back is covered.
-                    $trip->setDepartureAt($begin->setTime(0, 0));
-                    $trip->setArrivalAt($begin->setTime(23, 59));
                 }
                 if ($trip->getDestination() === null) {
                     $trip->setDestination($timesheet->getProject()?->getCustomer()?->getName());
