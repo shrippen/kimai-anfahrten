@@ -128,8 +128,9 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   „Fahrt erfassen" am Zeiteintrag lässt Abfahrt/Ankunft leer. Fahrten ohne beide Zeiten: keine Pauschale, Hinweis
   „ohne Abfahrts-/Ankunftszeit" im Steuerbericht und in der Plausibilitätsprüfung (bestehende Regel). Etappen eines
   Tages, die dort beginnen, wo die vorige endete (Start = voriges Ziel, z. B. Hin- und Rückfahrt aus Vorschlägen),
-  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit 00:00–23:59
-  werden nicht automatisch geändert (CHANGELOG-Hinweis). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
+  zählen als eine Abwesenheit von der ersten Abfahrt bis zur letzten Ankunft. Bestehende Fahrten mit genau
+  00:00–23:59 (Zeitzone des Nutzers, selber Tag) leert die Migration `Version20261003000000` (A-8; Sicherung in
+  `kimai2_ext_mileage_legacy_times`, `down()` stellt wieder her; Zählung in der Migrationsausgabe). Tests: Hin-/Rückfahrt, Etappen verschiedener Tage, ohne
   Zeiten, mehrtägig über Neujahr mit Etappen. Nachtest ✅: „Fahrt erfassen" an Zeiteintrag 34 → Von/Bis
   00:00–23:59, Abfahrt/Ankunft leer; Messung 10:00–18:00 gegen simuliertes Dawarich 46,6 km; gespeichert ohne Zeiten,
   Steuerbericht zählt sie unter `missing_times`.
@@ -142,6 +143,8 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   der Spur (300 km/h) bleibt. Unit-Tests mit synthetischen Spuren: ein und zwei Ausreißer am Start, alter Fix
   Minuten vor der Spur (früher +25 km), Glitch nach gutem Start, GPS-Rauschen < 1 km, lange geparkter echter Start,
   nur 2 Punkte.
+  **Überholt:** mit der Umstellung auf die Dawarich-Tracks (siehe unten) ist die eigene Messung auf GPS-Punkten samt
+  Ausreißer- und Sprungfilter entfallen; Dawarich verwirft als Anomalie markierte Punkte selbst.
 - [x] 📖 **Belege an Fahrten in abgeschlossenen Monaten** — `Controller/AttachmentController.php:104`
   Hochladen/Löschen ist trotz Monatsabschluss möglich (nicht im Audit-Log).
   **Entscheidung:** Nachreichen (Hochladen) bleibt erlaubt, Ändern/Löschen nur mit `edit_locked_mileage`.
@@ -156,6 +159,28 @@ Geprüft ohne Befund (kein Fehler, ✅ live mit admin/user1/user2/lead1):
   hochladbar, kein Löschen-Button.
 - **kein Fehler** ✅ `GET /mileage/trip/{id}/track`: Teamleitung sieht die GPS-Spur der Fahrt eines Mitglieds —
   entspricht dem Sichtrecht auf die Fahrt (Zeitfenster der Fahrt); nur Hinweis für die Doku.
+
+## Dawarich-Tracks statt eigener Erkennung (Branch `claude/dawarich-tracks`)
+
+- [x] Fahrterkennung und Streckenmessung nutzen nur noch die Tracks und Transportmodus-Abschnitte von Dawarich
+  (`GET /api/v1/tracks`, `GET /api/v1/tracks/{id}`); `TripDetector`, der Punktfilter im `DistanceCalculator` und
+  `/api/v1/points` werden nicht mehr verwendet. Ohne Tracks-API (404) oder ohne Tracks im Zeitraum: Meldung statt
+  Rückfall auf GPS-Punkte. Einstellungen `mileage.dawarich_max_accuracy` und `mileage.detect_stop_radius` entfallen.
+- [ ] Gegen eine echte Dawarich-Instanz (≥ Version mit Transportmodi) prüfen: Feldnamen und Einheiten sind aus dem
+  Quellcode (Dawarich 1.15.2, `app/serializers/tracks/geojson_serializer.rb`) übernommen, getestet nur gegen den
+  nachgebauten Server in `tests/e2e/fake-dawarich`.
+
+## Entscheidungen A-6 bis A-8 (Branch `claude/dawarich-tracks`)
+
+- [x] A-6 Mehrtägige Reise automatisch: Übernachtung, wenn die letzte Fahrt eines Tages nicht zu Hause/an der
+  Arbeitsstätte endet und eine spätere Fahrt am selben Ort beginnt (Ort, Koordinaten im Radius, sonst Name);
+  Dawarich-Visits über Mitternacht bestätigen bzw. widersprechen (nur im Steuerbericht, nur mit Bearbeitungsrecht).
+  Unklar → „zu prüfen" statt gezählt (Zuhause/Arbeit unbekannt mit Hinweis, Lücke > 14 Tage einstellbar, Visit zu
+  Hause). „Übernachtung" bleibt als manuelle Übersteuerung. Unit-Tests in `MealAllowanceCalculatorTest`,
+  `OvernightVisitCheckerTest`.
+- [x] A-7 Radius vorläufiger Orte 200 m, einstellbar (`mileage.place_radius`).
+- [x] A-8 Platzhalterzeiten 00:00–23:59 per Migration geleert (siehe oben). Nicht live ausgeführt: das Anwenden
+  der Datenmigration auf der geteilten Testinstanz wurde nicht freigegeben.
 
 ## UI-Beobachtungen (für die spätere UI-Kit-Integration, hier nicht geändert)
 

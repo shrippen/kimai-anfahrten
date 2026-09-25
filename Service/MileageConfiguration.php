@@ -93,11 +93,6 @@ class MileageConfiguration
     }
 
     /** GPS points with a worse accuracy (in metres) are ignored for distance calculation. */
-    public function getMaxAccuracy(): int
-    {
-        return (int) $this->float('mileage.dawarich_max_accuracy', 100);
-    }
-
     public function getGeocoderUrl(): ?string
     {
         $url = $this->nonEmpty($this->configuration->find('mileage.geocoder_url'));
@@ -128,14 +123,26 @@ class MileageConfiguration
         return max(1, (int) $this->float('mileage.detect_stop_minutes', 5));
     }
 
+    /**
+     * Radius (m) of the places created automatically where a detected trip starts or ends, of imported Dawarich
+     * places, and for linking trips by coordinates.
+     */
+    public function getPlaceRadius(): int
+    {
+        return max(10, min(5000, (int) $this->float('mileage.place_radius', 200)));
+    }
+
+    /**
+     * A journey is not continued silently when the next leg starts more than this many days later (for review).
+     */
+    public function getJourneyMaxGapDays(): int
+    {
+        return max(1, (int) $this->float('mileage.journey_max_gap_days', 14));
+    }
+
     public function getDetectMinKm(): float
     {
         return max(0.1, $this->float('mileage.detect_min_km', 1.0));
-    }
-
-    public function getDetectStopRadius(): float
-    {
-        return max(20.0, $this->float('mileage.detect_stop_radius', 200));
     }
 
     /**

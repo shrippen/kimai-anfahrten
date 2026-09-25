@@ -24,7 +24,7 @@ class SuggestionService
 {
     public function __construct(
         private readonly DawarichClient $dawarichClient,
-        private readonly TripDetector $tripDetector,
+        private readonly TrackAnalyzer $trackAnalyzer,
         private readonly PlaceMatcher $placeMatcher,
         private readonly TimesheetMatcher $timesheetMatcher,
         private readonly GeocoderClient $geocoder,
@@ -34,85 +34,62 @@ class SuggestionService
         private readonly TripRepository $tripRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TripService $tripService,
-        private readonly TransportModeFilter $modeFilter,
     ) {
     }
 
     /**
-     * Detects trips day by day (a day is the user's local calendar day).
+     * Turns the Dawarich tracks of the period (the user's local calendar days, up to now) into suggestions.
+     * A trip belongs to the day it starts on; trips already suggested (same start) are skipped.
      *
      * @return int number of new suggestions
-     * @throws DawarichException
+     * @throws DawarichException also when Dawarich has no tracks for the period
      */
     public function detect(User $user, \DateTimeImmutable $from, \DateTimeImmutable $to): int
     {
         $timezone = $this->timezone($user);
-        $day = $from->setTimezone($timezone)->setTime(0, 0);
-        $last = $to->setTimezone($timezone)->setTime(0, 0);
-        $now = new \DateTimeImmutable('now', $timezone);
+        $first = $from->setTimezone($timezone)->setTime(0, 0);
+        $last = $to->setTimezone($timezone)->setTime(0, 0)->modify('+1 day');
+        $end = min($last, new \DateTimeImmutable('now', $timezone));
+        if ($end <= $first) {
+            return 0;
+        }
 
+        $tracks = $this->dawarichClient->fetchTracksOrFail($user, $first, $end);
         $places = $this->placeRepository->findByUser($user);
-        $known = $this->suggestionRepository->findKnownStarts($user, $day, $last->modify('+1 day'));
+        $known = $this->suggestionRepository->findKnownStarts($user, $first, $last);
+        $timesheets = [];
         $created = 0;
 
-        while ($day <= $last && $day <= $now) {
-            $next = $day->modify('+1 day');
-            $points = $this->dawarichClient->fetchPoints($user, $day, $next);
-            $detected = $points === [] ? [] : $this->detectTrips($user, $points, $day, $next);
-
-            $timesheets = $detected !== [] ? $this->findTimesheets($user, $day, $next) : [];
-
-            foreach ($detected as $trip) {
-                if (isset($known[$trip->start->timestamp])) {
+        foreach ($tracks as $track) {
+            foreach ($this->trackAnalyzer->trips(
+                $track,
+                $this->configuration->getExcludedTransportModes(),
+                $this->configuration->getDetectStopMinutes() * 60,
+                $this->configuration->getDetectMinKm(),
+            ) as $trip) {
+                $start = $trip->start->timestamp;
+                if ($start < $first->getTimestamp() || $start >= $end->getTimestamp() || isset($known[$start])) {
                     continue;
                 }
-                $known[$trip->start->timestamp] = true;
+                $known[$start] = true;
 
-                $this->suggestionRepository->save($this->createSuggestion($user, $trip, $places, $timesheets, $timezone), false);
+                $day = $trip->getStartAt($timezone)->setTime(0, 0);
+                $timesheets[$day->format('Y-m-d')] ??= $this->findTimesheets($user, $day, $day->modify('+1 day'));
+
+                $this->suggestionRepository->save($this->createSuggestion($user, $trip, $places, $timesheets[$day->format('Y-m-d')], $timezone), false);
                 $created++;
             }
-
-            $this->suggestionRepository->flush();
-            $day = $next;
         }
+        $this->suggestionRepository->flush();
 
         return $created;
     }
 
     /**
-     * Stay-point detection per stretch of motorized movement: walks and bike rides that
-     * Dawarich recognised are cut out first, so they never become (part of) a trip.
-     *
-     * @param GpsPoint[] $points
-     * @return DetectedTrip[]
-     */
-    private function detectTrips(User $user, array $points, \DateTimeImmutable $from, \DateTimeImmutable $to): array
-    {
-        $excluded = $this->configuration->getExcludedTransportModes();
-        $segments = $this->dawarichClient->fetchTransportSegments($user, $from, $to);
-        $chunks = $excluded !== [] ? $this->modeFilter->split($points, $segments, $excluded) : [$points];
-
-        $trips = [];
-        foreach ($chunks as $chunk) {
-            foreach ($this->tripDetector->detect(
-                $chunk,
-                $this->configuration->getDetectStopRadius(),
-                $this->configuration->getDetectStopMinutes(),
-                $this->configuration->getDetectMinKm(),
-                $this->configuration->getMaxAccuracy(),
-            ) as $trip) {
-                $trips[] = $trip->withMode($this->modeFilter->dominantMode($segments, $trip->start->timestamp, $trip->end->timestamp));
-            }
-        }
-
-        return $trips;
-    }
-
-    /**
-     * @param Place[] $places
+     * @param Place[] $places the user's places; places created for the trip's ends are added
      * @param Timesheet[] $timesheets
      */
-    public function createSuggestion(User $user, DetectedTrip $trip, array $places, array $timesheets, \DateTimeZone $timezone): TripSuggestion
+    public function createSuggestion(User $user, DetectedTrip $trip, array &$places, array $timesheets, \DateTimeZone $timezone): TripSuggestion
     {
         $from = $trip->getStartLocation();
         $to = $trip->getEndLocation();
@@ -126,11 +103,11 @@ class SuggestionService
             ->setMode($trip->mode)
             ->setVehicle(TransportModeFilter::vehicleFor($trip->mode));
 
-        $startPlace = $this->placeMatcher->match($places, $from->latitude, $from->longitude);
-        $endPlace = $this->placeMatcher->match($places, $to->latitude, $to->longitude);
+        $startPlace = $this->placeAt($user, $places, $from);
+        $endPlace = $this->placeAt($user, $places, $to);
         $suggestion->setStartPlace($startPlace)->setEndPlace($endPlace);
-        $suggestion->setStartLabel($startPlace?->getLabel() ?? $this->label($from));
-        $suggestion->setEndLabel($endPlace?->getLabel() ?? $this->label($to));
+        $suggestion->setStartLabel($startPlace->getLabel());
+        $suggestion->setEndLabel($endPlace->getLabel());
 
         $timesheet = $this->timesheetMatcher->match($timesheets, $suggestion->getStartAt(), $suggestion->getEndAt());
         $suggestion->setTimesheet($timesheet);
@@ -138,6 +115,33 @@ class SuggestionService
         $suggestion->setPurpose(self::guessPurpose($startPlace, $endPlace, $timesheet !== null));
 
         return $suggestion;
+    }
+
+    /**
+     * The nearest place whose radius contains the position. Outside all places a temporary place is created there
+     * (named after its address, radius from the settings), so a later trip starting nearby starts at the same place.
+     *
+     * @param Place[] $places
+     */
+    private function placeAt(User $user, array &$places, GpsPoint $point): Place
+    {
+        $place = $this->placeMatcher->match($places, $point->latitude, $point->longitude);
+        if ($place !== null) {
+            return $place;
+        }
+
+        $place = (new Place())
+            ->setUser($user)
+            ->setName(mb_substr($this->label($user, $point), 0, 100))
+            ->setType(PlaceType::OTHER)
+            ->setLatitude($point->latitude)
+            ->setLongitude($point->longitude)
+            ->setRadius($this->configuration->getPlaceRadius())
+            ->setTemporary(true);
+        $this->placeRepository->save($place, false);
+        $places[] = $place;
+
+        return $place;
     }
 
     public static function guessPurpose(?Place $start, ?Place $end, bool $hasTimesheet): TripPurpose
@@ -207,6 +211,10 @@ class SuggestionService
             ->setPurpose($purpose)
             ->setStartLocation($suggestion->getStartLabel())
             ->setDestination($suggestion->getEndLabel())
+            ->setStartCoordinates($suggestion->getStartLatitude(), $suggestion->getStartLongitude())
+            ->setEndCoordinates($suggestion->getEndLatitude(), $suggestion->getEndLongitude())
+            ->setStartPlace($suggestion->getStartPlace())
+            ->setEndPlace($suggestion->getEndPlace())
             ->setDistanceKm($distance)
             ->setSource(TripSource::DAWARICH)
             ->setPointCount($suggestion->getPointCount())
@@ -241,7 +249,8 @@ class SuggestionService
     }
 
     /**
-     * Imports Dawarich areas as places (existing imports are updated).
+     * Imports Dawarich areas and places as places (existing imports are updated). Places have no radius in
+     * Dawarich, they get the radius from the settings.
      *
      * @return int number of imported or updated places
      * @throws DawarichException
@@ -258,7 +267,23 @@ class SuggestionService
             $place->setName(mb_substr($area['name'], 0, 100))
                 ->setLatitude($area['latitude'])
                 ->setLongitude($area['longitude'])
-                ->setRadius(max(10, min(5000, $area['radius'])));
+                ->setRadius(max(10, min(5000, $area['radius'])))
+                ->setTemporary(false);
+
+            $this->placeRepository->save($place, false);
+            $count++;
+        }
+        foreach ($this->dawarichClient->fetchPlaces($user) as $row) {
+            $place = $this->placeRepository->findOneByDawarichPlace($user, $row['id']) ?? (new Place())
+                ->setUser($user)
+                ->setDawarichPlaceId($row['id'])
+                ->setType(self::guessPlaceType($row['name']))
+                ->setRadius($this->configuration->getPlaceRadius());
+
+            $place->setName(mb_substr($row['name'], 0, 100))
+                ->setLatitude($row['latitude'])
+                ->setLongitude($row['longitude'])
+                ->setTemporary(false);
 
             $this->placeRepository->save($place, false);
             $count++;
@@ -279,9 +304,14 @@ class SuggestionService
         };
     }
 
-    private function label(GpsPoint $point): string
+    /**
+     * Address of a position: Dawarich's reverse geocoder first, then the geocoding server of the plugin settings,
+     * otherwise the coordinates. Only called when a place is created, the result is kept as the place name.
+     */
+    private function label(User $user, GpsPoint $point): string
     {
-        return $this->geocoder->reverse($point->latitude, $point->longitude)
+        return $this->dawarichClient->reverseGeocode($user, $point->latitude, $point->longitude)
+            ?? $this->geocoder->reverse($point->latitude, $point->longitude)
             ?? \sprintf('%.5f, %.5f', $point->latitude, $point->longitude);
     }
 

@@ -9,6 +9,7 @@ use KimaiPlugin\MileageBundle\Enum\TaxProfile;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
+use KimaiPlugin\MileageBundle\Service\OvernightVisitChecker;
 use KimaiPlugin\MileageBundle\Service\PlausibilityChecker;
 use KimaiPlugin\MileageBundle\Service\TaxCalculator;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,6 +34,7 @@ class TaxReportController extends AbstractController
         private readonly MileageConfiguration $configuration,
         private readonly HtmlToPdfConverter $pdfConverter,
         private readonly MileagePages $pages,
+        private readonly OvernightVisitChecker $overnightChecker,
     ) {
     }
 
@@ -45,7 +47,10 @@ class TaxReportController extends AbstractController
         $trips = $this->tripRepository->findByUserAndYear($user, $year);
 
         $profile = TaxProfile::tryFrom((string) $request->query->get('profile')) ?? $this->configuration->getTaxProfile($user);
-        $summary = $this->taxCalculator->summarize($trips, $year, $profile, $user->getDateTimezone());
+        // The evaluation checks overnight stays against Dawarich visits (the other summaries do not ask Dawarich);
+        // that uses the user's Dawarich credentials, so only with the right to edit the trips.
+        $confirm = $this->canEditTripsOf($user) ? $this->overnightChecker->forUser($user) : null;
+        $summary = $this->taxCalculator->summarize($trips, $year, $profile, $user->getDateTimezone(), $confirm);
         $format = (string) $request->query->get('format');
 
         $userParam = $user === $this->getUser() ? null : $user->getId();

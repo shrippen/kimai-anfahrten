@@ -39,7 +39,7 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 - [x] Fahrten mit Art (Arbeitsweg / Dienstreise / Privat), Fahrzeug (eigener PKW, Mietwagen, Firmenwagen, Motorrad,
       Fahrrad, ÖPNV, Sonstiges), Kennzeichen, Start/Ziel, km, Hin- und Rückfahrt, Kosten, Projekt, Bemerkung
 - [x] Liste pro Monat/Jahr, anlegen / bearbeiten / duplizieren / löschen, CSV-Export
-- [x] Dawarich: Distanz für ein Zeitfenster aus GPS-Punkten (`/api/v1/points`), Filter für ungenaue Punkte und GPS-Sprünge
+- [x] Dawarich: Distanz für ein Zeitfenster (anfangs aus GPS-Punkten, inzwischen aus den Dawarich-Tracks)
 - [x] „Fahrt erfassen" direkt am Zeiteintrag, Arbeitswege aus Tagen mit Arbeitszeit erzeugen
 - [x] Jahresbericht, Systemeinstellungen, Nutzereinstellungen, Rechte, Übersetzungen de/en
 
@@ -48,7 +48,8 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 - [x] Test gegen Kimai 2.67: Installation, Migrationen (gegen das Entity-Mapping geprüft), Menü, Rechte,
       Profil-Einstellungen, Projektauswahl — ohne Docker mit MariaDB, als Browser-Tests auch in der CI
 - [ ] **Dawarich-API gegen eine echte Instanz prüfen** (Feldnamen, Seitenaufteilung, Zeitzonen, Rate-Limits).
-      Getestet ist nur gegen einen nachgebauten Server nach der Dawarich-Doku; bitte mit „Dawarich-Verbindung testen"
+      Getestet ist nur gegen einen nachgebauten Server nach der Dawarich-Doku bzw. (Tracks) nach dem Quellcode
+      von Dawarich 1.15.2 (`Tracks::GeojsonSerializer`); bitte mit „Dawarich-Verbindung testen"
       und einer Erkennung über ein paar Tage gegenprüfen
 - [x] Button „Dawarich-Verbindung testen" (auf der Fahrten-Seite)
 - [x] API-Key als Passwortfeld im Profilformular
@@ -57,8 +58,9 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 
 ## 0.3 — Dawarich richtig nutzen (Kernidee) ✅
 
-- [x] **Automatische Fahrterkennung pro Tag** über eigene Stopp-/Bewegungserkennung auf den GPS-Punkten
-      (Dawarich-*Visits*/*Tracks* werden nicht benötigt); Empfindlichkeit in den Systemeinstellungen
+- [x] **Automatische Fahrterkennung pro Tag** — inzwischen aus den Dawarich-*Tracks* und ihren
+      Transportmodus-Abschnitten (die eigene Stopp-/Bewegungserkennung auf GPS-Punkten ist entfallen);
+      Stopp-Dauer und kürzeste Fahrt in den Systemeinstellungen
 - [x] **Vorschlagsliste** mit Art und Fahrzeug pro Vorschlag, übernehmen / bearbeiten / verwerfen, „alle
       geschäftlichen übernehmen"; zweiter Arbeitsweg am selben Tag wird zusammengeführt
 - [x] **Orte**: eigene Orte und Import der Dawarich-*Areas*; Zuordnung über den Mittelpunkt des Stopps

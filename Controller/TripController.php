@@ -25,6 +25,7 @@ use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\CommuteGenerator;
 use KimaiPlugin\MileageBundle\Service\DawarichClient;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
+use KimaiPlugin\MileageBundle\Service\GpsPoint;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
@@ -308,7 +309,7 @@ class TripController extends AbstractController
     }
 
     /**
-     * GPS track of a trip's time window for the map preview (not stored anywhere).
+     * Driven parts of the Dawarich tracks in a trip's time window for the map preview (not stored anywhere).
      */
     #[Route(path: '/trip/{id}/track', name: 'mileage_trip_track', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function track(Trip $trip): Response
@@ -321,25 +322,27 @@ class TripController extends AbstractController
         $from = $trip->getDepartureAt();
         $to = $trip->getArrivalAt();
         if ($user === null || $from === null || $to === null || !$this->configuration->isDawarichConfigured($user)) {
-            return $this->json(['points' => []]);
+            return $this->json(['lines' => []]);
         }
 
         try {
-            $points = $this->dawarichClient->fetchPoints($user, $from, $to);
+            $lines = $this->dawarichClient->fetchLines($user, $from, $to);
         } catch (DawarichException $e) {
             return $this->json(['error' => $this->translator->trans($e->getMessage(), $e->getParameters())], 502);
         }
 
         // Thin out long tracks; the preview does not need every point.
-        $step = max(1, (int) ceil(\count($points) / 2000));
+        $step = max(1, (int) ceil(array_sum(array_map('count', $lines)) / 2000));
         $coords = [];
-        foreach ($points as $i => $point) {
-            if ($i % $step === 0) {
-                $coords[] = [round($point->latitude, 6), round($point->longitude, 6)];
-            }
+        foreach ($lines as $line) {
+            $last = \count($line) - 1;
+            $coords[] = array_values(array_map(
+                static fn (GpsPoint $point) => [round($point->latitude, 6), round($point->longitude, 6)],
+                array_filter($line, static fn (int $i) => $i % $step === 0 || $i === $last, \ARRAY_FILTER_USE_KEY),
+            ));
         }
 
-        return $this->json(['points' => $coords]);
+        return $this->json(['lines' => $coords]);
     }
 
     #[Route(path: '/export/{year}', name: 'mileage_export', requirements: ['year' => '\d{4}'], methods: ['GET'])]
@@ -474,8 +477,8 @@ class TripController extends AbstractController
             return;
         }
 
-        if ($result->usedPointCount < 2) {
-            $this->flashWarning($this->translator->trans('mileage.dawarich.no_points'));
+        if ($result->segmentCount === 0) {
+            $this->flashWarning($this->translator->trans('mileage.dawarich.no_segments'));
 
             return;
         }
@@ -492,7 +495,7 @@ class TripController extends AbstractController
         // Kimai hides success flashes: the measured distance is a result callout (kimai-plugin-ui GUIDELINES 3.6)
         $this->addFlash('kpu_result', $this->translator->trans('mileage.dawarich.measured', [
             '%km%' => $this->pages->number($result->distanceKm),
-            '%points%' => $result->usedPointCount,
+            '%segments%' => $result->segmentCount,
         ]));
     }
 

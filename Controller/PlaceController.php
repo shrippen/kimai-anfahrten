@@ -163,6 +163,8 @@ class PlaceController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // a place the user saved is no longer a temporary one
+            $place->setTemporary(false);
             $this->placeRepository->save($place);
             $this->flashSuccess('action.update.success');
 

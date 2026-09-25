@@ -79,7 +79,8 @@ class SuggestCommand extends Command
             try {
                 $rows[] = [$user->getUserIdentifier(), $this->suggestionService->detect($user, $from, $to)];
             } catch (DawarichException $e) {
-                $failed = true;
+                // nothing recorded (e.g. a weekend) is no failure
+                $failed = $failed || $e->getMessage() !== 'mileage.dawarich.error.no_tracks';
                 $rows[] = [$user->getUserIdentifier(), $this->translator->trans($e->getMessage(), $e->getParameters())];
             }
         }

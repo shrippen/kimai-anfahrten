@@ -27,15 +27,22 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - CSV-Import (erkennt Trennzeichen, Zeichensatz, deutsche/englische Spalten — auch den eigenen Export), REST-API
 
 **Dawarich**
-- Strecke für ein Zeitfenster aus GPS-Punkten messen, Kartenvorschau der Strecke; ungenaue Punkte, GPS-Sprünge
-  (> 300 km/h) und Ausreißer am Anfang der Spur (> 1 km und > 200 km/h von den folgenden Punkten) zählen nicht
-- **Automatische Fahrterkennung**: Stopps und Bewegungen werden getrennt, jede Fahrt landet als Vorschlag.
-  Fuß-, Lauf- und Radwege werden über den **Transportmodus von Dawarich** ausgeschlossen (abschaltbar);
-  bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel vorgeschlagen.
+- Nutzt die **Tracks von Dawarich** (`/api/v1/tracks`) mit ihren Abschnitten und dem von Dawarich erkannten
+  **Transportmodus** — keine eigene Auswertung der GPS-Punkte. Voraussetzung ist eine Dawarich-Version mit Tracks;
+  ohne Tracks (zu alte Version oder noch nicht berechnet) gibt es eine Meldung statt einer Schätzung.
+- Strecke für ein Zeitfenster messen, Kartenvorschau der Strecke: Summe der Dawarich-Abschnittslängen im Fenster;
+  angeschnittene Abschnitte zählen anteilig nach der Zeit, Standzeiten ab der Stopp-Dauer zählen nicht
+- **Automatische Fahrterkennung**: aufeinanderfolgende gefahrene Abschnitte eines Tracks sind eine Fahrt.
+  Fuß-, Lauf- und Radwege (abschaltbar) und Standzeiten ab der Stopp-Dauer beenden eine Fahrt — ein Fußweg
+  zwischen zwei Autofahrten ergibt zwei Fahrten; bei Bahn, Bus oder Motorrad wird das passende Verkehrsmittel
+  vorgeschlagen.
   Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
   mit Projekt. Übernehmen, bearbeiten oder verwerfen.
-- Orte (Zuhause, Arbeit, Kunde) anlegen oder aus Dawarich-*Areas* übernehmen, optionale Adressauflösung
-  (Nominatim/Photon), nächtlicher Abgleich per Cronjob
+- **Orte statt Namen**: Start und Ziel einer erkannten Fahrt sind Orte mit Koordinaten — eigene Orte, aus Dawarich
+  übernommene *Areas* und *Places*, oder **vorläufige Orte**, die automatisch dort angelegt werden, wo eine Fahrt
+  außerhalb aller Orte endet (Radius einstellbar, Standard 200 m); die nächste Fahrt, die darin beginnt, startet an
+  diesem Ort. Die Adresse kommt vom Geocoder der Dawarich-Instanz (`/api/v1/places/nearby`), sonst vom optional
+  eingestellten Nominatim/Photon, und wird am Ort gespeichert. Nächtlicher Abgleich per Cronjob
 
 ![Erkannte Fahrten](docs/erkannte-fahrten.png)
 
@@ -57,8 +64,13 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
 - Dienstreisen: eigener PKW 0,30 €/km, Motorrad 0,20 €/km, sonst tatsächliche Kosten; Firmenwagen bzw.
   Betriebsvermögen ohne km-Pauschale
 - **Verpflegungsmehraufwand** (14 €/28 €) inkl. mehrtägiger Reisen und Dreimonatsfrist — nur aus Abfahrt und
-  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Hin- und Rückfahrt eines Tages, die aneinander anschließen,
-  zählen als eine Abwesenheit). Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
+  Ankunft der Dienstreisen (ohne Zeiten keine Pauschale; Fahrten, die dort beginnen, wo die vorige endete, bilden
+  eine Reise — bei erkannten Fahrten über Ort bzw. Koordinaten, bei von Hand erfassten über den Namen; die
+  Dreimonatsfrist zählt pro Ort). **Mehrtägige Reisen werden erkannt**: endet die letzte Fahrt eines Tages nicht
+  zu Hause/an der ersten Tätigkeitsstätte (Orte vom Typ „Zuhause"/„Arbeit" oder Profiladressen) und beginnt eine
+  spätere dort, gilt das als Übernachtung; Dawarich-*Visits* über Mitternacht bestätigen das. Unklare Fälle
+  (Zuhause unbekannt, Lücke über 14 Tage — einstellbar, Visit zu Hause) werden nicht gezählt, sondern als
+  „zu prüfen" gezeigt; „Übernachtung" an der Fahrt erzwingt die Reise. Das Zeitfenster für die Dawarich-Messung („Von/Bis") ist davon getrennt.
 - Selbstständige: **Privatnutzung** betrieblicher Fahrzeuge (1-%-Regel inkl. E-Auto/Hybrid-Faktor,
   0,03-%-Zuschlag Wohnung–Betrieb, Privatanteil nach Fahrtenbuch)
 - **Plausibilitätsprüfung**: Arbeitswege ohne Arbeitszeit, am Wochenende, an Urlaubs-/Krankheitstagen
@@ -104,7 +116,7 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
    Der API-Key wird nicht angezeigt (leer lassen = behalten, ein Leerzeichen = löschen) und liegt in einer eigenen
    Tabelle, nicht bei Kimais Benutzereinstellungen — `/api/users/me` und Rechnungsvorlagen enthalten ihn nicht.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
-3. **Fahrten → Orte → Aus Dawarich-Areas übernehmen**, oder Orte selbst anlegen.
+3. **Fahrten → Orte → Aus Dawarich übernehmen** (Areas und Places), oder Orte selbst anlegen.
 4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
 
    ```bash

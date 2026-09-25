@@ -156,6 +156,17 @@
             {% if meals.missing_times > 0 %}
                 <p class="mb-2">{{ kit.status_badge('warning', 'mileage.meal.missing_times'|trans({'%count%': meals.missing_times})) }} {{ 'mileage.meal.missing_times'|trans({'%count%': meals.missing_times}) }}</p>
             {% endif %}
+            {% if meals.hint_home_work %}
+                {{ alert({type: 'info', description: 'mileage.meal.hint_home_work'|trans, icon: 'info', dismissible: false, important: false}) }}
+            {% endif %}
+            {% if meals.review|length > 0 %}
+                <p class="mb-1">{{ kit.status_badge('warning', 'mileage.meal.review_hint'|trans) }} <strong>{{ 'mileage.meal.review'|trans }}:</strong> {{ 'mileage.meal.review_hint'|trans }}</p>
+                <ul class="mb-2">
+                    {% for r in meals.review %}
+                        <li>{{ r.date|date_short }}{% if r.destination %} · {{ r.destination }}{% endif %} — {{ ('mileage.meal.review.' ~ r.reason)|trans }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             {% if meals.days|length > 0 %}
                 <details {% if print %}open{% endif %}>
                     <summary>{{ 'mileage.meal.details'|trans }}</summary>
@@ -166,7 +177,7 @@
                                 {% for d in meals.days %}
                                     <tr class="{{ d.three_month ? 'text-body-secondary' : '' }}">
                                         <td class="text-nowrap">{{ d.date|date_short }}</td>
-                                        <td>{{ ('mileage.meal.kind.' ~ d.kind)|trans }}{% if d.three_month %} ({{ 'mileage.meal.three_month'|trans }}){% endif %}</td>
+                                        <td>{{ ('mileage.meal.kind.' ~ d.kind)|trans }}{% if d.three_month %} ({{ 'mileage.meal.three_month'|trans }}){% endif %}{% if d.overnight %}<div class="text-body-secondary small">{{ ('mileage.meal.overnight.' ~ d.overnight)|trans }}</div>{% endif %}</td>
                                         <td class="text-end d-none d-sm-table-cell">{{ d.kind == 'absence' ? (d.hours * 3600)|round|duration : '' }}</td>
                                         <td class="d-none d-md-table-cell">{{ d.destination }}</td>
                                         <td class="text-end">{{ d.amount|money('EUR') }}</td>

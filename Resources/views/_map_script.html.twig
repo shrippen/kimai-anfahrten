@@ -24,12 +24,14 @@
         fetch(el.dataset.trackUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (data.points && data.points.length > 1) {
-                    // theme colour of Kimai (light/dark), no fixed hex value
-                    var color = getComputedStyle(el).getPropertyValue('--tblr-primary').trim();
-                    L.polyline(data.points, {color: color || 'currentColor', weight: 4}).addTo(map);
-                    bounds = bounds.concat(data.points);
-                }
+                // theme colour of Kimai (light/dark), no fixed hex value
+                var color = getComputedStyle(el).getPropertyValue('--tblr-primary').trim();
+                (data.lines || []).forEach(function (line) {
+                    if (line.length > 1) {
+                        L.polyline(line, {color: color || 'currentColor', weight: 4}).addTo(map);
+                        bounds = bounds.concat(line);
+                    }
+                });
                 fit();
             })
             .catch(fit);
