@@ -11,6 +11,10 @@ use KimaiPlugin\MileageBundle\Enum\VehicleType;
  */
 class TripMapper
 {
+    /** Same limits as the entity constraints, so API/CSV callers get a field error instead of a database error. */
+    public const MAX_ODOMETER = Trip::MAX_ODOMETER;
+    public const MAX_COMMENT = Trip::MAX_COMMENT;
+
     /**
      * @return array<string, mixed>
      */
@@ -79,8 +83,12 @@ class TripMapper
             $vehicle = self::parseVehicle($data['vehicle']);
             $vehicle !== null ? $trip->setVehicle($vehicle) : $errors['vehicle'] = 'expected one of: ' . implode(', ', array_column(VehicleType::cases(), 'value'));
         }
-        foreach (['licensePlate' => ['setLicensePlate', 20], 'start' => ['setStartLocation', 255], 'destination' => ['setDestination', 255], 'comment' => ['setComment', 65535]] as $field => [$setter, $max]) {
+        foreach (['licensePlate' => ['setLicensePlate', 20], 'start' => ['setStartLocation', 255], 'destination' => ['setDestination', 255], 'comment' => ['setComment', self::MAX_COMMENT]] as $field => [$setter, $max]) {
             if (\array_key_exists($field, $data)) {
+                if ($data[$field] !== null && !\is_scalar($data[$field])) {
+                    $errors[$field] = 'expected a string';
+                    continue;
+                }
                 $value = $data[$field] === null ? null : trim((string) $data[$field]);
                 $trip->$setter($value === '' ? null : mb_substr((string) $value, 0, $max));
             }
@@ -98,11 +106,19 @@ class TripMapper
         foreach (['odometerStart' => 'setOdometerStart', 'odometerEnd' => 'setOdometerEnd'] as $field => $setter) {
             if (\array_key_exists($field, $data)) {
                 $value = self::parseNumber($data[$field]);
+                if ($data[$field] !== null && $data[$field] !== '' && ($value === null || $value < 0 || $value > self::MAX_ODOMETER)) {
+                    $errors[$field] = 'expected a whole number between 0 and ' . self::MAX_ODOMETER;
+                    continue;
+                }
                 $trip->$setter($value === null ? null : (int) round($value));
             }
         }
         foreach (['roundTrip' => 'setRoundTrip', 'overnight' => 'setOvernight'] as $field => $setter) {
             if (\array_key_exists($field, $data)) {
+                if ($data[$field] !== null && !\is_scalar($data[$field])) {
+                    $errors[$field] = 'expected true or false';
+                    continue;
+                }
                 $trip->$setter(self::parseBool($data[$field]));
             }
         }
@@ -152,6 +168,9 @@ class TripMapper
 
     public static function parsePurpose(mixed $value): ?TripPurpose
     {
+        if (!\is_scalar($value)) {
+            return null;
+        }
         $value = mb_strtolower(trim((string) $value));
 
         return TripPurpose::tryFrom($value) ?? match ($value) {
@@ -164,6 +183,9 @@ class TripMapper
 
     public static function parseVehicle(mixed $value): ?VehicleType
     {
+        if (!\is_scalar($value)) {
+            return null;
+        }
         $value = mb_strtolower(trim((string) $value));
 
         return VehicleType::tryFrom($value) ?? match ($value) {
@@ -184,7 +206,10 @@ class TripMapper
             return null;
         }
         if (\is_int($value) || \is_float($value)) {
-            return (float) $value;
+            return is_finite((float) $value) ? (float) $value : null;
+        }
+        if (!\is_string($value)) {
+            return null;
         }
         $value = str_replace([' ', "\u{00A0}", '€', 'km'], '', (string) $value);
         // "1.234,5" (German) vs "1,234.5" (English)
@@ -194,13 +219,16 @@ class TripMapper
             $value = str_replace(',', '', $value);
         }
 
-        return is_numeric($value) ? (float) $value : null;
+        return is_numeric($value) && is_finite((float) $value) ? (float) $value : null;
     }
 
     public static function parseBool(mixed $value): bool
     {
         if (\is_bool($value)) {
             return $value;
+        }
+        if (!\is_scalar($value)) {
+            return false;
         }
 
         return \in_array(mb_strtolower(trim((string) $value)), ['1', 'true', 'yes', 'ja', 'x', 'y', 'j'], true);
