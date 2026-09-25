@@ -37,6 +37,7 @@ class Vehicle
 
     /** Halter (owner as registered). */
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
     private ?string $holder = null;
 
     #[ORM\Column(name: 'valid_from', type: Types::DATE_IMMUTABLE, nullable: true)]
@@ -49,6 +50,7 @@ class Vehicle
     /** Odometer reading when the vehicle was added. */
     #[ORM\Column(name: 'initial_odometer', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(Trip::MAX_ODOMETER)]
     private ?int $initialOdometer = null;
 
     /** Part of the business assets (Betriebsvermögen) — self-employed only. */
@@ -61,6 +63,7 @@ class Vehicle
     /** Bruttolistenpreis in EUR, needed for the 1 % method. */
     #[ORM\Column(name: 'list_price', type: Types::FLOAT, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(10000000)]
     private ?float $listPrice = null;
 
     /** Electric / hybrid vehicles use a reduced base (0.25 % / 0.5 %). */

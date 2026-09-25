@@ -26,7 +26,7 @@ class DawarichClientTest extends TestCase
 
     private function client(MockHttpClient $http): DawarichClient
     {
-        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration()), new DistanceCalculator(), new TransportModeFilter());
+        return new DawarichClient($http, new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => true])), new DistanceCalculator(), new TransportModeFilter());
     }
 
     public function testFetchesAllPagesWithBearerToken(): void
@@ -105,6 +105,43 @@ class DawarichClientTest extends TestCase
 
         self::assertSame('https://system.test', $config->getDawarichUrl($user));
         self::assertTrue($config->isDawarichConfigured($user));
+    }
+
+    public function testPersonalUrlNeedsTheSystemSetting(): void
+    {
+        $user = $this->user();
+        $user->setPreferenceValue(MileageConfiguration::PREF_DAWARICH_URL, 'http://db:3306');
+
+        // SSRF: without the setting the personal URL is ignored and the system URL is used
+        $config = new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_url' => 'https://system.test']));
+        self::assertFalse($config->isUserDawarichUrlAllowed());
+        self::assertSame('https://system.test', $config->getDawarichUrl($user));
+        self::assertNull((new MileageConfiguration(new SystemConfiguration()))->getDawarichUrl($user));
+
+        $allowed = new MileageConfiguration(new SystemConfiguration(['mileage.dawarich_user_url' => '1']));
+        self::assertSame('http://db:3306', $allowed->getDawarichUrl($user));
+    }
+
+    public function testOnlyHttpUrlsAreUsed(): void
+    {
+        self::assertSame('https://d.test/sub', MileageConfiguration::httpUrl('https://d.test/sub/'));
+        self::assertNull(MileageConfiguration::httpUrl('file:///etc/passwd'));
+        self::assertNull(MileageConfiguration::httpUrl('gopher://d.test'));
+        self::assertNull(MileageConfiguration::httpUrl('d.test'));
+        self::assertNull(MileageConfiguration::httpUrl('https://user:pw@d.test'));
+    }
+
+    public function testRedirectsAreNotFollowed(): void
+    {
+        $options = null;
+        $http = new MockHttpClient(static function (string $method, string $url, array $o) use (&$options) {
+            $options = $o;
+
+            return new MockResponse('[]');
+        });
+        $this->client($http)->testConnection($this->user());
+
+        self::assertSame(0, $options['max_redirects'] ?? null);
     }
 
     public function testConnectionReportsPointCount(): void

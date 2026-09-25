@@ -11,6 +11,7 @@ use KimaiPlugin\MileageBundle\Enum\MonthStatus;
 use KimaiPlugin\MileageBundle\Repository\MonthLockRepository;
 use KimaiPlugin\MileageBundle\Repository\TripAuditRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
+use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\LogbookService;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
@@ -49,7 +50,10 @@ class LogbookController extends AbstractController
         $user = $vehicle->getUser();
         $this->assertCanView($user);
 
-        $analysis = $this->logbookService->analyse($vehicle, $this->tripRepository->findByVehicle($vehicle, $year));
+        $all = $this->tripRepository->findByVehicle($vehicle);
+        $inYear = array_values(array_filter($all, static fn ($t) => (int) $t->getDate()?->format('Y') === $year));
+        $startOdometer = $this->logbookService->suggestOdometerStart($vehicle, $all, new \DateTimeImmutable(\sprintf('%d-12-31', $year - 1)));
+        $analysis = $this->logbookService->analyse($vehicle, $inYear, $startOdometer);
 
         if ($request->query->get('format') === 'csv') {
             return $this->csv($vehicle, $year, $analysis['rows']);
@@ -178,10 +182,10 @@ class LogbookController extends AbstractController
                 $trip->getOdometerEnd(),
                 number_format($trip->getOdometerStart() !== null && $trip->getOdometerEnd() !== null ? $trip->getOdometerEnd() - $trip->getOdometerStart() : $trip->getTotalDistanceKm(), 1, ',', ''),
                 $t($trip->getPurpose()->label()),
-                $trip->getStartLocation(),
-                $trip->getDestination(),
-                $trip->getComment() ?? $trip->getProject()?->getName(),
-                $trip->getProject()?->getCustomer()?->getName(),
+                CsvSafe::cell($trip->getStartLocation()),
+                CsvSafe::cell($trip->getDestination()),
+                CsvSafe::cell($trip->getComment() ?? $trip->getProject()?->getName()),
+                CsvSafe::cell($trip->getProject()?->getCustomer()?->getName()),
             ], ';', '"', '');
         }
         rewind($handle);

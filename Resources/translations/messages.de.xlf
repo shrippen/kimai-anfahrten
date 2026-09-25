@@ -48,7 +48,7 @@
       </trans-unit>
       <trans-unit id="m011" resname="mileage.dawarich_url_help">
         <source>mileage.dawarich_url_help</source>
-        <target>z. B. https://dawarich.example.org — Benutzer können eine eigene URL in ihren Einstellungen hinterlegen.</target>
+        <target>z. B. https://dawarich.example.org — eigene URLs pro Benutzer nur, wenn unten erlaubt.</target>
       </trans-unit>
       <trans-unit id="m012" resname="mileage.dawarich_max_accuracy">
         <source>mileage.dawarich_max_accuracy</source>
@@ -72,7 +72,7 @@
       </trans-unit>
       <trans-unit id="m017" resname="mileage_dawarich_api_key_help">
         <source>mileage_dawarich_api_key_help</source>
-        <target>Zu finden in Dawarich unter Konto → API-Key.</target>
+        <target>Zu finden in Dawarich unter Konto → API-Key. Ein gespeicherter Key wird nicht angezeigt; leer lassen, um ihn zu behalten.</target>
       </trans-unit>
       <trans-unit id="m018" resname="mileage_home_address">
         <source>mileage_home_address</source>
@@ -1461,6 +1461,14 @@
       <trans-unit id="m364" resname="dawarich.mode.unknown">
         <source>dawarich.mode.unknown</source>
         <target>unbekannt</target>
+      </trans-unit>
+      <trans-unit id="m365" resname="mileage.dawarich_user_url">
+        <source>mileage.dawarich_user_url</source>
+        <target>Eigene Dawarich-URL pro Benutzer erlauben</target>
+      </trans-unit>
+      <trans-unit id="m366" resname="mileage.dawarich_user_url_help">
+        <source>mileage.dawarich_user_url_help</source>
+        <target>Die URL wird vom Kimai-Server aufgerufen. Nur einschalten, wenn allen Benutzern vertraut wird — sonst können sie damit interne Dienste im Netz des Servers ansprechen.</target>
       </trans-unit>
     </body>
   </file>

@@ -19,6 +19,7 @@ class CommuteGenerator
         private readonly TripRepository $tripRepository,
         private readonly MileageConfiguration $configuration,
         private readonly TripService $tripService,
+        private readonly MonthLockService $lockService,
     ) {
     }
 
@@ -70,17 +71,34 @@ class CommuteGenerator
     }
 
     /**
+     * Creates commutes for the given days of one month. Days outside the month, days that already
+     * have a commute and days of closed months (unless $mayEditLocked) are skipped.
+     *
      * @param string[] $dates Y-m-d
-     * @return int number of created trips
+     * @return array{created: int, locked: int} number of created trips and of days skipped because the month is closed
      */
-    public function create(User $user, array $dates, float $distanceKm): int
+    public function create(User $user, array $dates, float $distanceKm, int $year, int $month, bool $mayEditLocked = false): array
     {
         $count = 0;
+        $locked = 0;
+        $existing = [];
+        $first = new \DateTimeImmutable(\sprintf('%d-%02d-01', $year, $month));
+        foreach ($this->tripRepository->findByUserBetween($user, $first, $first->modify('last day of this month')) as $trip) {
+            if ($trip->getPurpose() === TripPurpose::COMMUTE && $trip->getDate() !== null) {
+                $existing[$trip->getDate()->format('Y-m-d')] = true;
+            }
+        }
+
         foreach (array_unique($dates) as $date) {
             $day = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
-            if ($day === false) {
+            if ($day === false || $day->format('Y-m-d') !== $date || $day->format('Y-n') !== $year . '-' . $month || isset($existing[$date])) {
                 continue;
             }
+            if (!$mayEditLocked && $this->lockService->isLocked($user, $day)) {
+                $locked++;
+                continue;
+            }
+            $existing[$date] = true;
 
             $trip = $this->tripService->createTrip($user, $day)
                 ->setPurpose(TripPurpose::COMMUTE)
@@ -95,6 +113,6 @@ class CommuteGenerator
 
         $this->entityManager->flush();
 
-        return $count;
+        return ['created' => $count, 'locked' => $locked];
     }
 }

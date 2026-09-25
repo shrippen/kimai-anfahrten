@@ -24,7 +24,7 @@ class LogbookService
      *     odometer_end: ?int
      * }
      */
-    public function analyse(Vehicle $vehicle, array $trips): array
+    public function analyse(Vehicle $vehicle, array $trips, ?int $startOdometer = null): array
     {
         usort($trips, static function (Trip $a, Trip $b): int {
             return [$a->getDate()?->format('Y-m-d'), $a->getOdometerStart() ?? PHP_INT_MAX, $a->getDepartureAt()?->getTimestamp(), $a->getId()]
@@ -34,7 +34,8 @@ class LogbookService
         $rows = [];
         $gaps = [];
         $km = ['business' => 0.0, 'commute' => 0.0, 'private' => 0.0, 'unrecorded' => 0];
-        $previousEnd = $vehicle->getInitialOdometer();
+        // For a later year the odometer continues from the previous year's last trip.
+        $previousEnd = $startOdometer ?? $vehicle->getInitialOdometer();
         $previousTrip = null;
         $first = null;
         $last = null;

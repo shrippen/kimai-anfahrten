@@ -3,6 +3,7 @@
 namespace KimaiPlugin\MileageBundle\API;
 
 use App\Entity\Project;
+use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,9 +15,11 @@ use KimaiPlugin\MileageBundle\Enum\TaxProfile;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
+use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 use KimaiPlugin\MileageBundle\Repository\VehicleRepository;
+use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
@@ -56,6 +59,8 @@ class MileageApiController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly AttachmentStorage $attachmentStorage,
     ) {
     }
 
@@ -133,6 +138,10 @@ class MileageApiController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         $this->assertNotLocked($trip);
+        // the rows go with the trip (FK cascade), the files have to be removed here
+        foreach ($this->attachmentRepository->findByTrip($trip) as $attachment) {
+            $this->attachmentStorage->delete($attachment);
+        }
         $this->tripRepository->remove($trip);
 
         return new Response(null, Response::HTTP_NO_CONTENT);
@@ -179,6 +188,9 @@ class MileageApiController extends AbstractController
         $this->assertCanEdit($user);
         if ($suggestion->getStatus() !== SuggestionStatus::OPEN) {
             return $this->json(['error' => 'suggestion is not open'], Response::HTTP_CONFLICT);
+        }
+        if ($this->lockService->isLocked($user, $suggestion->getDate()) && !$this->isGranted('edit_locked_mileage')) {
+            throw $this->createAccessDeniedException('This month of the logbook is closed.');
         }
         $data = $this->payload($request);
         $purpose = TripMapper::parsePurpose($data['purpose'] ?? '') ?? $suggestion->getPurpose();
@@ -229,7 +241,8 @@ class MileageApiController extends AbstractController
 
         $errors = $this->mapper->apply($trip, $data);
         if (\array_key_exists('vehicleId', $data)) {
-            $vehicle = $data['vehicleId'] === null ? null : $this->vehicleRepository->find((int) $data['vehicleId']);
+            $id = self::id($data['vehicleId']);
+            $vehicle = $id === null ? null : $this->vehicleRepository->find($id);
             if ($data['vehicleId'] !== null && ($vehicle === null || $vehicle->getUser() !== $trip->getUser())) {
                 $errors['vehicleId'] = 'unknown vehicle';
             } else {
@@ -237,11 +250,25 @@ class MileageApiController extends AbstractController
             }
         }
         if (\array_key_exists('project', $data)) {
-            $project = $data['project'] === null ? null : $this->entityManager->find(Project::class, (int) $data['project']);
+            $id = self::id($data['project']);
+            $project = $id === null ? null : $this->entityManager->find(Project::class, $id);
             if ($data['project'] !== null && $project === null) {
                 $errors['project'] = 'unknown project';
             } else {
                 $trip->setProject($project);
+            }
+        }
+        if (\array_key_exists('timesheet', $data)) {
+            // Only the trip owner's own timesheet entries can be linked.
+            $id = self::id($data['timesheet']);
+            $timesheet = $id === null ? null : $this->entityManager->find(Timesheet::class, $id);
+            if ($data['timesheet'] !== null && ($timesheet === null || $timesheet->getUser() !== $trip->getUser())) {
+                $errors['timesheet'] = 'unknown timesheet';
+            } else {
+                $trip->setTimesheet($timesheet);
+                if ($timesheet !== null && !\array_key_exists('project', $data)) {
+                    $trip->setProject($timesheet->getProject());
+                }
             }
         }
         if ($trip->getId() === null) {
@@ -262,6 +289,18 @@ class MileageApiController extends AbstractController
         $this->tripRepository->save($trip);
 
         return $this->json($this->mapper->toArray($trip), $status);
+    }
+
+    /**
+     * Positive integer id from JSON (number or numeric string), else null.
+     */
+    private static function id(mixed $value): ?int
+    {
+        if (\is_int($value) || (\is_string($value) && ctype_digit($value))) {
+            return (int) $value > 0 ? (int) $value : null;
+        }
+
+        return null;
     }
 
     /**

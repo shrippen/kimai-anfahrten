@@ -11,6 +11,7 @@ use KimaiPlugin\MileageBundle\Form\RentalForm;
 use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\RentalRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
+use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
 use KimaiPlugin\MileageBundle\Service\TripService;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +38,7 @@ class RentalController extends AbstractController
         private readonly TripService $tripService,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly AttachmentStorage $attachmentStorage,
     ) {
     }
 
@@ -112,6 +114,10 @@ class RentalController extends AbstractController
         }
 
         $userId = $rental->getUser()?->getId();
+        // the rows go with the rental (FK cascade), the files have to be removed here
+        foreach ($this->attachmentRepository->findByRental($rental) as $attachment) {
+            $this->attachmentStorage->delete($attachment);
+        }
         $this->rentalRepository->remove($rental);
         $this->flashSuccess('action.delete.success');
 

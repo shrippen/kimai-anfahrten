@@ -124,6 +124,11 @@ class MealAllowanceCalculator
                 $threeMonth = $current >= $streak['start']->modify('+3 months');
             }
 
+            // A journey over New Year belongs to two tax years: only count the days of this one.
+            if ((int) substr($date, 0, 4) !== $rates->year) {
+                continue;
+            }
+
             $amount = $threeMonth ? 0.0 : ($kind === 'full_day' ? $rates->mealFull : $rates->mealPartial);
             if ($threeMonth) {
                 $totals['excluded_days']++;

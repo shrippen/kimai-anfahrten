@@ -8,6 +8,7 @@ use App\Utils\PageSetup;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
+use KimaiPlugin\MileageBundle\Service\CsvSafe;
 use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,14 +98,14 @@ class OverviewController extends AbstractController
             foreach ($group['trips'] as $row) {
                 $trip = $row['trip'];
                 fputcsv($handle, [
-                    $group['name'],
-                    $trip->getProject()?->getName(),
+                    CsvSafe::cell($group['name']),
+                    CsvSafe::cell($trip->getProject()?->getName()),
                     $trip->getDate()?->format('Y-m-d'),
-                    $trip->getStartLocation(),
-                    $trip->getDestination(),
+                    CsvSafe::cell($trip->getStartLocation()),
+                    CsvSafe::cell($trip->getDestination()),
                     number_format($trip->getTotalDistanceKm(), 1, ',', ''),
                     number_format($row['costs'], 2, ',', ''),
-                    $trip->getComment(),
+                    CsvSafe::cell($trip->getComment()),
                 ], ';', '"', '');
             }
         }

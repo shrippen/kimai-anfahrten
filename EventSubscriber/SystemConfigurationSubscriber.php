@@ -54,6 +54,13 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(UrlType::class)
                         ->setOptions(['help' => 'mileage.dawarich_url_help']),
+                    (new Configuration('mileage.dawarich_user_url'))
+                        ->setLabel('mileage.dawarich_user_url')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(CheckboxType::class)
+                        ->setValue(false)
+                        ->setOptions(['help' => 'mileage.dawarich_user_url_help']),
                     (new Configuration('mileage.approval_enabled'))
                         ->setLabel('mileage.approval_enabled')
                         ->setTranslationDomain('messages')

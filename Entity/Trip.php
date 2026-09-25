@@ -18,6 +18,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['trip_date'], name: 'idx_mileage_trip_date')]
 class Trip
 {
+    /** Upper bounds that keep values inside the database columns (and sane). */
+    public const MAX_DISTANCE = 20000;
+    public const MAX_COSTS = 1000000;
+    public const MAX_ODOMETER = 99999999;
+    public const MAX_COMMENT = 10000;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: Types::INTEGER)]
@@ -47,9 +53,11 @@ class Trip
     private VehicleType $vehicle = VehicleType::OWN_CAR;
 
     #[ORM\Column(name: 'start_location', type: Types::STRING, length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $startLocation = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $destination = null;
 
     /**
@@ -59,6 +67,7 @@ class Trip
      */
     #[ORM\Column(name: 'distance_km', type: Types::FLOAT, options: ['default' => 0])]
     #[Assert\Positive(message: 'trip.error.distance')]
+    #[Assert\LessThanOrEqual(self::MAX_DISTANCE)]
     private float $distanceKm = 0.0;
 
     #[ORM\Column(name: 'round_trip', type: Types::BOOLEAN, options: ['default' => false])]
@@ -71,12 +80,15 @@ class Trip
     /** Actual costs in EUR (rental car, fuel for rental, tickets, …). */
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(self::MAX_COSTS)]
     private ?float $costs = null;
 
     #[ORM\Column(name: 'license_plate', type: Types::STRING, length: 20, nullable: true)]
+    #[Assert\Length(max: 20)]
     private ?string $licensePlate = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: self::MAX_COMMENT)]
     private ?string $comment = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, enumType: TripSource::class)]
@@ -101,10 +113,12 @@ class Trip
 
     #[ORM\Column(name: 'odometer_start', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(self::MAX_ODOMETER)]
     private ?int $odometerStart = null;
 
     #[ORM\Column(name: 'odometer_end', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(self::MAX_ODOMETER)]
     #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'odometer.error.order')]
     private ?int $odometerEnd = null;
 

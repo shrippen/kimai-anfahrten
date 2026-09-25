@@ -41,6 +41,12 @@ $approval->setName('mileage.approval_enabled');
 $approval->setValue('1');
 $em->persist($approval);
 
+// the admin uses a personal Dawarich URL (the simulated instance)
+$userUrl = new Configuration();
+$userUrl->setName('mileage.dawarich_user_url');
+$userUrl->setValue('1');
+$em->persist($userUrl);
+
 $team = new Team('Außendienst');
 $tz = new DateTimeZone('Europe/Berlin');
 

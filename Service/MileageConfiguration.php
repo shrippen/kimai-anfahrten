@@ -131,12 +131,38 @@ class MileageConfiguration
         return max(20.0, $this->float('mileage.detect_stop_radius', 200));
     }
 
+    /**
+     * Whether users may point the server at their own Dawarich instance. Off by default: the URL is
+     * requested by the Kimai server, so a free URL lets every user probe the internal network (SSRF).
+     */
+    public function isUserDawarichUrlAllowed(): bool
+    {
+        return (bool) ($this->configuration->find('mileage.dawarich_user_url') ?? false);
+    }
+
     public function getDawarichUrl(User $user): ?string
     {
-        $url = $this->userString($user, self::PREF_DAWARICH_URL)
+        $url = ($this->isUserDawarichUrlAllowed() ? $this->userString($user, self::PREF_DAWARICH_URL) : null)
             ?? $this->nonEmpty($this->configuration->find('mileage.dawarich_url'));
 
-        return $url !== null ? rtrim($url, '/') : null;
+        return self::httpUrl($url);
+    }
+
+    /**
+     * Only absolute http(s) URLs without credentials, normalized without trailing slash.
+     */
+    public static function httpUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+        $parts = parse_url($url);
+        if (!\is_array($parts) || !\in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            || ($parts['host'] ?? '') === '' || isset($parts['user']) || isset($parts['pass'])) {
+            return null;
+        }
+
+        return rtrim($url, '/');
     }
 
     public function getDawarichApiKey(User $user): ?string

@@ -56,7 +56,7 @@ class AttachmentStorage
         $size = (int) $file->getSize();
         $file->move($directory, $name);
 
-        return (new Attachment($name, $file->getClientOriginalName(), $mime, $size))->setUser($user);
+        return (new Attachment($name, mb_substr($file->getClientOriginalName(), 0, 255), $mime, $size))->setUser($user);
     }
 
     public function path(Attachment $attachment): string
