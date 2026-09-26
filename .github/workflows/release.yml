@@ -1,0 +1,93 @@
+# Tag vX.Y.Z (must match composer.json's "version").
+#   ──► lint ──► build MileageBundle-X.Y.Z.zip ──► release with notes from CHANGELOG.md (if it has a
+#   matching heading), zip attached.
+#
+# This same file lives in .gitea/workflows and .github/workflows: Gitea reads the copy in
+# .gitea/workflows (falling back to .github/workflows only if that one is missing), GitHub only
+# ever reads .github/workflows. Kept as two files, not one, so each platform's copy is explicit and
+# a change here is a reminder to update the other one too.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Check version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          composer=$(php -r 'echo json_decode(file_get_contents("composer.json"), true)["version"];')
+          if [ "$version" != "$composer" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match composer.json version $composer" >&2
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "ZIP=MileageBundle-$version.zip" >> "$GITHUB_ENV"
+
+      - name: Lint
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Build plugin zip
+        # Kimai expects the folder name var/plugins/MileageBundle/
+        run: |
+          git archive --format=zip --prefix=MileageBundle/ -o "$ZIP" HEAD
+          unzip -l "$ZIP"
+
+      - name: Release notes
+        run: |
+          if [ -f CHANGELOG.md ] && grep -qE "^## v?$VERSION( |$)" CHANGELOG.md; then
+            awk -v v="$VERSION" '
+              $0 ~ "^## v?" v "( |$)" { on = 1; next }
+              /^## /                  { on = 0 }
+              on
+            ' CHANGELOG.md > notes.md
+          else
+            echo "Mileage $VERSION." > notes.md
+          fi
+
+      - name: Publish on GitHub
+        if: github.server_url == 'https://github.com'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "Mileage $VERSION" --notes-file notes.md
+          fi
+          gh release upload "$GITHUB_REF_NAME" "$ZIP" --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Publish on Gitea
+        if: github.server_url != 'https://github.com'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+        run: |
+          auth="Authorization: token $TOKEN"
+          json() { php -r '$d = json_decode(stream_get_contents(STDIN), true); echo $d[$argv[1]] ?? "";' "$1"; }
+
+          # reuse a release already created for this tag (e.g. from the Gitea UI), otherwise create one
+          id=$(curl -sf -H "$auth" "$API/releases/tags/$GITHUB_REF_NAME" | json id || true)
+          if [ -z "$id" ]; then
+            body=$(php -r 'echo json_encode(["tag_name" => $argv[1], "name" => $argv[2] . " " . $argv[3], "body" => file_get_contents("notes.md")]);' "$GITHUB_REF_NAME" "Mileage" "$VERSION")
+            id=$(curl -sf -X POST "$API/releases" -H "$auth" -H 'Content-Type: application/json' -d "$body" | json id)
+          fi
+
+          # replace an older upload of the same file (re-run)
+          old=$(curl -sf -H "$auth" "$API/releases/$id/assets" | php -r 'foreach (json_decode(stream_get_contents(STDIN), true) as $a) { if ($a["name"] === $argv[1]) { echo $a["id"]; } }' "$ZIP")
+          if [ -n "$old" ]; then
+            curl -sf -X DELETE -H "$auth" "$API/releases/$id/assets/$old"
+          fi
+          curl -sf -X POST "$API/releases/$id/assets?name=$ZIP" -H "$auth" -F "attachment=@$ZIP" > /dev/null

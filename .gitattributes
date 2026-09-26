@@ -1,5 +1,6 @@
 # Not part of the release archive (git archive / GitHub zip)
 /.github export-ignore
+/.gitea export-ignore
 /tests export-ignore
 /docs export-ignore
 /.gitattributes export-ignore
