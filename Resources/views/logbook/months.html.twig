@@ -40,7 +40,7 @@
                 <td class="{{ datatable_column_class('mileage_months', 'month') }}">
                     <a href="{{ path('mileage_trips', {year: year, month: m, user: user_param}) }}">{{ month_date|month_name }}</a>
                 </td>
-                <td class="{{ datatable_column_class('mileage_months', 'trips') }}">{{ counts[m]|amount }}</td>
+                <td class="{{ datatable_column_class('mileage_months', 'trips') }} kpu-num">{{ counts[m]|amount }}</td>
                 <td class="{{ datatable_column_class('mileage_months', 'status') }}">{{ mileage.month_status(lock) }}</td>
                 <td class="{{ datatable_column_class('mileage_months', 'details') }} text-body-secondary small">
                     {% if lock %}

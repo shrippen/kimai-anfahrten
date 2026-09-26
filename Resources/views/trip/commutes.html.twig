@@ -32,9 +32,9 @@
                     {% for child in form.dates %}
                         {% set day = days[child.vars.value] %}
                         <tr>
-                            <td class="{{ datatable_column_class('mileage_commute_days', 'select') }}">{{ form_widget(child, {label: false, attr: {class: 'form-check-input m-0', 'aria-label': day.date|date_short}}) }}</td>
-                            <td class="{{ datatable_column_class('mileage_commute_days', 'date') }}"><label for="{{ child.vars.id }}">{{ day.date|day_name(true) }}, {{ day.date|date_short }}</label></td>
-                            <td class="{{ datatable_column_class('mileage_commute_days', 'hours') }}">{{ (day.hours * 3600)|round|duration }}</td>
+                            <td class="{{ datatable_column_class('mileage_commute_days', 'select') }} kpu-num">{{ form_widget(child, {label: false, attr: {class: 'form-check-input m-0', 'aria-label': day.date|date_short}}) }}</td>
+                            <td class="{{ datatable_column_class('mileage_commute_days', 'date') }} kpu-num"><label for="{{ child.vars.id }}">{{ day.date|day_name(true) }}, {{ day.date|date_short }}</label></td>
+                            <td class="{{ datatable_column_class('mileage_commute_days', 'hours') }} kpu-num">{{ (day.hours * 3600)|round|duration }}</td>
                             <td class="{{ datatable_column_class('mileage_commute_days', 'state') }} text-body-secondary">{% if day.has_commute %}{{ 'mileage.commute.already_recorded'|trans }}{% endif %}</td>
                         </tr>
                     {% endfor %}

@@ -76,11 +76,11 @@
         <div class="table-responsive">
             <table class="table card-table table-vcenter mb-0">
                 <tbody>
-                    <tr><td>{{ 'mileage.tax.commute_days'|trans }}</td><td class="text-end">{{ c.days|amount }}</td></tr>
-                    <tr><td>{{ 'mileage.tax.commute_km'|trans }}</td><td class="text-end">{{ mileage.km(c.km, 0) }}</td></tr>
+                    <tr><td>{{ 'mileage.tax.commute_days'|trans }}</td><td class="text-end kpu-num">{{ c.days|amount }}</td></tr>
+                    <tr><td>{{ 'mileage.tax.commute_km'|trans }}</td><td class="text-end kpu-num">{{ mileage.km(c.km, 0) }}</td></tr>
                     <tr>
                         <td>{{ 'mileage.tax.rate'|trans }}</td>
-                        <td class="text-end">
+                        <td class="text-end kpu-num">
                             {% if c.rate == c.rate_from21 %}
                                 {{ 'mileage.unit.per_km'|trans({'%amount%': c.rate|money('EUR')}) }}
                             {% else %}
@@ -88,16 +88,16 @@
                             {% endif %}
                         </td>
                     </tr>
-                    <tr><td>{{ 'mileage.tax.commute_car'|trans }}</td><td class="text-end">{{ c.amount_car|money('EUR') }}</td></tr>
+                    <tr><td>{{ 'mileage.tax.commute_car'|trans }}</td><td class="text-end kpu-num">{{ c.amount_car|money('EUR') }}</td></tr>
                     <tr>
                         <td>
                             {{ 'mileage.tax.commute_other'|trans }}
                             {% if c.capped %}{{ kit.status_badge('warning', 'mileage.tax.capped'|trans({'%cap%': c.cap|money('EUR')})) }}{% endif %}
                             {% if c.public_transport_costs > 0 %}<div class="small text-body-secondary">{{ 'mileage.tax.public_transport_costs'|trans }}: {{ c.public_transport_costs|money('EUR') }}</div>{% endif %}
                         </td>
-                        <td class="text-end">{{ c.amount_other_capped|money('EUR') }}</td>
+                        <td class="text-end kpu-num">{{ c.amount_other_capped|money('EUR') }}</td>
                     </tr>
-                    <tr class="fw-bold"><td>{{ 'mileage.tax.commute_total'|trans }}</td><td class="text-end">{{ c.amount|money('EUR') }}</td></tr>
+                    <tr class="fw-bold"><td>{{ 'mileage.tax.commute_total'|trans }}</td><td class="text-end kpu-num">{{ c.amount|money('EUR') }}</td></tr>
                 </tbody>
             </table>
         </div>
@@ -129,16 +129,16 @@
                                     {% else %}{{ 'mileage.tax.method.costs'|trans }}{% endif %}
                                 </div>
                             </td>
-                            <td class="text-end d-none d-sm-table-cell">{{ row.trips|amount }}</td>
-                            <td class="text-end text-nowrap">{{ mileage.km(row.km) }}</td>
-                            <td class="text-end d-none d-md-table-cell text-nowrap">{{ row.rate is not null ? 'mileage.unit.per_km'|trans({'%amount%': row.rate|money('EUR')}) : '–' }}</td>
-                            <td class="text-end d-none d-md-table-cell">{{ row.costs|money('EUR') }}</td>
-                            <td class="text-end">{{ row.amount|money('EUR') }}</td>
+                            <td class="text-end d-none d-sm-table-cell kpu-num">{{ row.trips|amount }}</td>
+                            <td class="text-end text-nowrap kpu-num">{{ mileage.km(row.km) }}</td>
+                            <td class="text-end d-none d-md-table-cell text-nowrap kpu-num">{{ row.rate is not null ? 'mileage.unit.per_km'|trans({'%amount%': row.rate|money('EUR')}) : '–' }}</td>
+                            <td class="text-end d-none d-md-table-cell kpu-num">{{ row.costs|money('EUR') }}</td>
+                            <td class="text-end kpu-num">{{ row.amount|money('EUR') }}</td>
                         </tr>
                     {% else %}
                         <tr><td colspan="6" class="text-body-secondary">{{ 'mileage.tax.no_business'|trans }}</td></tr>
                     {% endfor %}
-                    <tr class="fw-bold"><td colspan="2">{{ 'mileage.tax.business_total'|trans }}</td><td class="d-none d-sm-table-cell"></td><td colspan="2" class="d-none d-md-table-cell"></td><td class="text-end">{{ summary.business_total|money('EUR') }}</td></tr>
+                    <tr class="fw-bold"><td colspan="2">{{ 'mileage.tax.business_total'|trans }}</td><td class="d-none d-sm-table-cell"></td><td colspan="2" class="d-none d-md-table-cell"></td><td class="text-end kpu-num">{{ summary.business_total|money('EUR') }}</td></tr>
                 </tbody>
             </table>
         </div>
@@ -176,11 +176,11 @@
                             <tbody>
                                 {% for d in meals.days %}
                                     <tr class="{{ d.three_month ? 'text-body-secondary' : '' }}">
-                                        <td class="text-nowrap">{{ d.date|date_short }}</td>
+                                        <td class="text-nowrap kpu-num">{{ d.date|date_short }}</td>
                                         <td>{{ ('mileage.meal.kind.' ~ d.kind)|trans }}{% if d.three_month %} ({{ 'mileage.meal.three_month'|trans }}){% endif %}{% if d.overnight %}<div class="text-body-secondary small">{{ ('mileage.meal.overnight.' ~ d.overnight)|trans }}</div>{% endif %}</td>
-                                        <td class="text-end d-none d-sm-table-cell">{{ d.kind == 'absence' ? (d.hours * 3600)|round|duration : '' }}</td>
+                                        <td class="text-end d-none d-sm-table-cell kpu-num">{{ d.kind == 'absence' ? (d.hours * 3600)|round|duration : '' }}</td>
                                         <td class="d-none d-md-table-cell">{{ d.destination }}</td>
-                                        <td class="text-end">{{ d.amount|money('EUR') }}</td>
+                                        <td class="text-end kpu-num">{{ d.amount|money('EUR') }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -202,11 +202,11 @@
                             <tr>
                                 <td>{{ u.vehicle.label }}</td>
                                 <td class="d-none d-md-table-cell">{{ u.method.label|trans }}</td>
-                                <td class="text-end d-none d-sm-table-cell">{{ u.months|amount }}</td>
-                                <td class="text-end d-none d-md-table-cell text-nowrap">{{ mileage.km(u.km.private, 0) }}</td>
-                                <td class="text-end d-none d-lg-table-cell">{{ 'mileage.logbook.share'|trans({'%share%': u.private_share|round(2)|amount}) }}</td>
-                                <td class="text-end">{{ u.one_percent is not null ? u.one_percent|money('EUR') : '–' }}</td>
-                                <td class="text-end d-none d-sm-table-cell">{{ u.commute_addition is not null ? u.commute_addition|money('EUR') : '–' }}</td>
+                                <td class="text-end d-none d-sm-table-cell kpu-num">{{ u.months|amount }}</td>
+                                <td class="text-end d-none d-md-table-cell text-nowrap kpu-num">{{ mileage.km(u.km.private, 0) }}</td>
+                                <td class="text-end d-none d-lg-table-cell kpu-num">{{ 'mileage.logbook.share'|trans({'%share%': u.private_share|round(2)|amount}) }}</td>
+                                <td class="text-end kpu-num">{{ u.one_percent is not null ? u.one_percent|money('EUR') : '–' }}</td>
+                                <td class="text-end d-none d-sm-table-cell kpu-num">{{ u.commute_addition is not null ? u.commute_addition|money('EUR') : '–' }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

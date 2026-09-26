@@ -23,13 +23,13 @@
     {% set r = entry %}
     {% if column == 'provider' %}
         <a href="{{ path('mileage_rental_show', {id: r.id}) }}">{{ r.provider }}</a>
-        <div class="text-body-secondary small d-sm-none">{{ r.startDate|date_short }} – {{ r.endDate|date_short }}</div>
+        <div class="text-body-secondary small d-sm-none kpu-num">{{ r.startDate|date_short }} – {{ r.endDate|date_short }}</div>
     {% elseif column == 'period' %}
-        {{ r.startDate|date_short }} – {{ r.endDate|date_short }}
+        <span class="kpu-num">{{ r.startDate|date_short }} – {{ r.endDate|date_short }}</span>
     {% elseif column == 'plate' %}
         {{ r.licensePlate }}
     {% elseif column == 'total' %}
-        {{ r.totalCosts|money('EUR') }}
+        <span class="kpu-num">{{ r.totalCosts|money('EUR') }}</span>
     {% elseif column == 'actions' %}
         {% set event = actions(app.user, 'mileage_rental', 'index', {rental: r, can_edit: can_edit, can_delete: can_delete}) %}
         {{ widgets.table_actions(event.actions) }}

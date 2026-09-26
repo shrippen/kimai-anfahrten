@@ -51,7 +51,7 @@
             {% for e in entries %}
                 <tr>
                     <td class="{{ datatable_column_class('mileage_history', 'changed_at') }}">
-                        <span class="text-nowrap">{{ e.changedAt|date_time }}</span>
+                        <span class="text-nowrap kpu-num">{{ e.changedAt|date_time }}</span>
                         {% if e.lockedMonth %}<div>{{ kit.status_badge('locked', 'mileage.logbook.month_locked'|trans) }}</div>{% endif %}
                         <div class="d-md-none text-body-secondary small">{{ ('mileage.logbook.action.' ~ e.action)|trans }}</div>
                     </td>

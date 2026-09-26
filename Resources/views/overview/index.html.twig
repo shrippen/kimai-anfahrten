@@ -50,11 +50,11 @@
                     {% for row in group.trips %}
                         {% set t = row.trip %}
                         <tr>
-                            <td class="{{ datatable_column_class('mileage_overview', 'date') }} text-nowrap">{{ t.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'date') }} text-nowrap kpu-num">{{ t.date|date_short }}</td>
                             <td class="{{ datatable_column_class('mileage_overview', 'project') }}">{{ t.project ? t.project.name : '' }}</td>
                             <td class="{{ datatable_column_class('mileage_overview', 'route') }}">{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
-                            <td class="{{ datatable_column_class('mileage_overview', 'distance') }}">{{ mileage.km(t.totalDistanceKm) }}</td>
-                            <td class="{{ datatable_column_class('mileage_overview', 'costs') }}">{{ row.costs > 0 ? row.costs|money('EUR') : '' }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'distance') }} kpu-num">{{ mileage.km(t.totalDistanceKm) }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'costs') }} kpu-num">{{ row.costs > 0 ? row.costs|money('EUR') : '' }}</td>
                             <td class="{{ datatable_column_class('mileage_overview', 'comment') }}">{{ t.comment }}</td>
                         </tr>
                     {% endfor %}

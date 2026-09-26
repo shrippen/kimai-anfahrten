@@ -29,7 +29,7 @@
     {% elseif column == 'plate' %}
         {{ v.licensePlate }}
     {% elseif column == 'period' %}
-        {{ v.validFrom ? v.validFrom|date_short : '…' }} – {{ v.validTo ? v.validTo|date_short : '…' }}
+        <span class="kpu-num">{{ v.validFrom ? v.validFrom|date_short : '…' }} – {{ v.validTo ? v.validTo|date_short : '…' }}</span>
     {% elseif column == 'private_use' %}
         {{ v.businessAsset ? v.privateUse.label|trans : '–' }}
     {% elseif column == 'active' %}

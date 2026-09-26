@@ -69,13 +69,13 @@
                 {% set month_locked = lock is not null and lock.locked %}
                 <tr>
                     <td class="{{ datatable_column_class('mileage_logbook', 'date') }}">
-                        <span class="text-nowrap">{{ t.date|date_short }}</span>
-                        {% if t.departureAt %}<div class="text-body-secondary small text-nowrap">{{ t.departureAt|time }}–{{ t.arrivalAt ? t.arrivalAt|time : '' }}</div>{% endif %}
+                        <span class="text-nowrap kpu-num">{{ t.date|date_short }}</span>
+                        {% if t.departureAt %}<div class="text-body-secondary small text-nowrap kpu-num">{{ t.departureAt|time }}–{{ t.arrivalAt ? t.arrivalAt|time : '' }}</div>{% endif %}
                         {% if t.destination %}<div class="small d-sm-none">{{ t.destination }}</div>{% endif %}
                     </td>
-                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_start') }}">{{ t.odometerStart is null ? '' : t.odometerStart|amount }}</td>
-                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_end') }}">{{ t.odometerEnd is null ? '' : t.odometerEnd|amount }}</td>
-                    <td class="{{ datatable_column_class('mileage_logbook', 'distance') }}">{{ mileage.km(t.odometerStart is not null and t.odometerEnd is not null ? t.odometerEnd - t.odometerStart : t.totalDistanceKm, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_start') }} kpu-num">{{ t.odometerStart is null ? '' : t.odometerStart|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'odometer_end') }} kpu-num">{{ t.odometerEnd is null ? '' : t.odometerEnd|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_logbook', 'distance') }} kpu-num">{{ mileage.km(t.odometerStart is not null and t.odometerEnd is not null ? t.odometerEnd - t.odometerStart : t.totalDistanceKm, 0) }}</td>
                     <td class="{{ datatable_column_class('mileage_logbook', 'purpose') }}">{{ t.purpose.label|trans }}</td>
                     <td class="{{ datatable_column_class('mileage_logbook', 'destination') }}">
                         {{ t.destination }}

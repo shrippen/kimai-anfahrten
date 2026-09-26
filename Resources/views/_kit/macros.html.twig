@@ -91,7 +91,7 @@
             {%- else %}
                 <span class="btn btn-icon disabled" aria-disabled="true">{{ icon('left', true) }}</span>
             {%- endif %}
-            <span class="btn kpu-period-label" aria-live="polite">{{ label }}</span>
+            <span class="btn kpu-period-label kpu-num" aria-live="polite">{{ label }}</span>
             {%- if next_url %}
                 <a class="btn btn-icon" href="{{ next_url }}" rel="next" data-toggle="tooltip" title="{{ 'kpu.period.next'|trans({}, 'kpu') }}" aria-label="{{ 'kpu.period.next'|trans({}, 'kpu') }}">{{ icon('right', true) }}</a>
             {%- else %}
@@ -131,7 +131,7 @@
                     {%- if tile.details is defined and tile.details is not empty %}
                         <div class="kpu-kpi-details text-body-secondary">
                             {%- for detail in tile.details %}
-                                <span class="kpu-kpi-detail" title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value">{{ detail.value }}</span></span>
+                                <span class="kpu-kpi-detail" title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value kpu-num">{{ detail.value }}</span></span>
                             {%- endfor %}
                         </div>
                     {%- endif %}
@@ -174,7 +174,7 @@
         </div>
         {%- if sums is not empty %}
             <div class="kpu-group-sums">
-                {%- for sum in sums %}<span class="kpu-group-sum">{{ sum }}</span>{% endfor -%}
+                {%- for sum in sums %}<span class="kpu-group-sum kpu-num">{{ sum }}</span>{% endfor -%}
             </div>
         {%- endif %}
         {%- if actions is not empty %}

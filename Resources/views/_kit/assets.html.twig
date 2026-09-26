@@ -1,5 +1,5 @@
 {#
-    kimai-plugin-ui kit 0.3.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
+    kimai-plugin-ui kit 0.4.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
     Nicht von Hand ändern.
 
     Einbinden (einmal pro Seite, CSS im Kopf, JS am Seitenende):
@@ -8,13 +8,35 @@
 #}
 {% set kpu_part = kpu_part ?? 'all' %}
 {% if kpu_part == 'all' or kpu_part == 'css' %}
-<style data-kpu-version="0.3.0">
+<style data-kpu-version="0.4.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – CSS
  * Regeln: nur Klassen mit Präfix .kpu-, nur Tabler/Kimai-Variablen (var(--tblr-…)), keine festen Farben.
  * Dunkelmodus kommt dadurch automatisch über [data-bs-theme="dark"].
+ *
+ * Kennzeichnungen (seit 0.4): .kpu-num, .kpu-tier[data-kpu-tier], .kpu-mark sagen, WAS ein Element ist.
+ * Das Kit gibt ihnen nur eine neutrale Grundform; ein Theme (z. B. Knust) gestaltet sie weiter.
  */
+
+/* Zahlen, Zeiten, Daten, Beträge: stehen in Spalten untereinander, brechen nicht um */
+.kpu-num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Stufen (Zuschläge, Prioritäten): data-kpu-tier="0" Grundstufe, "1"–"3" steigend.
+   Farbe setzt das Plugin weiter selbst (z. B. bg-yellow), die Stufe trägt nur die Bedeutung. */
+.kpu-tier {
+    position: relative;
+}
+
+/* Farbpunkt einer Entität (Kunde, Projekt, Tätigkeit) */
+.kpu-mark {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
 
 /* Kontextzeile unter dem Seitentitel */
 .kpu-context {
@@ -240,7 +262,7 @@ tr.kpu-group-row > td {
 </style>
 {% endif %}
 {% if kpu_part == 'all' or kpu_part == 'js' %}
-<script data-kpu-version="0.3.0">
+<script data-kpu-version="0.4.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – JavaScript (ohne Abhängigkeiten)
@@ -287,7 +309,7 @@ tr.kpu-group-row > td {
 (function (window, document) {
     'use strict';
 
-    var VERSION = '0.3.0';
+    var VERSION = '0.4.0';
     if (window.KimaiPluginUi && window.KimaiPluginUi.version) {
         return; // bereits von einem anderen Plugin auf dieser Seite geladen
     }

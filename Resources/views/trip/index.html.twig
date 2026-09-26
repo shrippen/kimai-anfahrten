@@ -33,9 +33,9 @@
     {% set lock = locks[t.date|date('n')] ?? null %}
     {% set locked = lock is not null and lock.locked and t.date|date('Y') == year ~ '' %}
     {% if column == 'date' %}
-        <span class="text-nowrap">{{ t.date|date_short }}</span>
+        <span class="text-nowrap kpu-num">{{ t.date|date_short }}</span>
         {% if t.departureAt and t.arrivalAt %}
-            <div class="text-body-secondary small text-nowrap">{{ t.departureAt|time }}–{{ t.arrivalAt|time }}</div>
+            <div class="text-body-secondary small text-nowrap kpu-num">{{ t.departureAt|time }}–{{ t.arrivalAt|time }}</div>
         {% endif %}
     {% elseif column == 'purpose' %}
         <i class="{{ t.purpose.icon }} fa-fw me-1" aria-hidden="true"></i>{{ t.purpose.label|trans }}
@@ -47,13 +47,13 @@
         {{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}
         {% if t.comment %}<div class="text-body-secondary small">{{ t.comment }}</div>{% endif %}
     {% elseif column == 'distance' %}
-        {{ mileage.km(t.totalDistanceKm) }}
+        <span class="kpu-num">{{ mileage.km(t.totalDistanceKm) }}</span>
         {% if t.source.value == 'dawarich' %}
             {% set source = 'mileage.trip.source.dawarich'|trans ~ ' · ' ~ 'mileage.trip.gps_points'|trans({'%count%': t.pointCount ?? 0}) %}
             <i class="fas fa-satellite-dish text-info ms-1" data-toggle="tooltip" title="{{ source }}" aria-label="{{ source }}"></i>
         {% endif %}
     {% elseif column == 'costs' %}
-        {{ t.costs is not null ? t.costs|money('EUR') : '' }}
+        <span class="kpu-num">{{ t.costs is not null ? t.costs|money('EUR') : '' }}</span>
     {% elseif column == 'project' %}
         {{ t.project ? t.project.name : '' }}
     {% elseif column == 'status' %}

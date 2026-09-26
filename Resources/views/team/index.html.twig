@@ -57,11 +57,11 @@
                         <td class="{{ datatable_column_class('mileage_team', 'select') }}">{% if row.can_approve %}{{ kit.bulk_checkbox(bulk_form, row.lock.id) }}{% endif %}</td>
                     {% endif %}
                     <td class="{{ datatable_column_class('mileage_team', 'user') }}"><a href="{{ path('mileage_trips', {year: year, month: month, user: user_param}) }}">{{ row.user.displayName }}</a></td>
-                    <td class="{{ datatable_column_class('mileage_team', 'trips') }}">{{ row.trips|amount }}</td>
-                    <td class="{{ datatable_column_class('mileage_team', 'business') }}">{{ mileage.km(row.km.business, 0) }}</td>
-                    <td class="{{ datatable_column_class('mileage_team', 'commute') }}">{{ mileage.km(row.km.commute, 0) }}</td>
-                    <td class="{{ datatable_column_class('mileage_team', 'private') }}">{{ mileage.km(row.km.private, 0) }}</td>
-                    <td class="{{ datatable_column_class('mileage_team', 'amount') }}">{{ row.total|money('EUR') }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'trips') }} kpu-num">{{ row.trips|amount }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'business') }} kpu-num">{{ mileage.km(row.km.business, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'commute') }} kpu-num">{{ mileage.km(row.km.commute, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'private') }} kpu-num">{{ mileage.km(row.km.private, 0) }}</td>
+                    <td class="{{ datatable_column_class('mileage_team', 'amount') }} kpu-num">{{ row.total|money('EUR') }}</td>
                     <td class="{{ datatable_column_class('mileage_team', 'status') }}">{{ mileage.month_status(row.lock) }}</td>
                     <td class="{{ datatable_column_class('mileage_team', 'actions') }}">
                         {% set event = actions(app.user, 'mileage_team_member', 'index', {lock_id: row.lock ? row.lock.id : null, can_approve: row.can_approve, year: year, month: month, user: user_param}) %}

@@ -36,7 +36,7 @@
     {% elseif column == 'address' %}
         {{ p.address }}
     {% elseif column == 'radius' %}
-        {{ 'mileage.unit.m'|trans({'%m%': p.radius|amount}) }}
+        <span class="kpu-num">{{ 'mileage.unit.m'|trans({'%m%': p.radius|amount}) }}</span>
     {% elseif column == 'customer' %}
         {{ p.customer ? p.customer.name : '' }}
     {% elseif column == 'actions' %}

@@ -13,6 +13,8 @@
         .mileage-map { height: 20rem; position: relative; z-index: 0; }
         @media (max-width: 575.98px) { .mileage-map { height: 15rem; } }
         .mileage-map-hint { z-index: 500; }
+        /* Map tiles are light images; a theme may darken them (Knust: --knust-map-filter, see its PLUGINS.md) */
+        .mileage-map .leaflet-tile-pane { filter: var(--knust-map-filter, none); }
         .mileage-changes { overflow-wrap: anywhere; }
         .mileage-filter { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
         .mileage-filter > .input-group, .mileage-filter > select, .mileage-filter > .ts-wrapper { width: auto; flex: 1 1 14rem; max-width: 22rem; }

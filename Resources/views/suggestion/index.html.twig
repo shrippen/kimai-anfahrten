@@ -24,14 +24,14 @@
     {% if column == 'select' %}
         {% if not is_locked %}{{ kit.bulk_checkbox(bulk_form, s.id) }}{% endif %}
     {% elseif column == 'date' %}
-        <span class="text-nowrap">{{ s.startAt|date_short }}</span>
-        <div class="text-body-secondary small text-nowrap">{{ s.startAt|time }}–{{ s.endAt|time }}</div>
+        <span class="text-nowrap kpu-num">{{ s.startAt|date_short }}</span>
+        <div class="text-body-secondary small text-nowrap kpu-num">{{ s.startAt|time }}–{{ s.endAt|time }}</div>
     {% elseif column == 'route' %}
         <div>{% if s.startPlace %}<i class="{{ s.startPlace.type.icon }} fa-fw me-1" aria-hidden="true"></i>{% endif %}{{ s.startLabel }}</div>
         <div>→ {% if s.endPlace %}<i class="{{ s.endPlace.type.icon }} fa-fw me-1" aria-hidden="true"></i>{% endif %}{{ s.endLabel }}</div>
         <div class="d-md-none text-body-secondary small">{{ s.purpose.label|trans }}</div>
     {% elseif column == 'distance' %}
-        {{ mileage.km(s.distanceKm) }}
+        <span class="kpu-num">{{ mileage.km(s.distanceKm) }}</span>
         {% if s.mode %}<div class="text-body-secondary small">{{ ('mileage.dawarich.mode.' ~ s.mode)|trans }}</div>{% endif %}
     {% elseif column == 'purpose' %}
         <i class="{{ s.purpose.icon }} fa-fw me-1" aria-hidden="true"></i>{{ s.purpose.label|trans }}

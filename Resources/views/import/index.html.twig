@@ -51,11 +51,11 @@
                     <tr>
                         <td class="{{ datatable_column_class('mileage_import', 'line') }}">{{ r.line }}</td>
                         {% if r.trip %}
-                            <td class="{{ datatable_column_class('mileage_import', 'date') }} text-nowrap">{{ r.trip.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'date') }} text-nowrap kpu-num">{{ r.trip.date|date_short }}</td>
                             <td class="{{ datatable_column_class('mileage_import', 'purpose') }}">{{ r.trip.purpose.label|trans }}</td>
                             <td class="{{ datatable_column_class('mileage_import', 'vehicle') }}">{{ r.trip.vehicle.label|trans }}</td>
                             <td class="{{ datatable_column_class('mileage_import', 'route') }}">{{ r.trip.startLocation|default('–') }} → {{ r.trip.destination|default('–') }}</td>
-                            <td class="{{ datatable_column_class('mileage_import', 'distance') }}">{{ mileage.km(r.trip.totalDistanceKm) }}</td>
+                            <td class="{{ datatable_column_class('mileage_import', 'distance') }} kpu-num">{{ mileage.km(r.trip.totalDistanceKm) }}</td>
                             <td class="{{ datatable_column_class('mileage_import', 'status') }}">{% if r.duplicate %}{{ kit.status_badge('warning', 'mileage.import.duplicate'|trans) }}{% endif %}</td>
                         {% else %}
                             <td colspan="6" class="text-danger">

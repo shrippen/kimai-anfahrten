@@ -45,11 +45,11 @@
         {{ tables.datatable_header('mileage_rental_trips', columns, null, {columnConfig: false, sticky: false, responsive: true}) }}
             {% for t in trips %}
                 <tr>
-                    <td class="{{ datatable_column_class('mileage_rental_trips', 'date') }}"><a href="{{ path('mileage_trip_edit', {id: t.id}) }}">{{ t.date|date_short }}</a></td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'date') }} kpu-num"><a href="{{ path('mileage_trip_edit', {id: t.id}) }}">{{ t.date|date_short }}</a></td>
                     <td class="{{ datatable_column_class('mileage_rental_trips', 'purpose') }}">{{ t.purpose.label|trans }}</td>
                     <td class="{{ datatable_column_class('mileage_rental_trips', 'route') }}">{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
-                    <td class="{{ datatable_column_class('mileage_rental_trips', 'distance') }}">{{ mileage.km(t.totalDistanceKm) }}</td>
-                    <td class="{{ datatable_column_class('mileage_rental_trips', 'share') }}">{{ (allocation[t|mileage_object_id] ?? 0)|money('EUR') }}</td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'distance') }} kpu-num">{{ mileage.km(t.totalDistanceKm) }}</td>
+                    <td class="{{ datatable_column_class('mileage_rental_trips', 'share') }} kpu-num">{{ (allocation[t|mileage_object_id] ?? 0)|money('EUR') }}</td>
                 </tr>
             {% endfor %}
         {{ tables.data_table_footer(null, null, null) }}
