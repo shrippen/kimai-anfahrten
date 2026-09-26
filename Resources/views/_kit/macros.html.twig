@@ -1,0 +1,298 @@
+{#
+    kimai-plugin-ui kit – Twig-Makros
+    Quelle: kimai-plugin-ui/kit/templates/_kit/macros.html.twig (nicht im Plugin editieren, per bin/sync.sh aktualisieren)
+
+    Einbinden im Plugin:
+        {% import '@<Bundle>/_kit/macros.html.twig' as kit %}
+
+    Alle Texte kommen aus der Übersetzungsdomain "kpu" (Dateien kpu.de.xlf / kpu.en.xlf).
+    Die Makros kennen keinen Bundle-Namespace und nutzen nur Kimai-Core-Templates
+    ("macros/widgets.html.twig", "@theme/components/alert.html.twig") und Tabler-Klassen.
+#}
+
+{#
+    Status-Vokabular: Schlüssel -> Tabler-Soft-Badge-Klasse.
+    Die Farben sind fest und für alle Plugins gleich (siehe GUIDELINES.md, Abschnitt Status).
+#}
+{% macro status_class(status) -%}
+    {{- {
+        'open': 'bg-secondary-lt',
+        'requested': 'bg-warning-lt',
+        'warning': 'bg-orange-lt',
+        'approved': 'bg-success-lt',
+        'rejected': 'bg-danger-lt',
+        'billed': 'bg-blue-lt',
+        'locked': 'bg-purple-lt',
+    }[status] ?? 'bg-secondary-lt' -}}
+{%- endmacro %}
+
+{#
+    status_badge(status, tooltip = null)
+    status: open | requested | approved | rejected | billed | locked | warning
+    warning (seit 0.2) ist orange und trägt immer das Kimai-Icon "warning" (Ausrufezeichen) – so bleibt es auch
+    ohne Farbe von requested (gelb, ohne Icon) unterscheidbar. tooltip nennt bei warning den Grund.
+    Beispiel: {{ kit.status_badge('approved') }}
+              {{ kit.status_badge('warning', 'drehzettel.warning.rest_time'|trans) }}
+#}
+{% macro status_badge(status, tooltip) -%}
+    <span class="badge {{ _self.status_class(status) }} kpu-status kpu-status-{{ status|e('html_attr') }}"
+        {%- if tooltip %} data-toggle="tooltip" title="{{ tooltip }}"{% endif %}>
+        {%- if status == 'warning' %}{{ icon('warning') }}{% endif -%}
+        {{- ('kpu.status.' ~ status)|trans({}, 'kpu') -}}
+    </span>
+{%- endmacro %}
+
+{#
+    context_line(parts)
+    Graue Kontextzeile unter dem Seitentitel (Objekt · Person · Zeitraum). Leere Teile werden übersprungen.
+    Gehört in {% block page_intro %} vor {{ parent() }}.
+    Beispiel: {{ kit.context_line([project.name, 'drehzettel.role'|trans, week_label]) }}
+#}
+{% macro context_line(parts) -%}
+    {%- set visible = parts|filter(p => p is not null and p is not same as('') and p is not same as(false)) -%}
+    {%- if visible|length > 0 -%}
+        <div class="kpu-context text-body-secondary">
+            {%- for part in visible -%}
+                {%- if not loop.first %}<span class="kpu-context-sep" aria-hidden="true"> · </span>{% endif -%}
+                <span>{{ part }}</span>
+            {%- endfor -%}
+        </div>
+    {%- endif -%}
+{%- endmacro %}
+
+{#
+    period_nav(units, current_unit, label, prev_url, next_url, today_url, unit_urls)
+    Segment Woche|Monat|Jahr (nur wenn mehr als eine Einheit) + ‹ label › + "Heute".
+      units       : Liste aus 'day' | 'week' | 'month' | 'year' – nur die Einheiten, die die Seite kann
+      current_unit: aktive Einheit
+      label       : fertig formatierter Zeitraum ("Mai 2025", "KW 21 · 19.–25.05.2025", "2026")
+      prev_url / next_url: null = Knopf deaktiviert
+      today_url   : null = kein "Heute"-Knopf (z. B. wenn der aktuelle Zeitraum schon angezeigt wird)
+      unit_urls   : { week: '…', month: '…' } – Ziel je Einheit
+    Gehört in {% block table_actions %} (wird von Kimai im Seitenkopf gerendert).
+#}
+{% macro period_nav(units, current_unit, label, prev_url, next_url, today_url, unit_urls) -%}
+    {%- set units = units ?? [current_unit] -%}
+    <nav class="kpu-period d-print-none" aria-label="{{ 'kpu.period.navigation'|trans({}, 'kpu') }}">
+        {%- if units|length > 1 %}
+            <div class="nav nav-segmented kpu-period-units" role="group">
+                {%- for unit in units %}
+                    <a class="nav-link{% if unit == current_unit %} active{% endif %}"
+                       href="{{ (unit_urls ?? {})[unit] ?? '#' }}"
+                       {%- if unit == current_unit %} aria-current="true"{% endif %}>
+                        {{- ('kpu.period.' ~ unit)|trans({}, 'kpu') -}}
+                    </a>
+                {%- endfor %}
+            </div>
+        {%- endif %}
+        <div class="btn-group kpu-period-step">
+            {%- if prev_url %}
+                <a class="btn btn-icon" href="{{ prev_url }}" rel="prev" data-toggle="tooltip" title="{{ 'kpu.period.previous'|trans({}, 'kpu') }}" aria-label="{{ 'kpu.period.previous'|trans({}, 'kpu') }}">{{ icon('left', true) }}</a>
+            {%- else %}
+                <span class="btn btn-icon disabled" aria-disabled="true">{{ icon('left', true) }}</span>
+            {%- endif %}
+            <span class="btn kpu-period-label" aria-live="polite">{{ label }}</span>
+            {%- if next_url %}
+                <a class="btn btn-icon" href="{{ next_url }}" rel="next" data-toggle="tooltip" title="{{ 'kpu.period.next'|trans({}, 'kpu') }}" aria-label="{{ 'kpu.period.next'|trans({}, 'kpu') }}">{{ icon('right', true) }}</a>
+            {%- else %}
+                <span class="btn btn-icon disabled" aria-disabled="true">{{ icon('right', true) }}</span>
+            {%- endif %}
+        </div>
+        {%- if today_url %}
+            <a class="btn kpu-period-today" href="{{ today_url }}">{{ 'kpu.period.today'|trans({}, 'kpu') }}</a>
+        {%- endif %}
+    </nav>
+{%- endmacro %}
+
+{#
+    kpi_bar(tiles)
+    Kennzahlen-Leiste, maximal 4 Kacheln (weitere werden abgeschnitten), eine davon mit highlight: true.
+    tiles: [{ label: '…', value: '…', hint: '…'?, highlight: bool?, url: '…'?, details: [{label, value}]? }]
+    value ist bereits formatiert (|duration, |money(currency), |amount …).
+    details (seit 0.2): Aufschlüsselung unter dem Wert, z. B. Zuschläge je Stufe; label/value bereits übersetzt/formatiert.
+             Ein Eintrag bricht nie um (seit 0.3); ist die Kachel zu schmal, kürzt das Label mit "…" (voller Text im title).
+    Beispiel: {{ kit.kpi_bar([{label: 'holiday.kpi.taken'|trans, value: 3|amount}, {label: 'holiday.kpi.left'|trans, value: 12|amount, highlight: true}]) }}
+              {{ kit.kpi_bar([{label: 'drehzettel.kpi.surcharges'|trans, value: total|money(cur),
+                               details: [{label: '25 %', value: a|money(cur)}, {label: '50 %', value: b|money(cur)}]}]) }}
+#}
+{% macro kpi_bar(tiles) -%}
+    {%- set tiles = (tiles ?? [])|slice(0, 4) -%}
+    {%- if tiles|length > 0 -%}
+    <div class="kpu-kpis kpu-kpis-{{ tiles|length }}">
+        {%- for tile in tiles %}
+            {%- set tag = tile.url is defined and tile.url ? 'a' : 'div' -%}
+            <{{ tag }} class="card card-sm kpu-kpi{% if tile.highlight ?? false %} kpu-kpi-highlight{% endif %}"{% if tag == 'a' %} href="{{ tile.url }}"{% endif %}>
+                <div class="card-body">
+                    <div class="subheader kpu-kpi-label">{{ tile.label }}</div>
+                    <div class="kpu-kpi-value">{{ tile.value }}</div>
+                    {%- if tile.hint is defined and tile.hint %}
+                        <div class="kpu-kpi-hint text-body-secondary">{{ tile.hint }}</div>
+                    {%- endif %}
+                    {%- if tile.details is defined and tile.details is not empty %}
+                        <div class="kpu-kpi-details text-body-secondary">
+                            {%- for detail in tile.details %}
+                                <span class="kpu-kpi-detail" title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value">{{ detail.value }}</span></span>
+                            {%- endfor %}
+                        </div>
+                    {%- endif %}
+                </div>
+            </{{ tag }}>
+        {%- endfor %}
+    </div>
+    {%- endif -%}
+{%- endmacro %}
+
+{#
+    group_header(title, color, sums, actions, options = {})
+    Gruppenkopf mit Farbpunkt (Kimai-Kunden-/Projektfarbe), Summen rechts und "…"-Menü (Kimai table_actions).
+      color  : Entitätsfarbe wie Kimai sie zeigt: customer.color|colorize(customer.name); null = kein Farbpunkt
+               (gerendert über Kimais widgets.label_dot)
+      sums   : Liste bereits formatierter Werte, z. B. [5*3600|duration, 120|money('EUR')]
+      actions: Kimai-Actions-Array (z. B. actions(app.user, 'abrechnung_group', 'custom', {...}).actions) oder null
+      options: { as_row: true, colspan: 6 } rendert eine Tabellenzeile statt eines card-header,
+               { level: 2 } rückt eine Untergruppe ein, { url: '…' } verlinkt den Titel,
+               { select: { form: 'bulk-id', group: 'c5', label?: '…' } } (seit 0.2) setzt vor den Titel eine
+               Gruppen-Checkbox (kit.bulk_select_group): sie wählt nur Zeilen, deren kit.bulk_checkbox den
+               Schlüssel 'c5' in groups hat; statt group geht auch ids: [1, 2]. Verschachtelt: Zeile mit
+               groups ['c5', 'c5-p12'], Kunde group 'c5', Projekt group 'c5-p12'.
+    Beispiel: {{ kit.group_header(customer.name, customer.color|colorize(customer.name), [dur|duration, sum|money(customer.currency)], null) }}
+              {{ kit.group_header(project.name, null, [], null, {as_row: true, colspan: 6, level: 2, select: {form: 'bulk', group: 'c5-p12'}}) }}
+#}
+{% macro group_header(title, color, sums, actions, options) -%}
+    {%- import 'macros/widgets.html.twig' as widgets -%}
+    {%- set options = options ?? {} -%}
+    {%- set level = options.level ?? 1 -%}
+    {%- set inner -%}
+        {%- set label -%}
+            {%- if color %}{{ widgets.label_dot(title, color) }}{% else %}<span>{{ title }}</span>{% endif -%}
+        {%- endset -%}
+        <div class="kpu-group-title">
+            {%- if options.select is defined and options.select -%}
+                {{ _self.bulk_select_group(options.select.form, options.select.group ?? null, options.select.label ?? ('kpu.bulk.select_group'|trans({'%name%': title}, 'kpu')), options.select.ids ?? null) }}
+            {%- endif -%}
+            {%- if options.url is defined and options.url %}<a href="{{ options.url }}" class="text-reset">{{ label }}</a>{% else %}{{ label }}{% endif -%}
+        </div>
+        {%- if sums is not empty %}
+            <div class="kpu-group-sums">
+                {%- for sum in sums %}<span class="kpu-group-sum">{{ sum }}</span>{% endfor -%}
+            </div>
+        {%- endif %}
+        {%- if actions is not empty %}
+            <div class="kpu-group-actions">{{ widgets.table_actions(actions) }}</div>
+        {%- endif %}
+    {%- endset -%}
+    {%- if options.as_row ?? false -%}
+        <tr class="kpu-group-row kpu-group-level-{{ level }}">
+            <td colspan="{{ options.colspan ?? 1 }}"><div class="kpu-group-header">{{ inner }}</div></td>
+        </tr>
+    {%- else -%}
+        <div class="card-header kpu-group-header kpu-group-level-{{ level }}">{{ inner }}</div>
+    {%- endif -%}
+{%- endmacro %}
+
+{#
+    empty_state(message = null, link_url = null, link_label = null, link_class = null, link_attr = {})
+    Kimai-Leerzustand (gleiche Optik wie widgets.nothing_found()) plus Link zum nächsten Schritt.
+    message   : bereits übersetzter Text; null = Kimai-Core-Text "error.no_entries_found"
+    link_class: zusätzliche Klassen (seit 0.2), z. B. 'modal-ajax-form' -> Kimai öffnet link_url im Modal
+                (Kimai 2.67: KimaiAjaxModalForm reagiert auf Klicks auf .modal-ajax-form und lädt href bzw. data-href)
+    link_attr : weitere Attribute (seit 0.2), z. B. {'data-kpu-post': url, 'data-kpu-token': csrf_token('…')}
+    Beispiel: {{ kit.empty_state('abrechnung.empty'|trans({'%period%': label}), path('abrechnung', {reset: 1}), 'abrechnung.reset_filter'|trans) }}
+              {{ kit.empty_state('holiday.absence.empty'|trans, path('holiday_absence_create'), 'holiday.absence.create'|trans, 'modal-ajax-form') }}
+#}
+{% macro empty_state(message, link_url, link_label, link_class, link_attr) -%}
+    {%- from '@theme/components/alert.html.twig' import alert -%}
+    {%- set text = message ?? ('error.no_entries_found'|trans) -%}
+    {%- set html -%}
+        {{ text }}
+        {%- if link_url and link_label %} <a class="alert-link kpu-empty-link{% if link_class %} {{ link_class }}{% endif %}" href="{{ link_url }}"
+            {%- for name, value in link_attr ?? {} %} {{ name|e('html_attr') }}="{{ value }}"{% endfor %}>{{ link_label }}</a>{% endif -%}
+    {%- endset -%}
+    {{ alert({type: 'info', description: html, icon: 'info', dismissible: false, important: false, raw: true, class: 'kpu-empty'}) }}
+{%- endmacro %}
+
+{#
+    result_callout(message, type = 'info')
+    Sichtbare Rückmeldung mit Zahlen ("12 Feiertage importiert"), weil Kimai Erfolgs-Flashes ausblendet.
+    Beispiel: {{ kit.result_callout('holiday.import.result'|trans({'%count%': 12})) }}
+#}
+{% macro result_callout(message, type) -%}
+    {%- from '@theme/components/alert.html.twig' import alert -%}
+    {{ alert({type: type ?? 'info', description: message, icon: (type ?? 'info') == 'warning' ? 'warning' : 'info', dismissible: true, important: false, class: 'kpu-result'}) }}
+{%- endmacro %}
+
+{#
+    result_callouts()
+    Rendert alle Flash-Nachrichten vom Typ "kpu_result" als result_callout und verbraucht sie,
+    bevor Kimais base.html.twig sie als Modal zeigen würde. Controller:
+        $this->addFlash('kpu_result', $translator->trans('holiday.import.result', ['%count%' => $n]));
+    Template:
+        {% block page_content_start %}{{ kit.result_callouts() }}{{ parent() }}{% endblock %}
+#}
+{% macro result_callouts() -%}
+    {%- for message in app.flashes('kpu_result') %}{{ _self.result_callout(message) }}{% endfor -%}
+{%- endmacro %}
+
+{#
+    bulk_bar(form_id, actions, options = {})
+    Sammelaktionsleiste für Checkbox-Auswahl. Ohne Auswahl ausgeblendet (per JS), zeigt "{count} ausgewählt".
+    Die Checkboxen stehen irgendwo auf der Seite und hängen über das HTML-Attribut form="…" an diesem Formular.
+      actions: [{ label, url, token, icon?, class?: 'btn-primary'|'btn-danger'|…, question?, ajax?: bool }]
+        token   : csrf_token('…') – wird als _token mitgeschickt
+        question: nur für Endgültiges/Destruktives -> Kimai-Bestätigungsmodal (alert.question)
+        ajax    : true = per fetch senden, JSON-Antwort {message, undo:{url, token}} -> Rückgängig-Toast
+    Beispiel: {{ kit.bulk_bar('bulk-billing', [{label: 'abrechnung.bill'|trans, url: path('abrechnung_bill'), token: csrf_token('abrechnung'), icon: 'success', ajax: true}]) }}
+#}
+{% macro bulk_bar(form_id, actions, options) -%}
+    {%- set options = options ?? {} -%}
+    <form id="{{ form_id }}" method="post" class="kpu-bulk d-print-none" data-kpu-bulk
+          data-kpu-count-template="{{ 'kpu.bulk.selected'|trans({}, 'kpu') }}">
+        <div class="kpu-bulk-bar">
+            <span class="kpu-bulk-count" aria-live="polite">{{ 'kpu.bulk.selected'|trans({}, 'kpu')|replace({'%count%': '0'}) }}</span>
+            <div class="kpu-bulk-actions btn-list">
+                {%- for action in actions %}
+                    <button type="submit" class="btn {{ action.class ?? 'btn-primary' }}"
+                            formaction="{{ action.url }}" name="_token" value="{{ action.token }}"
+                            {%- if action.question ?? false %} data-kpu-question="{{ action.question }}"{% endif %}
+                            {%- if action.ajax ?? false %} data-kpu-ajax="1"{% endif %}>
+                        {%- if action.icon ?? false %}{{ icon(action.icon, true) }} {% endif -%}
+                        {{- action.label -}}
+                    </button>
+                {%- endfor %}
+                <button type="button" class="btn btn-link kpu-bulk-clear">{{ 'kpu.bulk.clear'|trans({}, 'kpu') }}</button>
+            </div>
+        </div>
+    </form>
+{%- endmacro %}
+
+{#
+    bulk_checkbox(form_id, id, label = null, groups = [])   – Checkbox pro Zeile (Zelle mit class "multiCheckbox", damit
+                                                             Kimai-Zeilenklicks sie ignorieren); groups (seit 0.2) =
+                                                             Gruppen-Schlüssel der Zeile, z. B. ['c5', 'c5-p12']
+    bulk_select_all(form_id)                                 – Checkbox "alle" für den Tabellenkopf
+    bulk_select_group(form_id, group, label = null, ids = null) – (seit 0.2) Checkbox für eine Gruppe: wählt nur Zeilen mit
+                                                             dem Schlüssel group (oder, wenn group null ist, die ids),
+                                                             zeigt "teilweise" (indeterminate), ist ohne Zeilen deaktiviert.
+                                                             Z. B. im Tabellenkopf über die Spaltenoption html_after.
+    Jede Änderung der Auswahl löst auf dem Formular das Event kpu:selection-change {form, ids, count} aus.
+    Beispiel: <td class="multiCheckbox">{{ kit.bulk_checkbox('bulk-billing', entry.id, null, ['c' ~ c.id, 'c' ~ c.id ~ '-p' ~ p.id]) }}</td>
+#}
+{% macro bulk_checkbox(form_id, id, label, groups) -%}
+    <input type="checkbox" class="form-check-input m-0 align-middle kpu-select" name="ids[]" value="{{ id }}" form="{{ form_id }}" data-kpu-form="{{ form_id }}"
+        {%- if groups is not empty %} data-kpu-groups="{{ groups|join(' ') }}"{% endif %} aria-label="{{ label ?? ('kpu.bulk.select_row'|trans({}, 'kpu')) }}">
+{%- endmacro %}
+
+{% macro bulk_select_group(form_id, group, label, ids) -%}
+    {%- set label = label ?? ('kpu.bulk.select_group'|trans({'%name%': group}, 'kpu')) -%}
+    <input type="checkbox" class="form-check-input m-0 align-middle kpu-select-group" data-kpu-form="{{ form_id }}"
+        {%- if group is not empty %} data-kpu-group="{{ group }}"{% else %} data-kpu-ids="{{ (ids ?? [])|json_encode }}"{% endif %} aria-label="{{ label }}" title="{{ label }}">
+{%- endmacro %}
+
+{% macro bulk_select_all(form_id) -%}
+    <input type="checkbox" class="form-check-input m-0 align-middle kpu-select-all" data-kpu-form="{{ form_id }}" aria-label="{{ 'kpu.bulk.select_all'|trans({}, 'kpu') }}" title="{{ 'kpu.bulk.select_all'|trans({}, 'kpu') }}">
+{%- endmacro %}
+
+{#
+    Tagesraster: bewusst NICHT im Kit. Das Wochenraster des Drehzettels (Tage × Stufen/Zuschläge) ist fachlich
+    spezifisch und bleibt im Drehzettel-Plugin (siehe GUIDELINES.md, Abschnitt "Tagesraster").
+#}

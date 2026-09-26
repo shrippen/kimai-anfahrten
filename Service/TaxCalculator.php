@@ -30,9 +30,10 @@ class TaxCalculator
 
     /**
      * @param Trip[] $trips trips of one user in one year
+     * @param (callable(Trip, \DateTimeImmutable, \DateTimeImmutable): ?bool)|null $confirmOvernight see MealAllowanceCalculator
      * @return array<string, mixed>
      */
-    public function summarize(array $trips, int $year, TaxProfile $profile = TaxProfile::SELF_EMPLOYED, ?\DateTimeZone $timezone = null): array
+    public function summarize(array $trips, int $year, TaxProfile $profile = TaxProfile::SELF_EMPLOYED, ?\DateTimeZone $timezone = null, ?callable $confirmOvernight = null): array
     {
         $rates = $this->rateSchedule->forYear($year);
         $timezone ??= new \DateTimeZone(date_default_timezone_get());
@@ -93,7 +94,7 @@ class TaxCalculator
         }
         ksort($business);
 
-        $meals = $this->mealCalculator->calculate($trips, $rates, $timezone);
+        $meals = $this->mealCalculator->calculate($trips, $rates, $timezone, $confirmOvernight);
         $privateUse = $profile === TaxProfile::SELF_EMPLOYED ? $this->privateUse($trips, $year, $rates) : [];
 
         return [

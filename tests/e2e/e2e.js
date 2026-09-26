@@ -24,6 +24,13 @@ async function login(browser, user) {
   return page;
 }
 const submit = (page, selector) => Promise.all([page.waitForNavigation(), page.click(selector)]);
+// "…" menu of a table row (Kimai table_actions); immediate actions (data-kpu-post) reload the page
+const rowAction = async (page, rowText, item) => {
+  const row = page.locator('tbody tr', { hasText: rowText }).first();
+  await row.locator('td.actions [data-bs-toggle="dropdown"]').first().click();
+  return row.locator('.dropdown-menu .dropdown-item', { hasText: item }).first();
+};
+const confirmModal = (page) => Promise.all([page.waitForNavigation(), page.click('.modal.show .question-confirm')]);
 const texts = async (page, selector) => (await page.locator(selector).allInnerTexts()).map((s) => s.replace(/\s+/g, ' ').trim());
 const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers: { Authorization: `Bearer e2e-token-${user}-0123456789`, 'Content-Type': 'application/json', ...(options.headers || {}) } });
 
@@ -51,28 +58,32 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
 
   section('Dawarich: places and trip detection');
   await page.goto(BASE + '/de/mileage/places');
-  await submit(page, 'form[action*="places/import"] button');
-  check((await texts(page, 'tbody tr td:first-child')).join() === 'Zuhause Dawarich,Büro Dawarich', 'Dawarich areas imported as places');
+  await submit(page, '.pa-desktop [data-kpu-post*="places/import"]');
+  check((await texts(page, 'tbody tr td:first-child')).join() === 'Zuhause aus Dawarich,Kunde Potsdam aus Dawarich,Büro aus Dawarich', 'Dawarich areas and places imported as places');
   await page.goto(BASE + '/de/mileage/suggestions');
-  await page.fill('#detect-from', '2026-09-21');
-  await page.fill('#detect-to', '2026-09-22');
-  await submit(page, 'form[action*="detect"] button');
+  await page.click('.pa-desktop .action-search');
+  await page.waitForSelector('#remote_form_modal.show #suggestion_detect_form_from');
+  await page.fill('#suggestion_detect_form_from', '21.09.2026');
+  await page.fill('#suggestion_detect_form_to', '22.09.2026');
+  await submit(page, '#remote_form_modal button[type=submit]');
+  check((await texts(page, '.kpu-result')).join().includes('6 neue Fahrten erkannt'), 'detection result shown');
   let rows = await texts(page, 'tbody tr');
   // per day 3 car trips; the lunch walk and the evening bike ride (Dawarich transport mode) are excluded
   check(rows.length === 6, `6 trips detected on two weekdays, walks and bike rides excluded (${rows.length})`);
-  const modes = await texts(page, 'tbody tr td:nth-child(3) .small');
+  const modes = await texts(page, 'tbody tr td:nth-child(4) .small');
   check(modes.length === 6 && modes.every((m) => m === 'Auto'), `only car trips suggested (${modes.join(', ')})`);
   check(rows[0].includes('07:30') && rows[0].includes('Zuhause') && rows[0].includes('Büro'), 'home → office recognised with local time');
-  check(await page.locator('tbody tr').first().locator('select[name=purpose]').inputValue() === 'commute', 'home ↔ office suggested as commute');
+  check((await page.locator('tbody tr').first().locator('td:nth-child(5)').innerText()).includes('Arbeitsweg'), 'home ↔ office suggested as commute');
   check(rows[1].includes('ACME GmbH / Relaunch'), 'trip matched to timesheet project');
   await page.screenshot({ path: SHOTS + '/suggestions.png', fullPage: true });
-  await submit(page, 'tbody tr:first-child button.btn-success');
-  await submit(page, 'tbody tr:first-child button[name=edit]');
-  check(await page.inputValue('#trip_form_departureAt') === '2026-09-21T12:00', 'edit form shows local departure time');
+  await Promise.all([page.waitForNavigation(), (await rowAction(page, '07:30', 'Übernehmen')).click()]);
+  check((await page.locator('.kpu-toast').innerText()).includes('Eine Fahrt übernommen'), 'accepted with undo toast');
+  await Promise.all([page.waitForURL(/\/trip\/\d+\/edit/), (await rowAction(page, '12:00', 'Übernehmen und bearbeiten')).click()]);
+  check(await page.inputValue('#trip_form_departureAt_date') === '21.09.2026' && await page.inputValue('#trip_form_departureAt_time') === '12:00', 'edit form shows local departure time');
   check(await page.locator('#trip-map').count() === 1, 'map preview present');
   await page.goto(BASE + '/de/mileage/2026/9');
   rows = await texts(page, 'tbody tr');
-  check(rows.some((r) => r.includes('Arbeitsweg') && r.includes('16,0 km')), 'accepted commute uses stored distance (8 km each way)');
+  check(rows.some((r) => r.includes('Arbeitsweg') && r.includes('16 km')), 'accepted commute uses stored distance (8 km each way)');
   await page.screenshot({ path: SHOTS + '/trips.png', fullPage: true });
 
   section('Vehicles, rentals, receipts, logbook');
@@ -80,7 +91,7 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   await page.fill('#vehicle_form_name', 'Golf');
   await page.fill('#vehicle_form_licensePlate', 'B-GO 42');
   await page.fill('#vehicle_form_initialOdometer', '10000');
-  await submit(page, 'form[name=vehicle_form] button[type=submit]');
+  await submit(page, 'form[name=vehicle_form] [type=submit]');
   ids.vehicle = (await page.locator('a[href*="/mileage/logbook/"]').first().getAttribute('href')).match(/logbook\/(\d+)/)[1];
   await page.goto(BASE + '/de/mileage/trip/create');
   check((await page.locator('#trip_form_assignedVehicle option:checked').innerText()) === 'Golf (B-GO 42)', 'only vehicle is preselected');
@@ -96,7 +107,7 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   await page.fill('#rental_form_endDate', '12.09.2026');
   await page.fill('#rental_form_rentalCosts', '150');
   await page.fill('#rental_form_fuelCosts', '50');
-  await submit(page, 'form[name=rental_form] button[type=submit]');
+  await submit(page, 'form[name=rental_form] [type=submit]');
   const rentalUrl = page.url();
   ids.rental = rentalUrl.match(/rentals\/(\d+)/)[1];
   for (const [date, purpose, km] of [['10.09.2026', 'business', '300'], ['11.09.2026', 'private', '100'], ['30.09.2026', 'business', '12']]) {
@@ -110,15 +121,15 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
     await submit(page, '#trip_form_save');
   }
   await page.goto(rentalUrl);
-  const rental = (await texts(page, '.col-lg-4 .card-body')).join(' ');
-  check(rental.includes('Davon Dienstreisen (abziehbar): 150,00 €'), 'rental costs shared by km (300 of 400 km → 150 €)');
+  const rental = (await texts(page, '.kpu-kpi-highlight .kpu-kpi-value')).join(' ');
+  check(rental === '150,00 €', `rental costs shared by km (300 of 400 km → 150 €): ${rental}`);
   check((await texts(page, 'tbody tr')).length === 2, 'rental trips linked including the first day');
   await page.goto(BASE + '/de/mileage/2026/9');
-  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('2026-09-30')), 'trip on the last day of the month is listed');
+  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('30.09.2026')), 'trip on the last day of the month is listed');
   const edit = await page.locator('a[href*="/mileage/trip/"][href$="/edit"]').last().getAttribute('href');
   ids.trip = edit.match(/trip\/(\d+)/)[1];
   await page.goto(BASE + '/de/mileage/logbook/' + ids.vehicle + '/2026');
-  check((await texts(page, 'table tbody tr')).some((r) => r.includes('10000') && r.includes('10042')), 'odometer suggested from vehicle (10000 → 10042)');
+  check((await texts(page, 'table tbody tr')).some((r) => r.includes('10.000') && r.includes('10.042')), 'odometer suggested from vehicle (10000 → 10042)');
   const csv = await page.request.get(page.url() + '?format=csv');
   check(csv.status() === 200 && (await csv.text()).includes('10042'), 'logbook CSV export');
   await page.goto(BASE + edit);
@@ -141,15 +152,15 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
 
   section('Month closing and audit log');
   await page.goto(BASE + '/de/mileage/months/2026');
-  page.once('dialog', (d) => d.accept());
-  await submit(page, 'form[action*="/months/2026/9/lock"] button');
+  await (await rowAction(page, 'September', 'Zur Genehmigung einreichen')).click();
+  await confirmModal(page);
   // approval is enabled in the seed, so closing means handing in
-  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('09/2026') && r.includes('Zur Freigabe eingereicht')), 'September handed in (locked)');
+  check((await texts(page, 'tbody tr')).some((r) => r.startsWith('September') && r.includes('Beantragt') && r.includes('Zur Genehmigung eingereicht')), 'September handed in (locked)');
   await page.goto(BASE + edit);
   await page.fill('#trip_form_comment', 'korrigiert');
   await submit(page, '#trip_form_save');
   await page.goto(BASE + '/de/mileage/history');
-  check((await texts(page, 'tbody tr'))[0].includes('comment'), 'admin change in closed month is logged');
+  check((await texts(page, 'tbody tr'))[0].includes('korrigiert'), 'admin change in closed month is logged');
   await page.close();
 
   section('REST API');
@@ -164,40 +175,49 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   check((await api('hans', '/api/mileage/trips?user=1')).status === 403, 'foreign user → 403');
   check((await fetch(BASE + '/api/mileage/trips')).status === 401, 'no token → 401');
   check((await api('hans', '/api/mileage/tax/2026')).status === 200, 'tax summary');
+  r = await api('admin', '/api/mileage/ping');
+  const ping = await r.text();
+  check(r.status === 200 && JSON.parse(ping).profile.dawarichConfigured && JSON.parse(ping).profile.commuteKm === 8 && !ping.includes('8002') && !ping.includes('test-key'), 'ping without Dawarich URL and key');
+  r = await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-14');
+  check(r.status === 200 && (await r.json()).some((t) => t.id === created.id), 'trips by date range');
+  check((await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-01')).status === 400, 'reversed date range → 400');
 
   section('CSV import (hans)');
   page = await login(browser, 'hans');
   await page.goto(BASE + '/de/mileage/import');
   await page.setInputFiles('input[name=file]', path.join(__dirname, 'import.csv'));
-  await submit(page, 'form[enctype] button[type=submit]');
-  check((await texts(page, '.card-header .badge')).join() === '2 bereit,0 mögliche Duplikate,1 fehlerhaft', 'import preview');
+  await submit(page, 'form[enctype] [type=submit]');
+  check((await texts(page, '.kpu-kpi-value')).join() === '2,0,1', 'import preview (ready, duplicates, errors)');
   await submit(page, 'form:has(input[value=import]) button[type=submit]');
   check(page.url().includes('/de/mileage'), 'import done');
 
   section('Approval workflow');
   await page.goto(BASE + '/de/mileage/months/2026');
-  page.once('dialog', (d) => d.accept());
-  await submit(page, 'form[action*="/months/2026/8/lock"] button');
-  check((await texts(page, 'tbody tr')).some((x) => x.startsWith('08/2026') && x.includes('Zur Freigabe eingereicht')), 'hans submits August');
+  await (await rowAction(page, 'August', 'Zur Genehmigung einreichen')).click();
+  await confirmModal(page);
+  check((await texts(page, 'tbody tr')).some((x) => x.startsWith('August') && x.includes('Zur Genehmigung eingereicht')), 'hans submits August');
   await page.close();
   page = await login(browser, 'tina');
   await page.goto(BASE + '/de/mileage/team/2026/8');
   check((await texts(page, 'table tbody tr')).every((x) => !x.startsWith('admin')), 'team lead only sees her team');
-  await page.click('.border-warning button[value=reject]');
-  check(await page.locator('.border-warning input[name=comment]').evaluate((el) => !el.checkValidity()), 'rejection needs a reason');
-  await page.fill('.border-warning input[name=comment]', 'Bitte Anlass ergänzen');
-  await submit(page, '.border-warning button[value=reject]');
+  await (await rowAction(page, 'hans', 'Ablehnen')).click();
+  await page.waitForSelector('#remote_form_modal.show textarea');
+  check(await page.locator('#remote_form_modal textarea').evaluate((el) => !el.checkValidity()), 'rejection needs a reason');
+  await page.fill('#remote_form_modal textarea', 'Bitte Anlass ergänzen');
+  await submit(page, '#remote_form_modal button[type=submit]');
+  check((await texts(page, '.kpu-result')).join().includes('abgelehnt'), 'rejection result shown');
   await page.close();
   page = await login(browser, 'hans');
   await page.goto(BASE + '/de/mileage/months/2026');
-  check((await texts(page, 'tbody tr')).some((x) => x.includes('Zurückgewiesen') && x.includes('Bitte Anlass ergänzen')), 'hans sees the rejection reason');
-  page.once('dialog', (d) => d.accept());
-  await submit(page, 'form[action*="/months/2026/8/lock"] button');
+  check((await texts(page, 'tbody tr')).some((x) => x.includes('Abgelehnt') && x.includes('Bitte Anlass ergänzen')), 'hans sees the rejection reason');
+  await (await rowAction(page, 'August', 'Zur Genehmigung einreichen')).click();
+  await confirmModal(page);
   await page.close();
   page = await login(browser, 'tina');
   await page.goto(BASE + '/de/mileage/team/2026/8');
-  await submit(page, '.border-warning button[value=approve]');
-  check((await texts(page, 'table tbody tr')).some((x) => x.startsWith('hans') && x.includes('Freigegeben')), 'team lead approves');
+  await Promise.all([page.waitForNavigation(), (await rowAction(page, 'hans', 'Genehmigen')).click()]);
+  check((await page.locator('.kpu-toast').innerText()).includes('genehmigt'), 'approval with undo toast');
+  check((await texts(page, 'table tbody tr')).some((x) => x.startsWith('hans') && x.includes('Genehmigt')), 'team lead approves');
   await page.screenshot({ path: SHOTS + '/team.png', fullPage: true });
   await page.close();
 

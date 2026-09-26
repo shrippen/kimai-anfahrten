@@ -18,6 +18,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['trip_date'], name: 'idx_mileage_trip_date')]
 class Trip
 {
+    /** Upper bounds that keep values inside the database columns (and sane). */
+    public const MAX_DISTANCE = 20000;
+    public const MAX_COSTS = 1000000;
+    public const MAX_ODOMETER = 99999999;
+    public const MAX_COMMENT = 10000;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: Types::INTEGER)]
@@ -37,7 +43,7 @@ class Trip
 
     /** End of the time window (used for the Dawarich lookup). */
     #[ORM\Column(name: 'arrival_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Assert\Expression('this.getArrivalAt() === null or this.getDepartureAt() === null or this.getArrivalAt() > this.getDepartureAt()', message: 'trip.error.arrival_before_departure')]
+    #[Assert\Expression('this.getArrivalAt() === null or this.getDepartureAt() === null or this.getArrivalAt() > this.getDepartureAt()', message: 'mileage.trip.error.arrival_before_departure')]
     private ?\DateTimeImmutable $arrivalAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, enumType: TripPurpose::class)]
@@ -47,10 +53,33 @@ class Trip
     private VehicleType $vehicle = VehicleType::OWN_CAR;
 
     #[ORM\Column(name: 'start_location', type: Types::STRING, length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $startLocation = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $destination = null;
+
+    /** Where a detected trip started/ended (null for trips entered by hand). */
+    #[ORM\Column(name: 'start_lat', type: Types::FLOAT, nullable: true)]
+    private ?float $startLatitude = null;
+
+    #[ORM\Column(name: 'start_lon', type: Types::FLOAT, nullable: true)]
+    private ?float $startLongitude = null;
+
+    #[ORM\Column(name: 'end_lat', type: Types::FLOAT, nullable: true)]
+    private ?float $endLatitude = null;
+
+    #[ORM\Column(name: 'end_lon', type: Types::FLOAT, nullable: true)]
+    private ?float $endLongitude = null;
+
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(name: 'start_place_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Place $startPlace = null;
+
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(name: 'end_place_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Place $endPlace = null;
 
     /**
      * Distance of one direction in km.
@@ -58,7 +87,8 @@ class Trip
      * Business/private: the driven distance; doubled when {@see $roundTrip} is set.
      */
     #[ORM\Column(name: 'distance_km', type: Types::FLOAT, options: ['default' => 0])]
-    #[Assert\Positive(message: 'trip.error.distance')]
+    #[Assert\Positive(message: 'mileage.trip.error.distance')]
+    #[Assert\LessThanOrEqual(self::MAX_DISTANCE)]
     private float $distanceKm = 0.0;
 
     #[ORM\Column(name: 'round_trip', type: Types::BOOLEAN, options: ['default' => false])]
@@ -71,12 +101,15 @@ class Trip
     /** Actual costs in EUR (rental car, fuel for rental, tickets, …). */
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(self::MAX_COSTS)]
     private ?float $costs = null;
 
     #[ORM\Column(name: 'license_plate', type: Types::STRING, length: 20, nullable: true)]
+    #[Assert\Length(max: 20)]
     private ?string $licensePlate = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: self::MAX_COMMENT)]
     private ?string $comment = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, enumType: TripSource::class)]
@@ -101,11 +134,13 @@ class Trip
 
     #[ORM\Column(name: 'odometer_start', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(self::MAX_ODOMETER)]
     private ?int $odometerStart = null;
 
     #[ORM\Column(name: 'odometer_end', type: Types::INTEGER, nullable: true)]
     #[Assert\PositiveOrZero]
-    #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'odometer.error.order')]
+    #[Assert\LessThanOrEqual(self::MAX_ODOMETER)]
+    #[Assert\Expression('this.getOdometerEnd() === null or this.getOdometerStart() === null or this.getOdometerEnd() >= this.getOdometerStart()', message: 'mileage.odometer.error.order')]
     private ?int $odometerEnd = null;
 
     #[ORM\ManyToOne(targetEntity: Timesheet::class)]
@@ -202,8 +237,15 @@ class Trip
         return $this->startLocation;
     }
 
+    /**
+     * Renaming the start by hand detaches it from the detected place and coordinates.
+     */
     public function setStartLocation(?string $startLocation): self
     {
+        if (trim((string) $startLocation) !== trim((string) $this->startLocation)) {
+            $this->startPlace = null;
+            $this->startLatitude = $this->startLongitude = null;
+        }
         $this->startLocation = $startLocation;
 
         return $this;
@@ -214,8 +256,15 @@ class Trip
         return $this->destination;
     }
 
+    /**
+     * Renaming the destination by hand detaches it from the detected place and coordinates.
+     */
     public function setDestination(?string $destination): self
     {
+        if (trim((string) $destination) !== trim((string) $this->destination)) {
+            $this->endPlace = null;
+            $this->endLatitude = $this->endLongitude = null;
+        }
         $this->destination = $destination;
 
         return $this;
@@ -302,6 +351,62 @@ class Trip
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * @return array{float, float}|null latitude, longitude
+     */
+    public function getStartCoordinates(): ?array
+    {
+        return $this->startLatitude !== null && $this->startLongitude !== null ? [$this->startLatitude, $this->startLongitude] : null;
+    }
+
+    public function setStartCoordinates(?float $latitude, ?float $longitude): self
+    {
+        $this->startLatitude = $latitude;
+        $this->startLongitude = $longitude;
+
+        return $this;
+    }
+
+    /**
+     * @return array{float, float}|null latitude, longitude
+     */
+    public function getEndCoordinates(): ?array
+    {
+        return $this->endLatitude !== null && $this->endLongitude !== null ? [$this->endLatitude, $this->endLongitude] : null;
+    }
+
+    public function setEndCoordinates(?float $latitude, ?float $longitude): self
+    {
+        $this->endLatitude = $latitude;
+        $this->endLongitude = $longitude;
+
+        return $this;
+    }
+
+    public function getStartPlace(): ?Place
+    {
+        return $this->startPlace;
+    }
+
+    public function setStartPlace(?Place $startPlace): self
+    {
+        $this->startPlace = $startPlace;
+
+        return $this;
+    }
+
+    public function getEndPlace(): ?Place
+    {
+        return $this->endPlace;
+    }
+
+    public function setEndPlace(?Place $endPlace): self
+    {
+        $this->endPlace = $endPlace;
 
         return $this;
     }

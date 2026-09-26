@@ -1,7 +1,8 @@
-{# Leaflet map. Params: map_id, track_url (optional JSON {points: [[lat, lon], ...]}), markers (optional [[lat, lon, label], ...]) #}
-<div id="{{ map_id }}" class="mileage-map rounded border" style="height: 320px"
+{# Leaflet map. Params: map_id, track_url (optional JSON {points: [[lat, lon], ...]}), markers (optional [[lat, lon, label], ...]), map_class #}
+<div id="{{ map_id }}" class="mileage-map {{ map_class ?? 'rounded border' }}"
+     role="img" aria-label="{{ 'mileage.map.label'|trans }}"
      data-track-url="{{ track_url|default('') }}"
      data-markers="{{ markers|default([])|json_encode }}"
      data-tiles="{{ mileage_map_tiles() }}"
      data-attribution="{{ mileage_map_attribution() }}"
-     data-empty="{{ 'trip.map_empty'|trans }}"></div>
+     data-empty="{{ 'mileage.trip.map_empty'|trans }}"></div>

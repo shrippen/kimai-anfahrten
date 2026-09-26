@@ -9,7 +9,8 @@ use PHPUnit\Framework\TestCase;
  */
 class TranslationKeysTest extends TestCase
 {
-    private const PREFIXES = ['trip', 'tax', 'commute', 'dawarich', 'mileage', 'menu.mileage', 'vehicle', 'rental', 'suggestion', 'logbook', 'plausibility', 'approval', 'import', 'meal', 'overview', 'attachment', 'place', 'odometer', 'api'];
+    /** All plugin keys carry the plugin prefix (kimai-plugin-ui GUIDELINES 6). */
+    private const PREFIXES = ['mileage'];
 
     /**
      * @return array<string, array{string}>
@@ -36,6 +37,45 @@ class TranslationKeysTest extends TestCase
         $missing = array_values(array_filter(self::usedKeys(), static fn (string $key) => !isset($known[$key])));
 
         self::assertSame([], $missing, basename($catalogue) . ' is missing keys');
+    }
+
+    /**
+     * @dataProvider catalogues
+     */
+    public function testKeysHaveThePluginPrefix(string $catalogue): void
+    {
+        preg_match_all('/resname="([^"]+)"/', (string) file_get_contents($catalogue), $m);
+        // "mileage" (role/section name) and "mileage_*" (user preference names) are the only keys without a dot
+        $foreign = array_values(array_filter($m[1], static fn (string $key) => !preg_match('/^mileage(\.|_|$)/', $key)));
+
+        self::assertSame([], $foreign, basename($catalogue) . ' has keys without the plugin prefix');
+    }
+
+    /**
+     * Plural messages must cover every count from 0 on, Symfony throws otherwise (GUIDELINES 6).
+     *
+     * @dataProvider catalogues
+     */
+    public function testPluralsCoverZero(string $catalogue): void
+    {
+        $translator = new \Symfony\Component\Translation\Translator('de');
+        $translator->addLoader('array', new \Symfony\Component\Translation\Loader\ArrayLoader());
+        $xml = simplexml_load_file($catalogue);
+        self::assertNotFalse($xml);
+        $xml->registerXPathNamespace('x', 'urn:oasis:names:tc:xliff:document:1.2');
+        $checked = 0;
+        foreach ($xml->xpath('//x:trans-unit') ?: [] as $unit) {
+            $target = (string) $unit->target;
+            if (!str_contains($target, '%count%') || !str_contains($target, '|')) {
+                continue;
+            }
+            foreach ([0, 1, 2] as $count) {
+                $translator->addResource('array', ['k' => $target], 'de');
+                self::assertNotSame('', $translator->trans('k', ['%count%' => $count]), (string) $unit['resname'] . ' with ' . $count);
+            }
+            ++$checked;
+        }
+        self::assertGreaterThan(0, $checked);
     }
 
     /**

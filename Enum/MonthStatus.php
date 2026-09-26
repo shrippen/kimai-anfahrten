@@ -14,7 +14,7 @@ enum MonthStatus: string
 
     public function label(): string
     {
-        return 'approval.status.' . $this->value;
+        return 'mileage.approval.status.' . $this->value;
     }
 
     public function isLocked(): bool

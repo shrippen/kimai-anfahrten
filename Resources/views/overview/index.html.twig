@@ -1,59 +1,65 @@
 {% extends 'base.html.twig' %}
+{% import '@Mileage/_kit/macros.html.twig' as kit %}
+{% import '@Mileage/_macros.html.twig' as mileage %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    {% include '@Mileage/_nav.html.twig' with {active: 'overview'} %}
-    <h2>{{ 'overview.title'|trans }} — {{ target_user.displayName }}</h2>
-    <p class="text-muted">{{ 'overview.help'|trans }}</p>
+{% block stylesheets %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'css'} %}{% endblock %}
+{% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
 
-    <form method="get" class="card mb-3">
-        <input type="hidden" name="user" value="{{ target_user.id }}">
-        <div class="card-body d-flex flex-wrap align-items-end gap-2">
-            <div>
-                <label class="form-label" for="ov-from">{{ 'suggestion.from'|trans }}</label>
-                <input type="date" id="ov-from" name="from" class="form-control" value="{{ from|date('Y-m-d') }}">
-            </div>
-            <div>
-                <label class="form-label" for="ov-to">{{ 'suggestion.to'|trans }}</label>
-                <input type="date" id="ov-to" name="to" class="form-control" value="{{ to|date('Y-m-d') }}">
-            </div>
-            <div>
-                <label class="form-label" for="ov-customer">{{ 'place.customer'|trans }}</label>
-                <select id="ov-customer" name="customer" class="form-select">
-                    <option value="0">{{ 'overview.all_customers'|trans }}</option>
-                    {% for id, name in customers %}<option value="{{ id }}" {% if id == customer_id %}selected{% endif %}>{{ name }}</option>{% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">{{ 'overview.show'|trans }}</button>
-            <a class="btn btn-outline-success" href="{{ path('mileage_overview', {user: target_user.id, from: from|date('Y-m-d'), to: to|date('Y-m-d'), customer: customer_id, format: 'csv'}) }}">CSV</a>
-        </div>
-    </form>
+{% block page_intro %}
+    {{ kit.context_line([target_user.displayName, customer ? customer.name : 'mileage.overview.all_customers'|trans, 'mileage.overview.help'|trans]) }}
+    {{ parent() }}
+{% endblock %}
 
-    {% for group in groups %}
-        <div class="card mb-3">
-            <div class="card-header d-flex">
-                <h3 class="card-title me-auto">{{ group.name }}</h3>
-                <span class="text-muted">{{ group.trips|length }} {{ 'tax.trips'|trans }} · {{ group.km|number_format(1, ',', '.') }} km · {{ group.costs|number_format(2, ',', '.') }} €</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-sm table-vcenter mb-0">
-                    <thead><tr><th>{{ 'trip.date'|trans }}</th><th>{{ 'trip.project'|trans }}</th><th>{{ 'trip.route'|trans }}</th><th class="text-end">km</th><th class="text-end">{{ 'trip.costs'|trans }}</th><th>{{ 'trip.comment'|trans }}</th></tr></thead>
-                    <tbody>
-                        {% for row in group.trips %}
-                            {% set t = row.trip %}
-                            <tr>
-                                <td class="text-nowrap">{{ t.date|date('Y-m-d') }}</td>
-                                <td>{{ t.project ? t.project.name : '' }}</td>
-                                <td>{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
-                                <td class="text-end">{{ t.totalDistanceKm|number_format(1, ',', '.') }}</td>
-                                <td class="text-end">{{ row.costs > 0 ? row.costs|number_format(2, ',', '.') ~ ' €' : '' }}</td>
-                                <td>{{ t.comment }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+{% block table_actions %}
+    {{ form_start(filter) }}
+        {{ form_widget(filter.daterange) }}
+        {{ form_widget(filter.customer) }}
+        <noscript><button type="submit" class="btn">{{ 'mileage.overview.show'|trans }}</button></noscript>
+    {{ form_end(filter) }}
+{% endblock %}
+
+{% block main %}
+    {% if groups is empty %}
+        {{ kit.empty_state('mileage.overview.empty'|trans, customer ? path('mileage_overview', {from: from|date('Y-m-d'), to: to|date('Y-m-d')}) : null, customer ? 'mileage.overview.all_customers'|trans : null) }}
     {% else %}
-        <div class="alert alert-info">{{ 'overview.empty'|trans }}</div>
-    {% endfor %}
+        {{ kit.kpi_bar([
+            {label: 'mileage.tax.trips'|trans, value: totals.trips|amount},
+            {label: 'mileage.trip.total_distance'|trans, value: mileage.km(totals.km)},
+            {label: 'mileage.trip.costs'|trans, value: totals.costs|money('EUR'), highlight: true},
+            {label: 'mileage.overview.customers'|trans, value: groups|length|amount},
+        ]) }}
+
+        {% set columns = {
+            'date': {class: 'alwaysVisible w-min', title: 'mileage.trip.date'},
+            'project': {class: 'd-none d-md-table-cell', title: 'mileage.trip.project'},
+            'route': {class: 'alwaysVisible', title: 'mileage.trip.route'},
+            'distance': {class: 'text-end w-min text-nowrap', title: 'mileage.trip.distance_short'},
+            'costs': {class: 'd-none d-sm-table-cell text-end w-min text-nowrap', title: 'mileage.trip.costs'},
+            'comment': {class: 'd-none d-lg-table-cell', title: 'mileage.trip.comment'},
+        } %}
+        {% for group in groups %}
+            <div class="card mb-3">
+                {{ kit.group_header(
+                    group.name,
+                    group.customer ? group.customer.color|colorize(group.customer.name) : null,
+                    ['mileage.tax.trip_count'|trans({'%count%': group.trips|length}), mileage.km(group.km), group.costs|money('EUR')],
+                    null
+                ) }}
+                {{ tables.datatable_header('mileage_overview', columns, null, {columnConfig: false, sticky: false, boxClass: 'kpu-table-wrap'}) }}
+                    {% for row in group.trips %}
+                        {% set t = row.trip %}
+                        <tr>
+                            <td class="{{ datatable_column_class('mileage_overview', 'date') }} text-nowrap">{{ t.date|date_short }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'project') }}">{{ t.project ? t.project.name : '' }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'route') }}">{{ t.startLocation|default('–') }} → {{ t.destination|default('–') }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'distance') }}">{{ mileage.km(t.totalDistanceKm) }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'costs') }}">{{ row.costs > 0 ? row.costs|money('EUR') : '' }}</td>
+                            <td class="{{ datatable_column_class('mileage_overview', 'comment') }}">{{ t.comment }}</td>
+                        </tr>
+                    {% endfor %}
+                {{ tables.data_table_footer(null, null, null) }}
+            </div>
+        {% endfor %}
+    {% endif %}
 {% endblock %}

@@ -48,12 +48,26 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                     $rate('mileage.commute_cap', 4500.0),
                     $rate('mileage.meal_partial', 14.0),
                     $rate('mileage.meal_full', 28.0),
+                    (new Configuration('mileage.journey_max_gap_days'))
+                        ->setLabel('mileage.journey_max_gap_days')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(IntegerType::class)
+                        ->setValue(14)
+                        ->setOptions(['help' => 'mileage.journey_max_gap_days_help']),
                     (new Configuration('mileage.dawarich_url'))
                         ->setLabel('mileage.dawarich_url')
                         ->setTranslationDomain('messages')
                         ->setRequired(false)
                         ->setType(UrlType::class)
                         ->setOptions(['help' => 'mileage.dawarich_url_help']),
+                    (new Configuration('mileage.dawarich_user_url'))
+                        ->setLabel('mileage.dawarich_user_url')
+                        ->setTranslationDomain('messages')
+                        ->setRequired(false)
+                        ->setType(CheckboxType::class)
+                        ->setValue(false)
+                        ->setOptions(['help' => 'mileage.dawarich_user_url_help']),
                     (new Configuration('mileage.approval_enabled'))
                         ->setLabel('mileage.approval_enabled')
                         ->setTranslationDomain('messages')
@@ -79,13 +93,6 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setRequired(false)
                         ->setType(TextType::class)
                         ->setValue('© OpenStreetMap contributors'),
-                    (new Configuration('mileage.dawarich_max_accuracy'))
-                        ->setLabel('mileage.dawarich_max_accuracy')
-                        ->setTranslationDomain('messages')
-                        ->setRequired(false)
-                        ->setType(IntegerType::class)
-                        ->setValue(100)
-                        ->setOptions(['help' => 'mileage.dawarich_max_accuracy_help']),
                 ])
         );
 
@@ -108,13 +115,14 @@ class SystemConfigurationSubscriber implements EventSubscriberInterface
                         ->setType(IntegerType::class)
                         ->setValue(5)
                         ->setOptions(['help' => 'mileage.detect_stop_minutes_help']),
-                    (new Configuration('mileage.detect_stop_radius'))
-                        ->setLabel('mileage.detect_stop_radius')
+                    $rate('mileage.detect_min_km', 1.0),
+                    (new Configuration('mileage.place_radius'))
+                        ->setLabel('mileage.place_radius')
                         ->setTranslationDomain('messages')
                         ->setRequired(false)
                         ->setType(IntegerType::class)
-                        ->setValue(200),
-                    $rate('mileage.detect_min_km', 1.0),
+                        ->setValue(200)
+                        ->setOptions(['help' => 'mileage.place_radius_help']),
                 ])
         );
     }

@@ -35,16 +35,16 @@ class AttachmentStorage
     public function store(User $user, UploadedFile $file): Attachment
     {
         if (!$file->isValid()) {
-            throw new \InvalidArgumentException('attachment.error.upload');
+            throw new \InvalidArgumentException('mileage.attachment.error.upload');
         }
         if ($file->getSize() > self::MAX_SIZE) {
-            throw new \InvalidArgumentException('attachment.error.size');
+            throw new \InvalidArgumentException('mileage.attachment.error.size');
         }
 
         // Detect the type from the content, never trust the client.
         $mime = (string) $file->getMimeType();
         if (!isset(self::ALLOWED_TYPES[$mime])) {
-            throw new \InvalidArgumentException('attachment.error.type');
+            throw new \InvalidArgumentException('mileage.attachment.error.type');
         }
 
         $directory = $this->directory($user);
@@ -56,7 +56,7 @@ class AttachmentStorage
         $size = (int) $file->getSize();
         $file->move($directory, $name);
 
-        return (new Attachment($name, $file->getClientOriginalName(), $mime, $size))->setUser($user);
+        return (new Attachment($name, mb_substr($file->getClientOriginalName(), 0, 255), $mime, $size))->setUser($user);
     }
 
     public function path(Attachment $attachment): string

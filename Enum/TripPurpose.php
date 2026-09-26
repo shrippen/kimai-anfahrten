@@ -16,7 +16,7 @@ enum TripPurpose: string
 
     public function label(): string
     {
-        return 'trip.purpose.' . $this->value;
+        return 'mileage.trip.purpose.' . $this->value;
     }
 
     public function icon(): string

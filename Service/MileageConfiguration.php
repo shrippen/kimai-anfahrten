@@ -23,9 +23,16 @@ class MileageConfiguration
     public const PREF_DEFAULT_VEHICLE = 'mileage_default_vehicle';
     public const PREF_LICENSE_PLATE = 'mileage_license_plate';
     public const PREF_TAX_PROFILE = 'mileage_tax_profile';
+    /**
+     * Stands in for a stored Dawarich API key in the preferences form (the key itself is never loaded
+     * into the user preferences); submitting it unchanged keeps the key.
+     */
+    public const SECRET_UNCHANGED = '********';
 
-    public function __construct(private readonly SystemConfiguration $configuration)
-    {
+    public function __construct(
+        private readonly SystemConfiguration $configuration,
+        private readonly ?DawarichKeyStore $keys = null,
+    ) {
     }
 
     /**
@@ -86,11 +93,6 @@ class MileageConfiguration
     }
 
     /** GPS points with a worse accuracy (in metres) are ignored for distance calculation. */
-    public function getMaxAccuracy(): int
-    {
-        return (int) $this->float('mileage.dawarich_max_accuracy', 100);
-    }
-
     public function getGeocoderUrl(): ?string
     {
         $url = $this->nonEmpty($this->configuration->find('mileage.geocoder_url'));
@@ -121,27 +123,68 @@ class MileageConfiguration
         return max(1, (int) $this->float('mileage.detect_stop_minutes', 5));
     }
 
+    /**
+     * Radius (m) of the places created automatically where a detected trip starts or ends, of imported Dawarich
+     * places, and for linking trips by coordinates.
+     */
+    public function getPlaceRadius(): int
+    {
+        return max(10, min(5000, (int) $this->float('mileage.place_radius', 200)));
+    }
+
+    /**
+     * A journey is not continued silently when the next leg starts more than this many days later (for review).
+     */
+    public function getJourneyMaxGapDays(): int
+    {
+        return max(1, (int) $this->float('mileage.journey_max_gap_days', 14));
+    }
+
     public function getDetectMinKm(): float
     {
         return max(0.1, $this->float('mileage.detect_min_km', 1.0));
     }
 
-    public function getDetectStopRadius(): float
+    /**
+     * Whether users may point the server at their own Dawarich instance. Off by default: the URL is
+     * requested by the Kimai server, so a free URL lets every user probe the internal network (SSRF).
+     */
+    public function isUserDawarichUrlAllowed(): bool
     {
-        return max(20.0, $this->float('mileage.detect_stop_radius', 200));
+        return (bool) ($this->configuration->find('mileage.dawarich_user_url') ?? false);
     }
 
     public function getDawarichUrl(User $user): ?string
     {
-        $url = $this->userString($user, self::PREF_DAWARICH_URL)
+        $url = ($this->isUserDawarichUrlAllowed() ? $this->userString($user, self::PREF_DAWARICH_URL) : null)
             ?? $this->nonEmpty($this->configuration->find('mileage.dawarich_url'));
 
-        return $url !== null ? rtrim($url, '/') : null;
+        return self::httpUrl($url);
     }
 
+    /**
+     * Only absolute http(s) URLs without credentials, normalized without trailing slash.
+     */
+    public static function httpUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+        $parts = parse_url($url);
+        if (!\is_array($parts) || !\in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            || ($parts['host'] ?? '') === '' || isset($parts['user']) || isset($parts['pass'])) {
+            return null;
+        }
+
+        return rtrim($url, '/');
+    }
+
+    /**
+     * The key is stored in its own table ({@see DawarichKeyStore}), not in the user preferences.
+     */
     public function getDawarichApiKey(User $user): ?string
     {
-        return $this->userString($user, self::PREF_DAWARICH_API_KEY);
+        return $this->keys?->getDawarichApiKey($user);
     }
 
     public function isDawarichConfigured(User $user): bool
@@ -159,11 +202,19 @@ class MileageConfiguration
         return $this->userString($user, self::PREF_WORK_ADDRESS);
     }
 
+    /**
+     * One-way distance home–work from the preferences; null when not set, zero, negative or not a number
+     * (a commute of 0 km is never meant, it is an unset field of the profile form).
+     */
     public function getCommuteKm(User $user): ?float
     {
         $value = $this->userString($user, self::PREF_COMMUTE_KM);
+        if ($value === null || !is_numeric($value = str_replace(',', '.', $value))) {
+            return null;
+        }
+        $km = (float) $value;
 
-        return $value !== null ? (float) str_replace(',', '.', $value) : null;
+        return is_finite($km) && $km > 0 ? $km : null;
     }
 
     public function getDefaultVehicle(User $user): VehicleType

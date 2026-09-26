@@ -26,9 +26,11 @@ class Rental
 
     #[ORM\Column(type: Types::STRING, length: 100)]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private ?string $provider = null;
 
     #[ORM\Column(name: 'license_plate', type: Types::STRING, length: 20, nullable: true)]
+    #[Assert\Length(max: 20)]
     private ?string $licensePlate = null;
 
     #[ORM\Column(name: 'start_date', type: Types::DATE_IMMUTABLE)]
@@ -37,19 +39,22 @@ class Rental
 
     #[ORM\Column(name: 'end_date', type: Types::DATE_IMMUTABLE)]
     #[Assert\NotNull]
-    #[Assert\Expression('this.getEndDate() === null or this.getStartDate() === null or this.getEndDate() >= this.getStartDate()', message: 'vehicle.error.period')]
+    #[Assert\Expression('this.getEndDate() === null or this.getStartDate() === null or this.getEndDate() >= this.getStartDate()', message: 'mileage.vehicle.error.period')]
     private ?\DateTimeImmutable $endDate = null;
 
     /** Rent incl. insurance and fees in EUR. */
     #[ORM\Column(name: 'rental_costs', type: Types::FLOAT, options: ['default' => 0])]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(Trip::MAX_COSTS)]
     private float $rentalCosts = 0.0;
 
     #[ORM\Column(name: 'fuel_costs', type: Types::FLOAT, options: ['default' => 0])]
     #[Assert\PositiveOrZero]
+    #[Assert\LessThanOrEqual(Trip::MAX_COSTS)]
     private float $fuelCosts = 0.0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: Trip::MAX_COMMENT)]
     private ?string $comment = null;
 
     public function getId(): ?int

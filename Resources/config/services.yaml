@@ -19,6 +19,8 @@ services:
             - '../../.kimai/'
             - '../../.php-cs-fixer.dist.php'
 
+    KimaiPlugin\MileageBundle\Service\DawarichKeyStore: '@KimaiPlugin\MileageBundle\Repository\UserSecretRepository'
+
     KimaiPlugin\MileageBundle\Controller\:
         resource: '../../Controller'
         tags: ['controller.service_arguments']

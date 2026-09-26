@@ -27,6 +27,11 @@ class MatchersTest extends TestCase
         self::assertSame($cafe, $matcher->match([$far, $cafe, $home], 52.5206, 13.4050));
         self::assertNull($matcher->match([$home], 52.53, 13.4050));
         self::assertNull($matcher->match([], 1, 1));
+
+        // a temporary place nearer to the point loses against the real place that also contains it
+        $temporary = (new Place())->setName('52.52060, 13.40500')->setLatitude(52.5206)->setLongitude(13.4050)->setRadius(200)->setTemporary(true);
+        self::assertSame($cafe, $matcher->match([$temporary, $cafe], 52.5206, 13.4050));
+        self::assertSame($temporary, $matcher->match([$temporary, $home], 52.5215, 13.4050));
     }
 
     public function testTimesheetMatcher(): void

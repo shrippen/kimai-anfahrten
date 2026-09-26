@@ -21,6 +21,7 @@ class TripService
         private readonly TripRepository $tripRepository,
         private readonly LogbookService $logbookService,
         private readonly MileageConfiguration $configuration,
+        private readonly MonthLockService $lockService,
     ) {
     }
 
@@ -89,7 +90,11 @@ class TripService
             return 0;
         }
 
-        $trips = $this->tripRepository->findUnlinkedRentalTrips($user, $rental->getStartDate(), $rental->getEndDate());
+        // Trips of closed months stay as they are (changing them would be refused when saving).
+        $trips = array_values(array_filter(
+            $this->tripRepository->findUnlinkedRentalTrips($user, $rental->getStartDate(), $rental->getEndDate()),
+            fn (Trip $trip) => !$this->lockService->isTripLocked($trip)
+        ));
         foreach ($trips as $trip) {
             $trip->setRental($rental);
             if ($trip->getAssignedVehicle() === null && $rental->getLicensePlate() !== null) {

@@ -41,6 +41,12 @@ $approval->setName('mileage.approval_enabled');
 $approval->setValue('1');
 $em->persist($approval);
 
+// the admin uses a personal Dawarich URL (the simulated instance)
+$userUrl = new Configuration();
+$userUrl->setName('mileage.dawarich_user_url');
+$userUrl->setValue('1');
+$em->persist($userUrl);
+
 $team = new Team('Außendienst');
 $tz = new DateTimeZone('Europe/Berlin');
 
@@ -52,6 +58,7 @@ foreach (['admin' => ['http://127.0.0.1:8002', 'test-key', '8'], 'hans' => [null
     $pref($user, 'timezone', 'Europe/Berlin');
     if ($url !== null) {
         $pref($user, 'mileage_dawarich_url', $url);
+        // moved into kimai2_ext_mileage_user_secret by the DawarichKeyListener on flush
         $pref($user, 'mileage_dawarich_api_key', $key);
         $pref($user, 'mileage_commute_km', $km);
         $pref($user, 'mileage_license_plate', 'B-AB 123');

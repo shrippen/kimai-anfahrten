@@ -3,7 +3,10 @@
 namespace KimaiPlugin\MileageBundle\Tests\Service;
 
 use App\Configuration\SystemConfiguration;
+use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Entity\Trip;
+use App\Entity\User;
+use KimaiPlugin\MileageBundle\Enum\PlaceType;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Service\MealAllowanceCalculator;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
@@ -25,9 +28,10 @@ class MealAllowanceCalculatorTest extends TestCase
         return (new TaxRateSchedule(new MileageConfiguration(new SystemConfiguration())))->forYear(2026);
     }
 
-    private function trip(string $from, string $to, string $destination = 'Kunde A', bool $overnight = false, TripPurpose $purpose = TripPurpose::BUSINESS): Trip
+    private function trip(string $from, string $to, string $destination = 'Kunde A', bool $overnight = false, TripPurpose $purpose = TripPurpose::BUSINESS, ?string $start = null): Trip
     {
         return (new Trip())
+            ->setStartLocation($start)
             ->setDate(new \DateTimeImmutable(substr($from, 0, 10)))
             ->setPurpose($purpose)
             ->setDestination($destination)
@@ -44,6 +48,16 @@ class MealAllowanceCalculatorTest extends TestCase
         self::assertSame(1, $result['partial_days']);
         self::assertSame(14.0, $result['amount']);
         self::assertSame(8.5, $result['days'][0]['hours']);
+    }
+
+    public function testOnlyDaysOfTheTaxYearCount(): void
+    {
+        // New Year journey: 31.12.2025 (travel day) belongs to 2025, 1.1. and 2.1.2026 to 2026
+        $trips = [$this->trip('2025-12-31 09:00', '2026-01-02 18:00', 'Kunde A', true)];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['2026-01-01', '2026-01-02'], array_column($result['days'], 'date'));
+        self::assertSame(28.0 + 14.0, $result['amount']);
     }
 
     public function testEightHoursExactlyIsNotEnough(): void
@@ -114,5 +128,230 @@ class MealAllowanceCalculatorTest extends TestCase
 
         self::assertSame(0.0, $result['amount']);
         self::assertSame(1, $result['missing_times']);
+    }
+
+    public function testWayThereAndBackFormOneAbsence(): void
+    {
+        // detected legs (suggestions): office → customer, later customer → office; absent 08:00–18:00
+        $trips = [
+            $this->trip('2026-03-02 17:00', '2026-03-02 18:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A'),
+            $this->trip('2026-03-02 08:00', '2026-03-02 09:00', 'Kunde A', false, TripPurpose::BUSINESS, 'Büro'),
+        ];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(10.0, $result['days'][0]['hours']);
+        self::assertSame(14.0, $result['amount']);
+        self::assertSame('Kunde A', $result['days'][0]['destination']);
+
+        // unrelated legs (the second does not start where the first ended) still only add up their own times
+        $trips[0]->setStartLocation('Kunde B');
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testDetectedLegsAreLinkedByPlaceNotByName(): void
+    {
+        $customer = (new Place())->setName('Kunde A')->setLatitude(52.4)->setLongitude(13.06);
+        $there = $this->trip('2026-03-02 08:00', '2026-03-02 09:00', 'Musterstraße 1, Potsdam', false, TripPurpose::BUSINESS, 'Büro')
+            ->setEndPlace($customer)->setEndCoordinates(52.4, 13.06);
+        // the way back got another label (e.g. the address was geocoded differently), but starts at the same place
+        $back = $this->trip('2026-03-02 17:00', '2026-03-02 18:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A, Potsdam')
+            ->setStartPlace($customer)->setStartCoordinates(52.4005, 13.06);
+
+        self::assertSame(14.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // no place, but coordinates within the radius (about 170 m)
+        $back->setStartPlace(null)->setStartCoordinates(52.4015, 13.06);
+        self::assertSame(14.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // coordinates 1 km apart: another place, although the names would match
+        $back->setStartLocation('Musterstraße 1, Potsdam')->setStartCoordinates(52.409, 13.06);
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+
+        // the radius comes from the settings
+        $wide = new MealAllowanceCalculator(new MileageConfiguration(new SystemConfiguration(['mileage.place_radius' => 1500])));
+        self::assertSame(14.0, $wide->calculate([$there, $back], $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testThreeMonthRuleCountsPerPlace(): void
+    {
+        $site = (new Place())->setName('Baustelle');
+        (new \ReflectionProperty(Place::class, 'id'))->setValue($site, 7);
+        $trips = [];
+        for ($day = new \DateTimeImmutable('2026-01-05'); $day < new \DateTimeImmutable('2026-04-30'); $day = $day->modify('+7 days')) {
+            // the label changes, the place stays
+            $trips[] = $this->trip($day->format('Y-m-d') . ' 07:00', $day->format('Y-m-d') . ' 17:00', 'Baustelle ' . $day->format('W'))->setEndPlace($site);
+        }
+        $byDate = array_column((new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['days'], 'three_month', 'date');
+
+        self::assertTrue($byDate['2026-04-06']);
+    }
+
+    public function testLegsOfDifferentDaysAreNotJoined(): void
+    {
+        $trips = [
+            $this->trip('2026-03-02 15:00', '2026-03-02 17:00', 'Kunde A', false, TripPurpose::BUSINESS, 'Büro'),
+            $this->trip('2026-03-03 08:00', '2026-03-03 10:00', 'Büro', false, TripPurpose::BUSINESS, 'Kunde A'),
+        ];
+
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testOnlyTheTripTimesCount(): void
+    {
+        // "Fahrt erfassen" at a timesheet used to store the Dawarich window 00:00–23:59 as departure/arrival
+        // (always 14 €); now such a trip has no times until the real ones are entered
+        $withoutTimes = (new Trip())->setDate(new \DateTimeImmutable('2026-03-02'))->setPurpose(TripPurpose::BUSINESS)->setDestination('Kunde A');
+        $result = (new MealAllowanceCalculator())->calculate([$withoutTimes], $this->rates(), $this->tz);
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame(1, $result['missing_times']);
+
+        $withoutTimes->setDepartureAt(new \DateTimeImmutable('2026-03-02 10:00', $this->tz))->setArrivalAt(new \DateTimeImmutable('2026-03-02 13:00', $this->tz));
+        self::assertSame(0.0, (new MealAllowanceCalculator())->calculate([$withoutTimes], $this->rates(), $this->tz)['amount']);
+    }
+
+    public function testMultiDayJourneyOverNewYearWithLegs(): void
+    {
+        // outbound 30.12.2025 (overnight), local leg on 31.12., return 2.1.2026: 2026 gets 1.1. (full) and 2.1. (travel day)
+        $trips = [
+            $this->trip('2025-12-30 07:00', '2025-12-30 12:00', 'Hamburg', true, TripPurpose::BUSINESS, 'Zuhause'),
+            $this->trip('2025-12-31 09:00', '2025-12-31 09:30', 'Hamburg Kunde', true, TripPurpose::BUSINESS, 'Hamburg'),
+            $this->trip('2026-01-02 14:00', '2026-01-02 19:00', 'Zuhause', false, TripPurpose::BUSINESS, 'Hamburg'),
+        ];
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['2026-01-01' => 'full_day', '2026-01-02' => 'travel_day'], array_column($result['days'], 'kind', 'date'));
+        self::assertSame(1, $result['full_days']);
+        self::assertSame(1, $result['partial_days']);
+        self::assertSame(42.0, $result['amount']);
+    }
+
+    /**
+     * @return array{Place, Place}
+     */
+    private function homeAndHamburg(): array
+    {
+        return [
+            (new Place())->setName('Zuhause')->setType(PlaceType::HOME)->setLatitude(52.52)->setLongitude(13.405),
+            (new Place())->setName('Hamburg, Hafenstraße 1')->setType(PlaceType::OTHER)->setLatitude(53.54)->setLongitude(9.98)->setTemporary(true),
+        ];
+    }
+
+    private function leg(string $from, string $to, Place $start, Place $end): Trip
+    {
+        return $this->trip($from, $to, (string) $end->getName(), false, TripPurpose::BUSINESS, (string) $start->getName())
+            ->setStartPlace($start)->setEndPlace($end)
+            ->setStartCoordinates($start->getLatitude(), $start->getLongitude())->setEndCoordinates($end->getLatitude(), $end->getLongitude());
+    }
+
+    public function testReturnOnALaterDayIsAMultiDayJourney(): void
+    {
+        [$home, $hamburg] = $this->homeAndHamburg();
+        $trips = [
+            $this->leg('2026-03-02 08:00', '2026-03-02 12:00', $home, $hamburg),
+            $this->leg('2026-03-04 14:00', '2026-03-04 19:00', $hamburg, $home),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(['2026-03-02' => 'travel_day', '2026-03-03' => 'full_day', '2026-03-04' => 'travel_day'], array_column($result['days'], 'kind', 'date'));
+        self::assertSame(56.0, $result['amount']);
+        self::assertSame('inferred', $result['days'][1]['overnight']);
+        self::assertSame([], $result['review']);
+    }
+
+    public function testBackHomeEndsTheJourney(): void
+    {
+        [$home, $hamburg] = $this->homeAndHamburg();
+        $trips = [
+            $this->leg('2026-03-02 08:00', '2026-03-02 12:00', $hamburg, $home),
+            $this->leg('2026-03-03 08:00', '2026-03-03 12:00', $home, $hamburg),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame([], $result['review']);
+    }
+
+    public function testUnknownHomeIsFlaggedNotCounted(): void
+    {
+        [, $hamburg] = $this->homeAndHamburg();
+        $start = (new Place())->setName('Irgendwo')->setLatitude(52.0)->setLongitude(13.0)->setTemporary(true);
+        $trips = [
+            $this->leg('2026-03-02 08:00', '2026-03-02 12:00', $start, $hamburg),
+            $this->leg('2026-03-04 14:00', '2026-03-04 19:00', $hamburg, $start),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame([['date' => '2026-03-04', 'reason' => 'no_home', 'destination' => 'Hamburg, Hafenstraße 1']], $result['review']);
+        self::assertTrue($result['hint_home_work']);
+    }
+
+    public function testLongGapIsFlagged(): void
+    {
+        [$home, $hamburg] = $this->homeAndHamburg();
+        $trips = [
+            $this->leg('2026-03-02 08:00', '2026-03-02 12:00', $home, $hamburg),
+            $this->leg('2026-03-20 14:00', '2026-03-20 19:00', $hamburg, $home),
+        ];
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz);
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame('gap', $result['review'][0]['reason']);
+        self::assertFalse($result['hint_home_work']);
+
+        // the gap is a setting
+        $long = new MealAllowanceCalculator(new MileageConfiguration(new SystemConfiguration(['mileage.journey_max_gap_days' => 30])));
+        self::assertSame([], $long->calculate($trips, $this->rates(), $this->tz)['review']);
+
+        // the checkbox still forces it
+        $trips[0]->setOvernight(true);
+        self::assertSame(19, \count((new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz)['days']));
+    }
+
+    public function testDawarichVisitsConfirmOrFlagTheNight(): void
+    {
+        [$home, $hamburg] = $this->homeAndHamburg();
+        $trips = [
+            $this->leg('2026-03-02 08:00', '2026-03-02 12:00', $home, $hamburg),
+            $this->leg('2026-03-03 14:00', '2026-03-03 19:00', $hamburg, $home),
+        ];
+        $asked = [];
+        $confirm = static function (Trip $leg, \DateTimeImmutable $arrival, \DateTimeImmutable $departure) use (&$asked): bool {
+            $asked[] = [$leg->getDestination(), $arrival->format('H:i'), $departure->format('d.')];
+
+            return true;
+        };
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz, $confirm);
+        self::assertSame(28.0, $result['amount']);
+        self::assertSame('confirmed', $result['days'][0]['overnight']);
+        self::assertSame([['Hamburg, Hafenstraße 1', '11:00', '03.']], $asked);
+
+        $result = (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz, static fn () => false);
+        self::assertSame(0.0, $result['amount']);
+        self::assertSame('visit', $result['review'][0]['reason']);
+
+        // unknown: the places decide
+        self::assertSame(28.0, (new MealAllowanceCalculator())->calculate($trips, $this->rates(), $this->tz, static fn () => null)['amount']);
+    }
+
+    public function testTripsEnteredByHandUseTheProfileAddresses(): void
+    {
+        $user = new User(1);
+        $user->setPreferenceValue(MileageConfiguration::PREF_HOME_ADDRESS, 'Zuhause');
+        $trips = [
+            $this->trip('2026-03-02 08:00', '2026-03-02 12:00', 'Hamburg', false, TripPurpose::BUSINESS, 'Zuhause')->setUser($user),
+            $this->trip('2026-03-03 14:00', '2026-03-03 19:00', 'Zuhause', false, TripPurpose::BUSINESS, 'hamburg')->setUser($user),
+        ];
+        $calculator = new MealAllowanceCalculator(new MileageConfiguration(new SystemConfiguration()));
+
+        self::assertSame(28.0, $calculator->calculate($trips, $this->rates(), $this->tz)['amount']);
+
+        // without the profile address it is unclear
+        $user->setPreferenceValue(MileageConfiguration::PREF_HOME_ADDRESS, '');
+        self::assertSame('no_home', $calculator->calculate($trips, $this->rates(), $this->tz)['review'][0]['reason']);
     }
 }

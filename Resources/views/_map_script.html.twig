@@ -10,21 +10,28 @@
         L.tileLayer(el.dataset.tiles, {maxZoom: 19, attribution: el.dataset.attribution}).addTo(map);
         var bounds = [];
         JSON.parse(el.dataset.markers || '[]').forEach(function (m) {
-            L.marker([m[0], m[1]]).addTo(map).bindTooltip(m[2] || '');
+            // Labels are user data (place names, Dawarich areas): pass a text node, Leaflet renders strings as HTML.
+            var label = document.createElement('span');
+            label.textContent = m[2] || '';
+            L.marker([m[0], m[1]]).addTo(map).bindTooltip(label);
             bounds.push([m[0], m[1]]);
         });
         function fit() {
             if (bounds.length) { map.fitBounds(bounds, {padding: [20, 20], maxZoom: 15}); }
-            else { map.setView([51.16, 10.45], 5); el.insertAdjacentHTML('beforeend', '<div class="position-absolute top-50 start-50 translate-middle bg-white px-2 rounded small" style="z-index:500">' + el.dataset.empty + '</div>'); }
+            else { map.setView([51.16, 10.45], 5); var hint = document.createElement('div'); hint.className = 'position-absolute top-50 start-50 translate-middle bg-body text-body px-2 rounded small mileage-map-hint'; hint.textContent = el.dataset.empty; el.appendChild(hint); }
         }
         if (!el.dataset.trackUrl) { fit(); return; }
         fetch(el.dataset.trackUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (data.points && data.points.length > 1) {
-                    L.polyline(data.points, {color: '#206bc4', weight: 4}).addTo(map);
-                    bounds = bounds.concat(data.points);
-                }
+                // theme colour of Kimai (light/dark), no fixed hex value
+                var color = getComputedStyle(el).getPropertyValue('--tblr-primary').trim();
+                (data.lines || []).forEach(function (line) {
+                    if (line.length > 1) {
+                        L.polyline(line, {color: color || 'currentColor', weight: 4}).addTo(map);
+                        bounds = bounds.concat(line);
+                    }
+                });
                 fit();
             })
             .catch(fit);

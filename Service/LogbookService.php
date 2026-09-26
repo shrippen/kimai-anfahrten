@@ -24,7 +24,7 @@ class LogbookService
      *     odometer_end: ?int
      * }
      */
-    public function analyse(Vehicle $vehicle, array $trips): array
+    public function analyse(Vehicle $vehicle, array $trips, ?int $startOdometer = null): array
     {
         usort($trips, static function (Trip $a, Trip $b): int {
             return [$a->getDate()?->format('Y-m-d'), $a->getOdometerStart() ?? PHP_INT_MAX, $a->getDepartureAt()?->getTimestamp(), $a->getId()]
@@ -34,7 +34,8 @@ class LogbookService
         $rows = [];
         $gaps = [];
         $km = ['business' => 0.0, 'commute' => 0.0, 'private' => 0.0, 'unrecorded' => 0];
-        $previousEnd = $vehicle->getInitialOdometer();
+        // For a later year the odometer continues from the previous year's last trip.
+        $previousEnd = $startOdometer ?? $vehicle->getInitialOdometer();
         $previousTrip = null;
         $first = null;
         $last = null;
@@ -45,14 +46,14 @@ class LogbookService
             $end = $trip->getOdometerEnd();
 
             if ($start === null || $end === null) {
-                $warnings[] = 'logbook.warning.odometer_missing';
+                $warnings[] = 'mileage.logbook.warning.odometer_missing';
             } else {
                 $first ??= $start;
                 $last = $end;
                 if ($previousEnd !== null && $start !== $previousEnd) {
                     $diff = $start - $previousEnd;
                     $gaps[] = ['after' => $previousTrip, 'before' => $trip, 'km' => $diff];
-                    $warnings[] = $diff < 0 ? 'logbook.warning.odometer_overlap' : 'logbook.warning.odometer_gap';
+                    $warnings[] = $diff < 0 ? 'mileage.logbook.warning.odometer_overlap' : 'mileage.logbook.warning.odometer_gap';
                     if ($diff > 0) {
                         $km['unrecorded'] += $diff;
                     }
@@ -60,16 +61,16 @@ class LogbookService
                 $delta = $end - $start;
                 $distance = $trip->getTotalDistanceKm();
                 if ($distance > 0 && abs($delta - $distance) > max(2, $distance * self::TOLERANCE)) {
-                    $warnings[] = 'logbook.warning.distance_mismatch';
+                    $warnings[] = 'mileage.logbook.warning.distance_mismatch';
                 }
                 $previousEnd = $end;
             }
 
             if ($trip->getPurpose() === TripPurpose::BUSINESS && $trip->getComment() === null && $trip->getProject() === null) {
-                $warnings[] = 'logbook.warning.purpose_missing';
+                $warnings[] = 'mileage.logbook.warning.purpose_missing';
             }
             if ($trip->getDestination() === null || $trip->getDestination() === '') {
-                $warnings[] = 'logbook.warning.destination_missing';
+                $warnings[] = 'mileage.logbook.warning.destination_missing';
             }
 
             $driven = $start !== null && $end !== null ? (float) ($end - $start) : $trip->getTotalDistanceKm();
