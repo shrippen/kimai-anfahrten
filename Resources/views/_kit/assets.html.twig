@@ -1,5 +1,5 @@
 {#
-    kimai-plugin-ui kit 0.4.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
+    kimai-plugin-ui kit 0.5.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
     Nicht von Hand ändern.
 
     Einbinden (einmal pro Seite, CSS im Kopf, JS am Seitenende):
@@ -8,7 +8,7 @@
 #}
 {% set kpu_part = kpu_part ?? 'all' %}
 {% if kpu_part == 'all' or kpu_part == 'css' %}
-<style data-kpu-version="0.4.0">
+<style data-kpu-version="0.5.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – CSS
@@ -262,7 +262,7 @@ tr.kpu-group-row > td {
 </style>
 {% endif %}
 {% if kpu_part == 'all' or kpu_part == 'js' %}
-<script data-kpu-version="0.4.0">
+<script data-kpu-version="0.5.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – JavaScript (ohne Abhängigkeiten)
@@ -309,7 +309,7 @@ tr.kpu-group-row > td {
 (function (window, document) {
     'use strict';
 
-    var VERSION = '0.4.0';
+    var VERSION = '0.5.0';
     if (window.KimaiPluginUi && window.KimaiPluginUi.version) {
         return; // bereits von einem anderen Plugin auf dieser Seite geladen
     }

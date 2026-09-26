@@ -38,6 +38,7 @@
             value: mileage.km(km[key], 0),
             hint: total > 0 ? 'mileage.logbook.share'|trans({'%share%': (100 * km[key] / total)|round(1)|amount}) : null,
             highlight: key == 'business',
+            tier: (key == 'unrecorded' and km[key] > 0) ? 2 : null,
         }]) %}
     {% endfor %}
     {{ kit.kpi_bar(tiles) }}

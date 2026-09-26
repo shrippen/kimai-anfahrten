@@ -25,8 +25,8 @@
         {% set bad = preview.rows|filter(r => not r.trip)|length %}
         {{ kit.kpi_bar([
             {label: 'mileage.import.kpi.ready'|trans, value: ok|amount, highlight: true},
-            {label: 'mileage.import.kpi.duplicates'|trans, value: dup|amount},
-            {label: 'mileage.import.kpi.errors'|trans, value: bad|amount},
+            {label: 'mileage.import.kpi.duplicates'|trans, value: dup|amount, tier: dup > 0 ? 2 : null},
+            {label: 'mileage.import.kpi.errors'|trans, value: bad|amount, tier: bad > 0 ? 3 : null},
         ]) }}
 
         <div class="card mb-3">

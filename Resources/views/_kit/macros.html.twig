@@ -107,13 +107,19 @@
 {#
     kpi_bar(tiles)
     Kennzahlen-Leiste, maximal 4 Kacheln (weitere werden abgeschnitten), eine davon mit highlight: true.
-    tiles: [{ label: '…', value: '…', hint: '…'?, highlight: bool?, url: '…'?, details: [{label, value}]? }]
+    tiles: [{ label: '…', value: '…', hint: '…'?, highlight: bool?, tier: 0-3?, url: '…'?, details: [{label, value, tier: 0-3?}]? }]
     value ist bereits formatiert (|duration, |money(currency), |amount …).
     details (seit 0.2): Aufschlüsselung unter dem Wert, z. B. Zuschläge je Stufe; label/value bereits übersetzt/formatiert.
              Ein Eintrag bricht nie um (seit 0.3); ist die Kachel zu schmal, kürzt das Label mit "…" (voller Text im title).
+    tier (seit 0.5): setzt kpu-tier/data-kpu-tier auf Kachel oder Detail, wenn eine Bedeutung existiert, die eskaliert
+             (0 neutral, 1-3 steigend), z. B. "Fehler" in einem Import oder eine Zuschlagsstufe. Ein Theme wie Knust
+             gestaltet daraus Rand- und Textfarbe; ohne Theme ändert sich nichts. tier und highlight schließen sich
+             an derselben Kachel aus – highlight ist für "die eine wichtige Zahl", tier für "das hier eskaliert".
+             Nicht jede Kachel braucht ein tier.
     Beispiel: {{ kit.kpi_bar([{label: 'holiday.kpi.taken'|trans, value: 3|amount}, {label: 'holiday.kpi.left'|trans, value: 12|amount, highlight: true}]) }}
               {{ kit.kpi_bar([{label: 'drehzettel.kpi.surcharges'|trans, value: total|money(cur),
-                               details: [{label: '25 %', value: a|money(cur)}, {label: '50 %', value: b|money(cur)}]}]) }}
+                               details: [{label: '25 %', value: a|money(cur), tier: 1}, {label: '50 %', value: b|money(cur), tier: 2}]}]) }}
+              {{ kit.kpi_bar([{label: 'mileage.import.kpi.errors'|trans, value: bad|amount, tier: 3}]) }}
 #}
 {% macro kpi_bar(tiles) -%}
     {%- set tiles = (tiles ?? [])|slice(0, 4) -%}
@@ -121,7 +127,9 @@
     <div class="kpu-kpis kpu-kpis-{{ tiles|length }}">
         {%- for tile in tiles %}
             {%- set tag = tile.url is defined and tile.url ? 'a' : 'div' -%}
-            <{{ tag }} class="card card-sm kpu-kpi{% if tile.highlight ?? false %} kpu-kpi-highlight{% endif %}"{% if tag == 'a' %} href="{{ tile.url }}"{% endif %}>
+            {%- set tier = tile.tier ?? null -%}
+            <{{ tag }} class="card card-sm kpu-kpi{% if tile.highlight ?? false %} kpu-kpi-highlight{% endif %}{% if tier is not null %} kpu-tier{% endif %}"
+                {%- if tier is not null %} data-kpu-tier="{{ tier }}"{% endif %}{% if tag == 'a' %} href="{{ tile.url }}"{% endif %}>
                 <div class="card-body">
                     <div class="subheader kpu-kpi-label">{{ tile.label }}</div>
                     <div class="kpu-kpi-value">{{ tile.value }}</div>
@@ -131,7 +139,8 @@
                     {%- if tile.details is defined and tile.details is not empty %}
                         <div class="kpu-kpi-details text-body-secondary">
                             {%- for detail in tile.details %}
-                                <span class="kpu-kpi-detail" title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value kpu-num">{{ detail.value }}</span></span>
+                                {%- set detail_tier = detail.tier ?? null -%}
+                                <span class="kpu-kpi-detail{% if detail_tier is not null %} kpu-tier{% endif %}"{% if detail_tier is not null %} data-kpu-tier="{{ detail_tier }}"{% endif %} title="{{ detail.label }}: {{ detail.value }}"><span class="kpu-kpi-detail-label">{{ detail.label }}</span> <span class="kpu-kpi-detail-value kpu-num">{{ detail.value }}</span></span>
                             {%- endfor %}
                         </div>
                     {%- endif %}
