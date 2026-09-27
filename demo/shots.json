@@ -56,6 +56,26 @@
     {
       "name": "overview",
       "url": "/{lang}/mileage/overview"
+    },
+    {
+      "name": "logbook",
+      "url": "/{lang}/mileage/logbook/1/{year}"
+    },
+    {
+      "name": "tax",
+      "url": "/{lang}/mileage/tax/{year}"
+    },
+    {
+      "name": "team",
+      "url": "/{lang}/mileage/team/{year}/{month}"
     }
-  ]
+  ],
+  "page": {
+    "fahrten.png": "trips",
+    "erkannte-fahrten.png": "suggestions",
+    "fahrtenbuch.png": "logbook",
+    "steuerbericht.png": "tax",
+    "team-freigabe.png": "team"
+  },
+  "page_theme": "default"
 }
