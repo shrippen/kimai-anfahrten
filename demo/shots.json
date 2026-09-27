@@ -1,0 +1,61 @@
+{
+  "kind": "web",
+  "group": "kimai",
+  "start": "{repo}/demo/kimai/reset.sh --lang {lang} --theme {theme} --port {port}",
+  "detach": true,
+  "stop": "{repo}/demo/kimai/reset.sh --down",
+  "ready": "http://127.0.0.1:{port}/en/login",
+  "base": "http://127.0.0.1:{port}",
+  "today": "real",
+  "timeout": 600,
+  "themes": [
+    "default",
+    "knust"
+  ],
+  "viewport": [
+    1440,
+    900
+  ],
+  "user": "mara",
+  "setup": [
+    {
+      "goto": "/{lang}/login"
+    },
+    {
+      "fill": "#username",
+      "value": "{user}"
+    },
+    {
+      "fill": "#password",
+      "value": "{password}"
+    },
+    {
+      "click": "form button[type=submit]"
+    },
+    {
+      "wait": "body.page-header-fixed, .page-wrapper"
+    }
+  ],
+  "shots": [
+    {
+      "name": "trips",
+      "url": "/{lang}/mileage"
+    },
+    {
+      "name": "suggestions",
+      "url": "/{lang}/mileage/suggestions"
+    },
+    {
+      "name": "months",
+      "url": "/{lang}/mileage/months"
+    },
+    {
+      "name": "rentals",
+      "url": "/{lang}/mileage/rentals"
+    },
+    {
+      "name": "overview",
+      "url": "/{lang}/mileage/overview"
+    }
+  ]
+}
