@@ -46,6 +46,8 @@ jobs:
         run: |
           git archive --format=zip --prefix=MileageBundle/ -o "$ZIP" HEAD
           unzip -l "$ZIP"
+          # The demo (screenshots) is internal: it must never ship.
+          if unzip -Z1 "$ZIP" | grep -q "/demo/"; then echo "error: internal demo in $ZIP" >&2; exit 1; fi
 
       - name: Release notes
         run: |
