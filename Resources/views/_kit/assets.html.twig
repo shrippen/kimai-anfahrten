@@ -1,5 +1,5 @@
 {#
-    kimai-plugin-ui kit 0.5.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
+    kimai-plugin-ui kit 0.7.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
     Nicht von Hand ändern.
 
     Einbinden (einmal pro Seite, CSS im Kopf, JS am Seitenende):
@@ -8,7 +8,7 @@
 #}
 {% set kpu_part = kpu_part ?? 'all' %}
 {% if kpu_part == 'all' or kpu_part == 'css' %}
-<style data-kpu-version="0.5.0">
+<style data-kpu-version="0.7.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – CSS
@@ -17,6 +17,8 @@
  *
  * Kennzeichnungen (seit 0.4): .kpu-num, .kpu-tier[data-kpu-tier], .kpu-mark sagen, WAS ein Element ist.
  * Das Kit gibt ihnen nur eine neutrale Grundform; ein Theme (z. B. Knust) gestaltet sie weiter.
+ * Theme-Variablen (seit 0.6) nur mit Rückfallwert: var(--knust-focus, var(--tblr-primary)).
+ * Seit 0.7: .kpu-day (Kalendertag), .kpu-field-group, .kpu-map-pin, data-kpu-good an .kpu-delta, data-kpu-status an .kpu-status.
  */
 
 /* Zahlen, Zeiten, Daten, Beträge: stehen in Spalten untereinander, brechen nicht um */
@@ -87,6 +89,10 @@
 a.kpu-kpi:hover {
     border-color: var(--tblr-primary);
     text-decoration: none;
+}
+a.kpu-kpi:focus-visible {
+    outline: 2px solid var(--knust-focus, var(--tblr-primary));
+    outline-offset: 2px;
 }
 .kpu-kpi-value {
     font-size: var(--tblr-font-size-h2);
@@ -231,6 +237,476 @@ tr.kpu-group-row > td {
     -webkit-overflow-scrolling: touch;
 }
 
+/* ---------- Kennzeichnungen seit 0.6 (Kante 1.7: .delta, .swatch[data-src], .setting, .chip-pick, .fold,
+   .modebar, .hint-card). Grundform funktioniert ohne Theme; Knust gestaltet sie wie Kante. ---------- */
+
+/* Herkunftsring am Farbpunkt: eigene Farbe durchgezogen, geerbt gestrichelt, erzeugt gepunktet.
+   --kpu-mark-color (Entitätsfarbe) mischt den Ring aus der Farbe selbst, sonst grau. */
+.kpu-mark[data-kpu-src] {
+    --kpu-mark-ring: color-mix(in srgb, var(--kpu-mark-color, var(--tblr-secondary-color)) 55%, var(--tblr-body-color));
+    outline: 2px solid var(--kpu-mark-ring);
+    outline-offset: 2px;
+}
+.kpu-mark[data-kpu-src="inherited"] {
+    outline-style: dashed;
+}
+.kpu-mark[data-kpu-src="generated"] {
+    outline-style: dotted;
+}
+/* Standardgröße nur für den Farbpunkt aus kit.mark() */
+.kpu-mark-dot {
+    width: .75rem;
+    height: .75rem;
+    border-radius: var(--knust-mark-radius, 50%);
+    background: var(--kpu-mark-color, var(--tblr-secondary-color));
+}
+
+/* Veränderung: Richtung als Form (▲ ▼ –) und Farbe, Text liegt daneben */
+.kpu-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--tblr-secondary-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.kpu-delta::before {
+    content: "";
+    flex: none;
+    width: .5rem;
+    height: 2px;
+    background: currentColor;
+}
+.kpu-delta[data-kpu-delta="up"] {
+    color: var(--tblr-success);
+}
+.kpu-delta[data-kpu-delta="down"] {
+    color: var(--tblr-danger);
+}
+.kpu-delta[data-kpu-good="down"][data-kpu-delta="up"] {
+    color: var(--tblr-danger);
+}
+.kpu-delta[data-kpu-good="down"][data-kpu-delta="down"] {
+    color: var(--tblr-success);
+}
+/* Keine Wertung: Pfeil in Textfarbe, damit er sich von "unverändert" (grau) abhebt */
+.kpu-delta[data-kpu-good="none"]:not([data-kpu-delta="flat"]) {
+    color: var(--tblr-body-color);
+}
+.kpu-delta[data-kpu-delta="up"]::before,
+.kpu-delta[data-kpu-delta="down"]::before {
+    width: 0;
+    height: 0;
+    background: none;
+    border: .3125rem solid transparent;
+}
+.kpu-delta[data-kpu-delta="up"]::before {
+    border-top: 0;
+    border-bottom: .5rem solid currentColor;
+}
+.kpu-delta[data-kpu-delta="down"]::before {
+    border-bottom: 0;
+    border-top: .5rem solid currentColor;
+}
+
+/* Einstellungszeile: Name und Erklärung links, Steuerung rechts; "Zurücksetzen" nur bei geändertem Wert */
+.kpu-setting {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .15rem 1rem;
+    align-items: center;
+    padding-block: .75rem;
+    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color);
+}
+.kpu-setting:last-child {
+    border-bottom: 0;
+}
+.kpu-setting-label {
+    margin: 0;
+    font-weight: var(--tblr-font-weight-medium);
+    overflow-wrap: anywhere;
+}
+.kpu-setting-hint {
+    grid-column: 1;
+    font-size: .8125rem;
+    overflow-wrap: anywhere;
+}
+.kpu-setting-control {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.kpu-setting-reset {
+    visibility: hidden;
+}
+.kpu-setting-modified .kpu-setting-reset {
+    visibility: visible;
+}
+.kpu-setting-modified .kpu-setting-label::after {
+    content: "";
+    display: inline-block;
+    width: .375rem;
+    height: .375rem;
+    margin-left: .5rem;
+    background: var(--knust-hl, var(--tblr-primary));
+    vertical-align: middle;
+}
+
+/* Auswahl-Chip: Checkbox als Chip (Mehrfachfilter); leeres Quadrat = aus, gefülltes = an.
+   Das echte input bleibt für Tastatur und Formular erhalten. */
+.kpu-chip-pick {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 1.75rem;
+    padding-inline: .6rem;
+    border: var(--tblr-border-width) solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    color: var(--tblr-secondary-color);
+    font-size: .8125rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.kpu-chip-pick-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+.kpu-chip-pick-label::before {
+    content: "";
+    display: inline-block;
+    width: .5rem;
+    height: .5rem;
+    margin-right: .45rem;
+    border: 2px solid currentColor;
+    vertical-align: -1px;
+}
+.kpu-chip-pick-count {
+    font-size: .75rem;
+    color: var(--tblr-secondary-color);
+}
+.kpu-chip-pick:hover {
+    border-color: var(--tblr-secondary-color);
+    color: var(--tblr-body-color);
+}
+.kpu-chip-pick:has(.kpu-chip-pick-input:checked) {
+    border-color: var(--knust-hl, var(--tblr-primary));
+    background: var(--knust-cyan-tint, var(--tblr-active-bg));
+    color: var(--tblr-body-color);
+}
+.kpu-chip-pick-input:checked + .kpu-chip-pick-label::before {
+    background: var(--knust-hl, var(--tblr-primary));
+    border-color: var(--knust-hl, var(--tblr-primary));
+}
+.kpu-chip-pick:has(.kpu-chip-pick-input:focus-visible) {
+    outline: 2px solid var(--knust-focus, var(--tblr-primary));
+    outline-offset: 2px;
+}
+.kpu-chip-pick:has(.kpu-chip-pick-input:disabled) {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* Aufklappbarer Abschnitt mit Titel und Anzahl: <details>, ohne Skript */
+.kpu-fold {
+    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color);
+}
+.kpu-fold-summary {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    padding-block: .5rem;
+    font-weight: var(--tblr-font-weight-medium);
+    list-style: none;
+    cursor: pointer;
+}
+.kpu-fold-summary::-webkit-details-marker {
+    display: none;
+}
+.kpu-fold-summary::before {
+    content: "";
+    flex: none;
+    align-self: center;
+    width: 0;
+    height: 0;
+    border: .3125rem solid transparent;
+    border-right: 0;
+    border-left: .5rem solid var(--tblr-secondary-color);
+}
+.kpu-fold[open] > .kpu-fold-summary::before {
+    transform: rotate(90deg);
+    border-left-color: var(--knust-hl, var(--tblr-primary));
+}
+.kpu-fold-summary:focus-visible {
+    outline: 2px solid var(--knust-focus, var(--tblr-primary));
+    outline-offset: -2px;
+}
+.kpu-fold-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.kpu-fold-count {
+    color: var(--tblr-secondary-color);
+    font-weight: var(--tblr-font-weight-normal);
+}
+.kpu-fold-body {
+    padding: .25rem 0 1rem;
+}
+
+/* Modusleiste: Filter nach Art/Modus mit Anzahl, scrollt seitlich, wenn sie nicht passt */
+.kpu-modebar {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    border: var(--tblr-border-width) solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    scrollbar-width: thin;
+}
+.kpu-modebar-item {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 2.25rem;
+    padding: 0 .9rem;
+    border-right: var(--tblr-border-width) solid var(--tblr-border-color);
+    color: var(--tblr-secondary-color);
+    white-space: nowrap;
+    text-decoration: none;
+}
+.kpu-modebar-item:last-child {
+    border-right: 0;
+}
+.kpu-modebar-item:hover {
+    color: var(--tblr-body-color);
+    text-decoration: none;
+}
+.kpu-modebar-count {
+    font-size: .75rem;
+    color: var(--tblr-secondary-color);
+}
+.kpu-modebar-item[aria-current]:not([aria-current="false"]) {
+    background: var(--knust-cyan-tint, var(--tblr-active-bg));
+    color: var(--tblr-body-color);
+    box-shadow: inset 0 -2px 0 var(--knust-hl, var(--tblr-primary));
+}
+.kpu-modebar-item:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--knust-focus, var(--tblr-primary));
+}
+
+/* Hinweiskarte: Art als Form + Text + Farbe (nie Farbe allein), Quelle, "Warum?", Aktionen.
+   Form: danger Dreieck, warning Raute, info Quadrat, success Haken */
+.kpu-hint-card {
+    --kpu-hint: var(--tblr-info);
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    min-width: 0;
+    padding: .6rem .8rem .7rem;
+    background: var(--tblr-bg-surface);
+    border: var(--tblr-border-width) solid var(--tblr-border-color);
+    border-top: 4px solid var(--kpu-hint);
+    border-radius: var(--tblr-border-radius);
+}
+.kpu-hint-card[data-kpu-hint="warning"] { --kpu-hint: var(--tblr-warning); }
+.kpu-hint-card[data-kpu-hint="danger"] { --kpu-hint: var(--tblr-danger); }
+.kpu-hint-card[data-kpu-hint="success"] { --kpu-hint: var(--tblr-success); }
+.kpu-hint-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: .25rem .6rem;
+    font-size: .75rem;
+    color: var(--tblr-secondary-color);
+}
+.kpu-hint-card-type {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--kpu-hint);
+    font-weight: var(--tblr-font-weight-medium);
+}
+.kpu-hint-card-type::before {
+    content: "";
+    flex: none;
+    width: .625rem;
+    height: .625rem;
+    background: var(--kpu-hint);
+}
+/* Tablers Gelb ist als Text auf Weiß kaum lesbar: die Beschriftung nimmt die dunklere Textstufe,
+   die Raute bleibt gelb. Ein Theme, das --tblr-warning-text-emphasis setzt (Knust), bestimmt sie selbst. */
+.kpu-hint-card[data-kpu-hint="warning"] .kpu-hint-card-type {
+    color: var(--tblr-warning-text-emphasis, var(--tblr-body-color));
+}
+.kpu-hint-card[data-kpu-hint="danger"] .kpu-hint-card-type::before {
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.kpu-hint-card[data-kpu-hint="warning"] .kpu-hint-card-type::before {
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.kpu-hint-card[data-kpu-hint="success"] .kpu-hint-card-type::before {
+    clip-path: polygon(0 55%, 20% 35%, 40% 55%, 85% 5%, 100% 25%, 40% 95%);
+}
+.kpu-hint-card-title {
+    color: var(--tblr-body-color);
+    font-weight: var(--tblr-font-weight-bold);
+    overflow-wrap: anywhere;
+}
+a.kpu-hint-card-title:hover {
+    color: var(--tblr-link-color);
+}
+.kpu-hint-card-due {
+    font-size: .8125rem;
+}
+.kpu-hint-card-why > summary {
+    width: max-content;
+    max-width: 100%;
+    font-size: .8125rem;
+    color: var(--tblr-link-color);
+    cursor: pointer;
+}
+.kpu-hint-card-why > summary:focus-visible {
+    outline: 2px solid var(--knust-focus, var(--tblr-primary));
+    outline-offset: 2px;
+}
+.kpu-hint-card-why > p {
+    margin: .35rem 0 0;
+    padding-left: .7rem;
+    border-left: 2px solid var(--tblr-border-color);
+    font-size: .8125rem;
+    color: var(--tblr-secondary-color);
+}
+.kpu-hint-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .15rem;
+}
+.kpu-hint-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+    gap: var(--tblr-page-padding, 1rem);
+    margin-bottom: var(--tblr-page-padding, 1rem);
+}
+
+/* ---------- Kennzeichnungen seit 0.7 ---------- */
+
+/* Kalendertag (Kante .cal): heute Rahmen, Feiertag/Abwesenheit als Balken unten, Wochenende abgesenkt,
+   ausgewählt getönt mit Rahmen. Der Balken färbt nie die ganze Zelle. */
+.kpu-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2px;
+}
+.kpu-day {
+    --kpu-day-holiday: var(--tblr-orange);
+    --kpu-day-absence: var(--knust-hl, var(--tblr-cyan));
+    position: relative;
+    min-height: 2.5rem;
+    padding: .2rem .35rem .6rem;
+    background: var(--tblr-bg-surface);
+    color: var(--tblr-body-color);
+    font-variant-numeric: tabular-nums;
+    vertical-align: top;
+}
+.kpu-day-link {
+    display: block;
+    margin: -.2rem -.35rem -.6rem;
+    padding: .2rem .35rem .6rem;
+    color: inherit;
+    text-decoration: none;
+}
+.kpu-day-link:hover {
+    color: inherit;
+    text-decoration: none;
+    background: var(--knust-tint-1, var(--tblr-active-bg));
+}
+.kpu-day-link:focus-visible {
+    outline: 2px solid var(--knust-focus, var(--tblr-primary));
+    outline-offset: -2px;
+}
+.kpu-day-num {
+    font-size: .8125rem;
+}
+.kpu-day-content {
+    display: block;
+    font-size: .75rem;
+    overflow-wrap: anywhere;
+}
+.kpu-day[data-kpu-day~="weekend"] {
+    background: var(--tblr-bg-surface-secondary);
+    color: var(--tblr-secondary-color);
+}
+.kpu-day[data-kpu-day~="holiday"]::after,
+.kpu-day[data-kpu-day~="absence"]::after {
+    content: "";
+    position: absolute;
+    left: .3rem;
+    right: .3rem;
+    bottom: .25rem;
+    height: 4px;
+    background: var(--kpu-day-holiday);
+    pointer-events: none;
+}
+.kpu-day[data-kpu-day~="absence"]::after {
+    background: var(--kpu-day-absence);
+}
+.kpu-day[data-kpu-day~="holiday"][data-kpu-day~="absence"]::after {
+    background: linear-gradient(90deg, var(--kpu-day-holiday) 50%, var(--kpu-day-absence) 50%);
+}
+/* Entität: der Tag gehört einem Plugin-Objekt (z. B. Drehtag); lila wie Kantes Tags, Balken bleiben darüber sichtbar */
+.kpu-day[data-kpu-day~="entity"] {
+    background: color-mix(in srgb, var(--tblr-purple) 14%, var(--tblr-bg-surface));
+}
+.kpu-day[aria-current="date"] {
+    box-shadow: inset 0 0 0 2px var(--tblr-yellow);
+    font-weight: var(--tblr-font-weight-bold);
+}
+.kpu-day[aria-selected="true"] {
+    background: var(--knust-cyan-tint, var(--tblr-active-bg));
+    box-shadow: inset 0 0 0 2px var(--knust-hl, var(--tblr-primary));
+}
+
+/* Feldgruppe: Formularzeilen eines Plugin-Objekts, lila Balken links und leichte Tönung */
+.kpu-field-group {
+    min-width: 0;
+    margin: 0 0 1rem;
+    padding: .75rem .9rem .25rem;
+    border: 0;
+    border-left: 3px solid var(--tblr-purple);
+    background: color-mix(in srgb, var(--tblr-purple) 6%, transparent);
+}
+.kpu-field-group-label {
+    float: left;
+    width: 100%;
+    margin: 0 0 .5rem;
+    padding: 0;
+    font-size: .75rem;
+    font-weight: var(--tblr-font-weight-medium);
+    color: var(--tblr-purple);
+}
+.kpu-field-group-label + * {
+    clear: left;
+}
+
+/* Kartenmarker (Kante .map-pin): Quadrat, Rand im Seitengrund; als Leaflet-divIcon mit className 'kpu-map-pin' */
+.kpu-map-pin {
+    display: inline-block;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    background: var(--kpu-pin-color, var(--knust-map-marker, var(--tblr-primary)));
+    border: 2px solid var(--tblr-bg-surface);
+    vertical-align: middle;
+}
+
 @media (max-width: 575.98px) {
     .kpu-period {
         width: 100%;
@@ -250,11 +726,22 @@ tr.kpu-group-row > td {
         width: 100%;
         order: 3;
     }
+    .kpu-setting {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .kpu-setting-control {
+        grid-column: 1;
+        grid-row: auto;
+        flex-wrap: wrap;
+    }
 }
 
 @media print {
     .kpu-bulk,
-    .kpu-period {
+    .kpu-period,
+    .kpu-modebar,
+    .kpu-setting-reset,
+    .kpu-hint-card-actions {
         display: none !important;
     }
 }
@@ -262,7 +749,7 @@ tr.kpu-group-row > td {
 </style>
 {% endif %}
 {% if kpu_part == 'all' or kpu_part == 'js' %}
-<script data-kpu-version="0.5.0">
+<script data-kpu-version="0.7.0">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – JavaScript (ohne Abhängigkeiten)
@@ -309,7 +796,7 @@ tr.kpu-group-row > td {
 (function (window, document) {
     'use strict';
 
-    var VERSION = '0.5.0';
+    var VERSION = '0.7.0';
     if (window.KimaiPluginUi && window.KimaiPluginUi.version) {
         return; // bereits von einem anderen Plugin auf dieser Seite geladen
     }

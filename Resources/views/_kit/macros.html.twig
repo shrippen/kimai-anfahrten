@@ -21,7 +21,7 @@
         'warning': 'bg-orange-lt',
         'approved': 'bg-success-lt',
         'rejected': 'bg-danger-lt',
-        'billed': 'bg-blue-lt',
+        'billed': 'bg-lime-lt',
         'locked': 'bg-purple-lt',
     }[status] ?? 'bg-secondary-lt' -}}
 {%- endmacro %}
@@ -29,13 +29,15 @@
 {#
     status_badge(status, tooltip = null)
     status: open | requested | approved | rejected | billed | locked | warning
+    data-kpu-status (seit 0.7) trägt den Schlüssel auch als Attribut, damit ein Theme jeden Stand eigen gestalten kann
+    (billed = erledigt und abgeschlossen: grün mit gefülltem Haken, nie wie eine Auswahl).
     warning (seit 0.2) ist orange und trägt immer das Kimai-Icon "warning" (Ausrufezeichen) – so bleibt es auch
     ohne Farbe von requested (gelb, ohne Icon) unterscheidbar. tooltip nennt bei warning den Grund.
     Beispiel: {{ kit.status_badge('approved') }}
               {{ kit.status_badge('warning', 'drehzettel.warning.rest_time'|trans) }}
 #}
 {% macro status_badge(status, tooltip) -%}
-    <span class="badge {{ _self.status_class(status) }} kpu-status kpu-status-{{ status|e('html_attr') }}"
+    <span class="badge {{ _self.status_class(status) }} kpu-status kpu-status-{{ status|e('html_attr') }}" data-kpu-status="{{ status|e('html_attr') }}"
         {%- if tooltip %} data-toggle="tooltip" title="{{ tooltip }}"{% endif %}>
         {%- if status == 'warning' %}{{ icon('warning') }}{% endif -%}
         {{- ('kpu.status.' ~ status)|trans({}, 'kpu') -}}
@@ -299,6 +301,246 @@
 
 {% macro bulk_select_all(form_id) -%}
     <input type="checkbox" class="form-check-input m-0 align-middle kpu-select-all" data-kpu-form="{{ form_id }}" aria-label="{{ 'kpu.bulk.select_all'|trans({}, 'kpu') }}" title="{{ 'kpu.bulk.select_all'|trans({}, 'kpu') }}">
+{%- endmacro %}
+
+{#
+    ---------- Kennzeichnungen seit 0.6 (Kante 1.7). Grundform im Kit, Gestaltung im Theme (Knust). ----------
+#}
+
+{#
+    mark(color, label, src = null)
+    Farbpunkt einer Entität (kpu-mark) mit optionalem Herkunftsring (seit 0.6):
+      color: Entitätsfarbe wie Kimai sie liefert, z. B. project.color|colorize(project.name)
+      label: Name der Entität (Tooltip und Screenreader)
+      src  : own (eigene Farbe, Ring durchgezogen) | inherited (vom Kunden/Projekt geerbt, gestrichelt)
+             | generated (von Kimai erzeugt, gepunktet) | null (kein Ring)
+    Beispiel: {{ kit.mark(activity.color ?? project.color|colorize(project.name), activity.name, activity.color ? 'own' : 'inherited') }}
+#}
+{% macro mark(color, label, src) -%}
+    {%- set src_text = src ? ('kpu.mark.' ~ src)|trans({}, 'kpu') : null -%}
+    {%- set text = src_text ? label ~ ' · ' ~ src_text : label -%}
+    <span class="kpu-mark kpu-mark-dot"{% if src %} data-kpu-src="{{ src|e('html_attr') }}"{% endif %}
+        {%- if color %} style="--kpu-mark-color: {{ color }}"{% endif %} role="img" aria-label="{{ text }}" title="{{ text }}"></span>
+{%- endmacro %}
+
+{#
+    delta(text, direction, good = 'up')
+    Veränderung gegenüber dem Vorzeitraum (seit 0.6): Richtung als Form und Farbe, dazu der Text.
+      text     : bereits formatiert, mit Vorzeichen, z. B. '+12 %', '−3:30'
+      direction: up (steigt, ▲) | down (sinkt, ▼) | flat (gleich, –, grau)
+      good     : (seit 0.7) welche Richtung gut ist, wie Kantes .delta[data-good]:
+                 up (Standard: Umsatz, Stunden – steigt grün, sinkt rot)
+                 | down (Kosten, Fehler, offene Posten – steigt rot, sinkt grün)
+                 | none (keine Wertung – nur der Pfeil, ohne Farbe)
+    Beispiel: {{ kit.kpi_bar([{label: '…', value: sum|duration, hint: kit.delta('+12 %', 'up')}]) }}
+              {{ kit.delta('+8 %', 'up', 'down') }}   (Kosten gestiegen: rot)
+#}
+{% macro delta(text, direction, good) -%}
+    {%- set direction = direction in ['up', 'down', 'flat'] ? direction : 'flat' -%}
+    {%- set good = good in ['down', 'none'] ? good : 'up' -%}
+    <span class="kpu-delta kpu-num" data-kpu-delta="{{ direction }}"{% if good != 'up' %} data-kpu-good="{{ good }}"{% endif %}><span class="visually-hidden">{{ ('kpu.delta.' ~ direction)|trans({}, 'kpu') }}: </span>{{ text }}</span>
+{%- endmacro %}
+
+{#
+    setting(label, control, options = {})
+    Einstellungszeile (seit 0.6): Name und Erklärung links, Steuerung rechts (unter 576 px darunter).
+      control: gerendertes Feld, z. B. form_widget(form.round) oder ein Kimai-Schalter
+      options: { for: 'feld-id' (label wird <label for>), hint: '…', modified: bool (Wert weicht vom Standard ab),
+                 reset: {url: '…', attr: {…}} (Link "Zurücksetzen", nur sichtbar bei modified) }
+    Beispiel: {{ kit.setting('mileage.settings.rate'|trans, form_widget(form.rate), {for: form.rate.vars.id,
+                  hint: 'mileage.settings.rate_help'|trans, modified: rate != default,
+                  reset: {url: '#', attr: {'data-kpu-post': path('mileage_settings_reset'), 'data-kpu-token': csrf_token('mileage')}}}) }}
+#}
+{% macro setting(label, control, options) -%}
+    {%- set options = options ?? {} -%}
+    {%- set modified = options.modified ?? false -%}
+    <div class="kpu-setting{% if modified %} kpu-setting-modified{% endif %}">
+        {%- if options.for ?? false %}
+            <label class="kpu-setting-label" for="{{ options.for }}">{{ label }}{% if modified %}<span class="visually-hidden"> ({{ 'kpu.setting.modified'|trans({}, 'kpu') }})</span>{% endif %}</label>
+        {%- else %}
+            <div class="kpu-setting-label">{{ label }}{% if modified %}<span class="visually-hidden"> ({{ 'kpu.setting.modified'|trans({}, 'kpu') }})</span>{% endif %}</div>
+        {%- endif %}
+        {%- if options.hint ?? false %}
+            <div class="kpu-setting-hint text-body-secondary">{{ options.hint }}</div>
+        {%- endif %}
+        <div class="kpu-setting-control">
+            {{- control -}}
+            {%- if options.reset ?? false %}
+                <a class="btn btn-sm btn-link kpu-setting-reset" href="{{ options.reset.url ?? '#' }}"
+                    {%- for name, value in options.reset.attr ?? {} %} {{ name|e('html_attr') }}="{{ value }}"{% endfor %}
+                    {%- if not modified %} tabindex="-1" aria-hidden="true"{% endif %}>{{ 'kpu.setting.reset'|trans({}, 'kpu') }}</a>
+            {%- endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+{#
+    chip_pick(name, value, label, options = {})
+    Checkbox als Chip für Mehrfachfilter (seit 0.6). Ein echtes input: Tastatur und Formular funktionieren ohne JS.
+      options: { checked: bool, count: n (formatiert), form: 'formular-id', disabled: bool, id: '…' }
+    Mehrere Chips nebeneinander: <div class="d-flex flex-wrap gap-2">…</div>. Filter bleiben GET-Parameter (3.1).
+    Beispiel: {% for kind in kinds %}{{ kit.chip_pick('kinds[]', kind.key, kind.label, {checked: kind.key in selected, count: kind.count|amount}) }}{% endfor %}
+#}
+{% macro chip_pick(name, value, label, options) -%}
+    {%- set options = options ?? {} -%}
+    <label class="kpu-chip-pick">
+        <input type="checkbox" class="kpu-chip-pick-input" name="{{ name }}" value="{{ value }}"
+            {%- if options.id ?? false %} id="{{ options.id }}"{% endif %}
+            {%- if options.form ?? false %} form="{{ options.form }}"{% endif %}
+            {%- if options.checked ?? false %} checked{% endif %}
+            {%- if options.disabled ?? false %} disabled{% endif %}>
+        <span class="kpu-chip-pick-label">{{ label }}</span>
+        {%- if options.count is defined and options.count is not null %}<small class="kpu-chip-pick-count kpu-num">{{ options.count }}</small>{% endif %}
+    </label>
+{%- endmacro %}
+
+{#
+    fold(title, body, options = {})
+    Aufklappbarer Abschnitt mit Titel und Anzahl (seit 0.6), ein <details> ohne Skript.
+      body   : Inhalt als HTML, z. B. über {% set body %}…{% endset %}
+      options: { count: n (formatiert), open: bool, id: '…' }
+    Beispiel: {% set body %}<table class="table">…</table>{% endset %}
+              {{ kit.fold('holiday.fold.past'|trans, body, {count: past|length}) }}
+#}
+{% macro fold(title, body, options) -%}
+    {%- set options = options ?? {} -%}
+    <details class="kpu-fold"{% if options.id ?? false %} id="{{ options.id }}"{% endif %}{% if options.open ?? false %} open{% endif %}>
+        <summary class="kpu-fold-summary"><span class="kpu-fold-title">{{ title }}</span>
+            {%- if options.count is defined and options.count is not null %} <span class="kpu-fold-count kpu-num">{{ options.count }}</span>{% endif -%}
+        </summary>
+        <div class="kpu-fold-body">{{ body }}</div>
+    </details>
+{%- endmacro %}
+
+{#
+    modebar(items, label)
+    Modusleiste (seit 0.6): eine Auswahl aus mehreren Arten/Modi mit Anzahl, als Links (Zustand in der URL).
+    Scrollt seitlich, wenn sie nicht passt. Für Zeiträume bleibt period_nav.
+      items: [{ label, url, count?: n (formatiert), active?: bool }]
+      label: Name der Leiste für Screenreader
+    Beispiel: {{ kit.modebar([{label: 'mileage.trips.all'|trans, url: path('mileage', {kind: 'all'}), count: all|amount, active: kind == 'all'},
+                             {label: 'mileage.trips.business'|trans, url: path('mileage', {kind: 'business'}), count: biz|amount}],
+                            'mileage.trips.kind'|trans) }}
+#}
+{% macro modebar(items, label) -%}
+    <nav class="kpu-modebar d-print-none" aria-label="{{ label }}">
+        {%- for item in items %}
+            <a class="kpu-modebar-item" href="{{ item.url }}"{% if item.active ?? false %} aria-current="true"{% endif %}>
+                {{- item.label -}}
+                {%- if item.count is defined and item.count is not null %}<small class="kpu-modebar-count kpu-num">{{ item.count }}</small>{% endif -%}
+            </a>
+        {%- endfor %}
+    </nav>
+{%- endmacro %}
+
+{#
+    hint_card(title, options = {})
+    Hinweiskarte (seit 0.6): ein Befund mit Art, Quelle, "Warum?" und Aktionen. Die Art zeigt Form + Text + Farbe.
+      options: { type: info | warning | danger | success (Standard info),
+                 source: '…' (woher der Hinweis kommt), url: '…' (Titel wird Link),
+                 due: '…' (formatiert, z. B. Frist), why: '…' (Erklärung, klappt auf),
+                 actions: HTML (Knöpfe, z. B. über {% set %}) }
+    Mehrere Karten: <div class="kpu-hint-cards">…</div> (Raster, eine Spalte bei 390 px).
+    Für eine Rückmeldung nach einer Aktion bleibt result_callout, für einen Status status_badge.
+    Beispiel: {{ kit.hint_card('abrechnung.hint.unbilled'|trans({'%count%': 4}), {type: 'warning', source: 'ACME',
+                  due: deadline|date_short, why: 'abrechnung.hint.unbilled_why'|trans, url: path('abrechnung')}) }}
+#}
+{% macro hint_card(title, options) -%}
+    {%- set options = options ?? {} -%}
+    {%- set type = options.type ?? 'info' -%}
+    {%- set type = type in ['info', 'warning', 'danger', 'success'] ? type : 'info' -%}
+    <article class="kpu-hint-card" data-kpu-hint="{{ type }}">
+        <header class="kpu-hint-card-header">
+            <span class="kpu-hint-card-type">{{ ('kpu.hint.' ~ type)|trans({}, 'kpu') }}</span>
+            {%- if options.source ?? false %}<span class="kpu-hint-card-source">{{ options.source }}</span>{% endif %}
+        </header>
+        {%- if options.url ?? false %}
+            <a class="kpu-hint-card-title" href="{{ options.url }}">{{ title }}</a>
+        {%- else %}
+            <div class="kpu-hint-card-title">{{ title }}</div>
+        {%- endif %}
+        {%- if options.due ?? false %}
+            <div class="kpu-hint-card-due kpu-num text-body-secondary">{{ options.due }}</div>
+        {%- endif %}
+        {%- if options.why ?? false %}
+            <details class="kpu-hint-card-why">
+                <summary>{{ 'kpu.hint.why'|trans({}, 'kpu') }}</summary>
+                <p>{{ options.why }}</p>
+            </details>
+        {%- endif %}
+        {%- if options.actions ?? false %}
+            <div class="kpu-hint-card-actions">{{ options.actions }}</div>
+        {%- endif %}
+    </article>
+{%- endmacro %}
+
+{#
+    calendar_day(number, options = {})
+    Tag in einem Monats- oder Wochenraster (seit 0.7), wie Kantes .cal: heute gelber Rahmen, Feiertag oranger
+    Balken unten, Abwesenheit cyan Balken, beides geteilt, Wochenende abgesenkt, ausgewählt cyan getönt mit Rahmen,
+    Entität (ein Tag, der einem Plugin-Objekt gehört, z. B. ein Drehtag) lila getönt.
+    Der Balken färbt nie die ganze Zelle, damit eine Abwesenheit nicht wie eine Auswahl aussieht.
+      number : Tageszahl (oder kurzer Text)
+      options: { today: bool, holiday: bool, absence: bool, weekend: bool, selected: bool, entity: bool,
+                 label: '…' (Name des Feiertags / der Abwesenheit, Tooltip und Screenreader),
+                 url: '…' (Zelle wird Link), tag: 'div' | 'td' (Standard div), content: HTML unter der Zahl }
+    Raster: <div class="kpu-days">…</div> (7 Spalten) oder eine <table> mit tag: 'td'.
+    Beispiel: {{ kit.calendar_day(day|date('j'), {today: day == today, holiday: hol[day] is defined, label: hol[day] ?? null,
+                  absence: day in absent, weekend: day|date('N') >= 6}) }}
+#}
+{% macro calendar_day(number, options) -%}
+    {%- set options = options ?? {} -%}
+    {%- set kinds = [] -%}
+    {%- for kind in ['holiday', 'absence', 'weekend', 'entity'] -%}
+        {%- if options[kind] ?? false %}{% set kinds = kinds|merge([kind]) %}{% endif -%}
+    {%- endfor -%}
+    {%- set tag = (options.tag ?? 'div') == 'td' ? 'td' : 'div' -%}
+    {%- set said = [] -%}
+    {%- for kind in ['today', 'holiday', 'absence'] -%}
+        {%- if options[kind] ?? false %}{% set said = said|merge([('kpu.day.' ~ kind)|trans({}, 'kpu')]) %}{% endif -%}
+    {%- endfor -%}
+    {%- if options.label ?? false %}{% set said = said|merge([options.label]) %}{% endif -%}
+    <{{ tag }} class="kpu-day"{% if kinds is not empty %} data-kpu-day="{{ kinds|join(' ') }}"{% endif %}
+        {%- if options.today ?? false %} aria-current="date"{% endif %}
+        {%- if options.selected ?? false %} aria-selected="true"{% endif %}
+        {%- if options.label ?? false %} title="{{ options.label }}"{% endif %}>
+        {%- if options.url ?? false %}<a class="kpu-day-link" href="{{ options.url }}">{% endif -%}
+        <span class="kpu-day-num kpu-num">{{ number }}</span>
+        {%- if said is not empty %}<span class="visually-hidden"> {{ said|join(', ') }}</span>{% endif -%}
+        {%- if options.content ?? false %}<span class="kpu-day-content">{{ options.content }}</span>{% endif -%}
+        {%- if options.url ?? false %}</a>{% endif -%}
+    </{{ tag }}>
+{%- endmacro %}
+
+{#
+    field_group(label, body, options = {})
+    Feldgruppe (seit 0.7): Formularzeilen, die zu einem Plugin-Objekt gehören (z. B. die Drehzettel-Felder im
+    Kimai-Zeiteintrag). Lila wie Kantes Rolle für Tags und Entitäten: Balken links, leichte Tönung, Beschriftung oben.
+      body   : gerenderte Felder, z. B. über {% set body %}{{ form_row(form.drehzettel) }}{% endset %}
+      options: { id: '…' }
+    Ohne Makro geht auch nur die Kennzeichnung: <div class="kpu-field-group">…</div> (Beschriftung optional als
+    <div class="kpu-field-group-label">…</div>).
+    Beispiel: {{ kit.field_group('drehzettel.fields'|trans, body) }}
+#}
+{% macro field_group(label, body, options) -%}
+    {%- set options = options ?? {} -%}
+    <fieldset class="kpu-field-group"{% if options.id ?? false %} id="{{ options.id }}"{% endif %}>
+        {%- if label %}<legend class="kpu-field-group-label">{{ label }}</legend>{% endif -%}
+        {{ body }}
+    </fieldset>
+{%- endmacro %}
+
+{#
+    map_pin(label, color = null)
+    Kartenmarker (seit 0.7), eckig wie Kantes .map-pin: Quadrat in der Markerfarbe mit Rand im Seitengrund.
+    Farbe: color (z. B. Projektfarbe) oder Theme-Rolle --knust-map-marker (Knust: cyan), sonst Tabler-Primärfarbe.
+    Für Leaflet dieselbe Kennzeichnung als divIcon, die Route in --knust-map-route (Knust: gelb):
+        L.marker(latlng, {icon: L.divIcon({className: 'kpu-map-pin', iconSize: [14, 14]})})
+        const route = getComputedStyle(map.getContainer()).getPropertyValue('--knust-map-route').trim() || fallback;
+    Beispiel: {{ kit.map_pin(trip.destination) }}
+#}
+{% macro map_pin(label, color) -%}
+    <span class="kpu-map-pin" role="img" aria-label="{{ label }}" title="{{ label }}"{% if color %} style="--kpu-pin-color: {{ color }}"{% endif %}></span>
 {%- endmacro %}
 
 {#

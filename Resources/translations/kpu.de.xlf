@@ -99,6 +99,70 @@
         <source>kpu.bulk.select_group</source>
         <target>%name% auswählen</target>
       </trans-unit>
+      <trans-unit id="kpu024" resname="kpu.delta.up">
+        <source>kpu.delta.up</source>
+        <target>gestiegen</target>
+      </trans-unit>
+      <trans-unit id="kpu025" resname="kpu.delta.down">
+        <source>kpu.delta.down</source>
+        <target>gesunken</target>
+      </trans-unit>
+      <trans-unit id="kpu026" resname="kpu.delta.flat">
+        <source>kpu.delta.flat</source>
+        <target>unverändert</target>
+      </trans-unit>
+      <trans-unit id="kpu027" resname="kpu.mark.own">
+        <source>kpu.mark.own</source>
+        <target>eigene Farbe</target>
+      </trans-unit>
+      <trans-unit id="kpu028" resname="kpu.mark.inherited">
+        <source>kpu.mark.inherited</source>
+        <target>Farbe geerbt</target>
+      </trans-unit>
+      <trans-unit id="kpu029" resname="kpu.mark.generated">
+        <source>kpu.mark.generated</source>
+        <target>Farbe erzeugt</target>
+      </trans-unit>
+      <trans-unit id="kpu030" resname="kpu.setting.modified">
+        <source>kpu.setting.modified</source>
+        <target>geändert</target>
+      </trans-unit>
+      <trans-unit id="kpu031" resname="kpu.setting.reset">
+        <source>kpu.setting.reset</source>
+        <target>Zurücksetzen</target>
+      </trans-unit>
+      <trans-unit id="kpu032" resname="kpu.hint.info">
+        <source>kpu.hint.info</source>
+        <target>Hinweis</target>
+      </trans-unit>
+      <trans-unit id="kpu033" resname="kpu.hint.warning">
+        <source>kpu.hint.warning</source>
+        <target>Warnung</target>
+      </trans-unit>
+      <trans-unit id="kpu034" resname="kpu.hint.danger">
+        <source>kpu.hint.danger</source>
+        <target>Kritisch</target>
+      </trans-unit>
+      <trans-unit id="kpu035" resname="kpu.hint.success">
+        <source>kpu.hint.success</source>
+        <target>Erledigt</target>
+      </trans-unit>
+      <trans-unit id="kpu036" resname="kpu.hint.why">
+        <source>kpu.hint.why</source>
+        <target>Warum?</target>
+      </trans-unit>
+      <trans-unit id="kpu037" resname="kpu.day.today">
+        <source>kpu.day.today</source>
+        <target>heute</target>
+      </trans-unit>
+      <trans-unit id="kpu038" resname="kpu.day.holiday">
+        <source>kpu.day.holiday</source>
+        <target>Feiertag</target>
+      </trans-unit>
+      <trans-unit id="kpu039" resname="kpu.day.absence">
+        <source>kpu.day.absence</source>
+        <target>abwesend</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
