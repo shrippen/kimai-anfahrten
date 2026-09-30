@@ -23,7 +23,7 @@
             {% else %}
                 {{ form_label(form.dates) }}
                 {% set columns = {
-                    'select': {class: 'alwaysVisible w-min', title: false},
+                    'select': {class: 'alwaysVisible multiCheckbox w-min', title: false},
                     'date': {class: 'alwaysVisible', title: 'mileage.trip.date'},
                     'hours': {class: 'text-end w-min', title: 'mileage.commute.hours'},
                     'state': {class: 'd-none d-sm-table-cell', title: false},
