@@ -24,8 +24,9 @@
         fetch(el.dataset.trackUrl, {credentials: 'same-origin', headers: {'Accept': 'application/json'}})
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                // theme colour of Kimai (light/dark), no fixed hex value
-                var color = getComputedStyle(el).getPropertyValue('--tblr-primary').trim();
+                // Route role of the theme (Knust: Kante's --map-route), else Kimai's accent; no fixed hex value
+                var style = getComputedStyle(el);
+                var color = style.getPropertyValue('--knust-map-route').trim() || style.getPropertyValue('--tblr-primary').trim();
                 (data.lines || []).forEach(function (line) {
                     if (line.length > 1) {
                         L.polyline(line, {color: color || 'currentColor', weight: 4}).addTo(map);
