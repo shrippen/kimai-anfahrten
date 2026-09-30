@@ -13,7 +13,8 @@
             // Labels are user data (place names, Dawarich areas): pass a text node, Leaflet renders strings as HTML.
             var label = document.createElement('span');
             label.textContent = m[2] || '';
-            L.marker([m[0], m[1]]).addTo(map).bindTooltip(label);
+            // Kit map pin (square, theme marker colour) instead of Leaflet's blue PNG
+            L.marker([m[0], m[1]], {icon: L.divIcon({className: 'kpu-map-pin', iconSize: [14, 14]})}).addTo(map).bindTooltip(label);
             bounds.push([m[0], m[1]]);
         });
         function fit() {
