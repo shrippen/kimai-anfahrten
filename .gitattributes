@@ -10,3 +10,5 @@
 /phpunit.xml.dist export-ignore
 /ROADMAP.md export-ignore
 /demo export-ignore
+/agent.md export-ignore
+/CLAUDE.md export-ignore
