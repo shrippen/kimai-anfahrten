@@ -91,6 +91,10 @@ class TranslationKeysTest extends TestCase
             }
             $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/' . $dir));
             foreach ($it as $file) {
+                // The synced kit (_kit/) has its own domain "kpu"; its doc examples are not plugin keys
+                if (str_contains($file->getPathname(), '/_kit/')) {
+                    continue;
+                }
                 if ($file->isFile() && preg_match('/\.(php|twig)$/', $file->getFilename())) {
                     $files[] = $file->getPathname();
                 }
