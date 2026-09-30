@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Knust 1.3 (Kante 1.7): the map route reads `--knust-map-route` (falls back to Kimai's accent), the map ground
+- UI kit 0.7.0; places on maps use the kit map pin (square, `--knust-map-marker`) instead of Leaflet's blue pin
+- Knust 1.4 (Kante 1.7): the map route reads `--knust-map-route` (falls back to Kimai's accent), the map ground
   follows the theme in dark mode, checked commute days get the selected-row tint (`multiCheckbox`), recognised import
   columns are `info` instead of blue
 - Dawarich: trips and distances come from the tracks Dawarich computes (`GET /api/v1/tracks`,
