@@ -35,7 +35,7 @@
             </div>
             <div class="card-body small">
                 {{ 'mileage.import.recognized'|trans }}:
-                {% for c in preview.columns %}<span class="badge {{ c ? 'bg-blue-lt' : 'bg-secondary-lt' }} me-1">{{ c ?: '–' }}</span>{% endfor %}
+                {% for c in preview.columns %}<span class="badge {{ c ? 'bg-info-lt' : 'bg-secondary-lt' }} me-1">{{ c ?: '–' }}</span>{% endfor %}
             </div>
             {% set columns = {
                 'line': {class: 'w-min', title: 'mileage.import.line'},
