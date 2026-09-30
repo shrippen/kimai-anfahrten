@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Knust 1.3 (Kante 1.7): the map route reads `--knust-map-route` (falls back to Kimai's accent), the map ground
+  follows the theme in dark mode, checked commute days get the selected-row tint (`multiCheckbox`), recognised import
+  columns are `info` instead of blue
 - Dawarich: trips and distances come from the tracks Dawarich computes (`GET /api/v1/tracks`,
   `GET /api/v1/tracks/{id}`) and their transportation-mode segments instead of the plugin's own stop detection on
   raw GPS points. Consecutive driven segments form a trip; walking/running/cycling segments (if excluded) and
