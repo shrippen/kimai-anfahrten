@@ -2,14 +2,14 @@
 
 ## GUI rule
 
-- This project is a Kimai plugin. Its GUI is generated from Knust (`shrippen/kimai-knust-bundle`),
+- This project is a Kimai plugin. Its GUI is generated from Knust (`kimai/knust/` in shrippen/Kante),
   the Kante spinoff that adapts Kante to Kimai's look, not inspired by it: use Knust's tokens,
   classes, macros and components as they are.
 - No own colours, fonts, sizes, radii, shadows, animation timings, no own copy or variant of
   a component that Knust has. Raw values (`#hex`, `px` for controls) are a bug.
 - A missing element is added to Knust first, then used here. Where it would also help other
   projects, it is added to Kante as well (https://github.com/shrippen/shrippen.github.io, `kante/`).
-- Rule text for all projects: https://github.com/shrippen/shrippen.github.io/blob/main/kante/AGENT-RULE.md
+- Rule text for all projects: https://github.com/shrippen/Kante/blob/main/AGENT-RULE.md
 
 ## Repository rule
 
