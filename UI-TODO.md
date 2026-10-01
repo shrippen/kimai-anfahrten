@@ -1,6 +1,6 @@
 # UI-TODO – Umstellung auf kimai-plugin-ui
 
-Grundlage: [kimai-plugin-ui GUIDELINES.md / CHECKLIST.md](https://github.com/shrippen/kimai-plugin-ui) (Kit 0.2.0,
+Grundlage: [kimai-plugin-ui GUIDELINES.md / CHECKLIST.md](https://github.com/shrippen/Kante/tree/main/kimai/kit) (Kit 0.2.0,
 siehe `Resources/views/_kit/VERSION`), Review-Befunde zur Oberfläche. Basis-Branch mit den Sicherheits-Fixes
 (XSS in Karten-Tooltips, Eingabegrenzen, SSRF, CSV-Formeln, CSRF beim Dawarich-Test) bleibt unverändert wirksam.
 

@@ -225,8 +225,8 @@ Browser-Tests gegen ein echtes Kimai mit simuliertem Dawarich: [tests/e2e/README
 ### Oberfläche
 
 Die Seiten folgen dem gemeinsamen UI-Leitfaden der Kimai-Plugins,
-[kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) (`GUIDELINES.md`, `CHECKLIST.md`); das Kit liegt in
-`Resources/views/_kit/` und `Resources/translations/kpu.*.xlf` und wird nur mit `bin/sync.sh` aus dem Kit-Repo
+[kimai-plugin-ui](https://github.com/shrippen/Kante/tree/main/kimai/kit) (`GUIDELINES.md`, `CHECKLIST.md`); das Kit liegt in
+`Resources/views/_kit/` und `Resources/translations/kpu.*.xlf` und wird nur mit `kimai/kit/bin/sync.sh` aus dem Kante-Repo
 aktualisiert, nie von Hand. Kurz:
 
 - Kimai-Bausteine zuerst: Seitenkopf über `PageSetup` (Service `MileagePages`, Titel „Seite · Zeitraum“, Hilfe-Link),
