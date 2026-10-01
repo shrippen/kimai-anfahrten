@@ -1,5 +1,5 @@
 {#
-    kimai-plugin-ui kit 0.7.0 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
+    kimai-plugin-ui kit 0.7.1 – GENERIERT von bin/build-assets.sh aus kit/css/kit.css und kit/js/kit.js.
     Nicht von Hand ändern.
 
     Einbinden (einmal pro Seite, CSS im Kopf, JS am Seitenende):
@@ -8,7 +8,7 @@
 #}
 {% set kpu_part = kpu_part ?? 'all' %}
 {% if kpu_part == 'all' or kpu_part == 'css' %}
-<style data-kpu-version="0.7.0">
+<style data-kpu-version="0.7.1">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – CSS
@@ -46,6 +46,11 @@
     line-height: 1.4;
     margin-bottom: .5rem;
     overflow-wrap: anywhere;
+}
+/* In Kimai's page header the context line shares a row with the actions: with many actions it was
+   squeezed to a narrow column and broke inside words. It takes the full row, the actions follow. */
+.page-header .row > .col:has(.kpu-context) {
+    flex: 1 0 100%;
 }
 .kpu-context-sep {
     color: var(--tblr-secondary-color);
@@ -640,8 +645,10 @@ a.kpu-hint-card-title:hover {
     font-size: .75rem;
     overflow-wrap: anywhere;
 }
+/* Weekend lifted (Tabler's secondary-lt tint), not sunk: in Knust dark the sunk ground made
+   weekends hard to tell from workdays in the absence calendar. Kante's .cal sinks them. */
 .kpu-day[data-kpu-day~="weekend"] {
-    background: var(--tblr-bg-surface-secondary);
+    background: var(--tblr-secondary-lt);
     color: var(--tblr-secondary-color);
 }
 .kpu-day[data-kpu-day~="holiday"]::after,
@@ -749,7 +756,7 @@ a.kpu-hint-card-title:hover {
 </style>
 {% endif %}
 {% if kpu_part == 'all' or kpu_part == 'js' %}
-<script data-kpu-version="0.7.0">
+<script data-kpu-version="0.7.1">
 {% verbatim %}
 /*
  * kimai-plugin-ui kit – JavaScript (ohne Abhängigkeiten)
@@ -796,7 +803,7 @@ a.kpu-hint-card-title:hover {
 (function (window, document) {
     'use strict';
 
-    var VERSION = '0.7.0';
+    var VERSION = '0.7.1';
     if (window.KimaiPluginUi && window.KimaiPluginUi.version) {
         return; // bereits von einem anderen Plugin auf dieser Seite geladen
     }
