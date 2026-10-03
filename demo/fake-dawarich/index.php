@@ -20,49 +20,46 @@ if (($_SERVER['HTTP_AUTHORIZATION'] ?? '') !== 'Bearer demo-key') {
 }
 $path = (string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-const HOME = [53.5582, 9.8849];      // Lotsenstieg 3 (world: home-mara)
-const OFFICE = [53.5537, 9.9275];    // Studio Weber, Kranichweg 12
-const CAFE = [53.5454, 9.9515];      // fish market, 2 km east of the studio
-const CUSTOMER = [53.5048, 10.0027]; // Speiche Fahrradmanufaktur, Wilhelmsburg
-const LAKE = [53.5445, 9.9106];      // Elbstrand Övelgönne
+// The day, its places and visits come from the world (travel: location.day).
+require __DIR__ . '/../DemoWorld.php';
+$world = new DemoWorld(getenv('DEMO_LANG') ?: 'de', __DIR__ . '/../world.json');
+$day = $world->data['location']['day'];
+$places = array_column($world->data['places'], null, 'id');
+$at = static fn (string $id): array => [$places[$id]['lat'], $places[$id]['lon']];
+define('ZONE', $world->data['timezone']);
 
 if ($path === '/api/v1/areas') {
-    echo json_encode([
-        ['id' => 1, 'name' => 'Zuhause', 'latitude' => HOME[0], 'longitude' => HOME[1], 'radius' => 150],
-        ['id' => 2, 'name' => 'Studio Weber', 'latitude' => OFFICE[0], 'longitude' => OFFICE[1], 'radius' => 150],
-    ]);
+    echo json_encode(array_map(static fn (array $a) => ['id' => $a['id'], 'name' => $world->t($places[$a['place']]['name']),
+        'latitude' => $places[$a['place']]['lat'], 'longitude' => $places[$a['place']]['lon'], 'radius' => $a['radius']], $day['areas']));
 
     return;
 }
 
 // places (Api::V1::PlacesController#serialize_place)
 if ($path === '/api/v1/places') {
-    echo json_encode([
-        ['id' => 11, 'name' => 'Speiche Fahrradmanufaktur', 'latitude' => CUSTOMER[0], 'longitude' => CUSTOMER[1], 'source' => 'manual', 'note' => null,
-            'icon' => null, 'color' => null, 'visits_count' => 3, 'name_locked' => true, 'created_at' => '2026-01-01T00:00:00Z', 'tags' => []],
-    ]);
+    echo json_encode(array_map(static fn (array $p) => ['id' => $p['id'], 'name' => $world->t($places[$p['place']]['name']),
+        'latitude' => $places[$p['place']]['lat'], 'longitude' => $places[$p['place']]['lon'], 'source' => 'manual', 'note' => null,
+        'icon' => null, 'color' => null, 'visits_count' => $p['visits'], 'name_locked' => true, 'created_at' => '2026-01-01T00:00:00Z', 'tags' => []],
+        $day['suggested']));
 
     return;
 }
 
 // reverse geocoding (Places::NearbySearch → Places::PhotonResultFormatter); empty without a geocoder
 if ($path === '/api/v1/places/nearby') {
-    $at = [(float) $_GET['latitude'], (float) $_GET['longitude']];
-    $addresses = [
-        [HOME, 'Wohnhaus', 'Lotsenstieg', '3', '22605', 'Hamburg'],
-        [OFFICE, 'Studio Weber', 'Kranichweg', '12', '22765', 'Hamburg'],
-        [CUSTOMER, 'Speiche Fahrradmanufaktur', 'Veringstraße', '88', '21107', 'Hamburg'],
-    ];
+    $here = [(float) $_GET['latitude'], (float) $_GET['longitude']];
     $radius = 1000 * (float) ($_GET['radius'] ?? 0.5);
-    $places = [];
-    foreach ($addresses as [$point, $name, $street, $number, $postcode, $city]) {
-        if (metres($point, $at) <= $radius) {
-            $places[] = ['id' => null, 'name' => $name, 'latitude' => $point[0], 'longitude' => $point[1], 'osm_id' => null, 'osm_type' => null,
-                'osm_key' => null, 'osm_value' => null, 'city' => $city, 'country' => 'Germany', 'street' => $street, 'housenumber' => $number,
-                'postcode' => $postcode, 'source' => 'photon', 'geodata' => []];
+    $found = [];
+    foreach ($day['geocoded'] as $id) {
+        // "Kranichweg 12, 22765 Hamburg" → street, number, postcode, city
+        preg_match('/^(.*?)\s*(\d+\w*)?,\s*(\d{5})\s+(.+)$/u', $places[$id]['address'], $m);
+        if (metres($at($id), $here) <= $radius) {
+            $found[] = ['id' => null, 'name' => $world->t($places[$id]['name']), 'latitude' => $places[$id]['lat'], 'longitude' => $places[$id]['lon'],
+                'osm_id' => null, 'osm_type' => null, 'osm_key' => null, 'osm_value' => null, 'city' => $m[4], 'country' => 'Germany',
+                'street' => $m[1], 'housenumber' => $m[2] ?: null, 'postcode' => $m[3], 'source' => 'photon', 'geodata' => []];
         }
     }
-    echo json_encode(['places' => array_slice($places, 0, (int) ($_GET['limit'] ?? 10))]);
+    echo json_encode(['places' => array_slice($found, 0, (int) ($_GET['limit'] ?? 10))]);
 
     return;
 }
@@ -81,7 +78,7 @@ function metres(array $a, array $b): float
  *
  * @return array{start: int, end: int, segments: list<array<string, mixed>>, coordinates: list<array{float, float}>}
  */
-function day(DateTimeImmutable $d): array
+function track(DateTimeImmutable $d): array
 {
     $segments = [];
     $t = fn (string $hm) => $d->modify($hm)->getTimestamp();
@@ -118,28 +115,19 @@ function day(DateTimeImmutable $d): array
         ];
     };
 
-    $add(HOME, HOME, '06:00', '07:30', 'stationary');
-    $add(HOME, OFFICE, '07:30', '07:50', 'driving');
-    $add(OFFICE, OFFICE, '07:50', '10:00', 'stationary');
-    $add(OFFICE, CAFE, '10:00', '10:25', 'walking');
-    $add(CAFE, CAFE, '10:25', '10:40', 'stationary');
-    $add(CAFE, OFFICE, '10:40', '11:05', 'walking');
-    $add(OFFICE, OFFICE, '11:05', '12:00', 'stationary');
-    $add(OFFICE, CUSTOMER, '12:00', '12:35', 'driving');
-    $add(CUSTOMER, CUSTOMER, '12:35', '16:00', 'stationary');
-    $add(CUSTOMER, HOME, '16:00', '16:45', 'driving');
-    $add(HOME, HOME, '16:45', '18:00', 'stationary');
-    $add(HOME, LAKE, '18:00', '18:40', 'cycling');
-    $add(LAKE, LAKE, '18:40', '19:10', 'stationary');
-    $add(LAKE, HOME, '19:10', '19:50', 'cycling');
-    $add(HOME, HOME, '19:50', '22:00', 'stationary');
+    global $day, $at;
+    foreach ($day['segments'] as [$p, $q, $a, $b, $mode]) {
+        $add($at($p), $at($q), $a, $b, $mode);
+    }
+    $first = $day['segments'][0][2];
+    $last = end($day['segments'])[3];
 
     $coordinates = [];
     foreach ($segments as $segment) {
         array_push($coordinates, ...$segment['coordinates']);
     }
 
-    return ['start' => $t('06:00'), 'end' => $t('22:00'), 'segments' => $segments, 'coordinates' => $coordinates];
+    return ['start' => $t($first), 'end' => $t($last), 'segments' => $segments, 'coordinates' => $coordinates];
 }
 
 /**
@@ -175,7 +163,7 @@ function feature(int $id, array $day, bool $withSegments): array
  */
 function weekdays(int $from, int $to): iterable
 {
-    $tz = new DateTimeZone('Europe/Berlin');
+    $tz = new DateTimeZone(ZONE);
     for ($d = (new DateTimeImmutable('@' . $from))->setTimezone($tz)->setTime(0, 0); $d->getTimestamp() < $to; $d = $d->modify('+1 day')) {
         if ((int) $d->format('N') <= 5) {
             yield $d;
@@ -189,13 +177,14 @@ if ($path === '/api/v1/visits') {
     $to = strtotime($_GET['end_at']);
     $visits = [];
     foreach (weekdays($from - 86400, $to) as $d) {
-        foreach ([[OFFICE, '07:50', '12:00', 'Studio Weber'], [CUSTOMER, '12:35', '16:00', 'Speiche Fahrradmanufaktur']] as [$at, $a, $b, $name]) {
+        foreach ($day['visits'] as [$id, $a, $b]) {
+            [$point, $name] = [$at($id), $world->t($places[$id]['name'])];
             $start = $d->modify($a);
             if ($start->getTimestamp() >= $from && $start->getTimestamp() <= $to) {
                 $visits[] = ['id' => (int) $d->format('md') * 10 + count($visits), 'area_id' => null, 'user_id' => 1,
                     'started_at' => $start->format('Y-m-d\\TH:i:s.vP'), 'ended_at' => $d->modify($b)->format('Y-m-d\\TH:i:s.vP'),
                     'duration' => ($d->modify($b)->getTimestamp() - $start->getTimestamp()) / 60, 'name' => $name, 'status' => 'confirmed',
-                    'confidence' => 90, 'confidence_band' => 'high', 'place' => ['latitude' => $at[0], 'longitude' => $at[1], 'id' => null]];
+                    'confidence' => 90, 'confidence_band' => 'high', 'place' => ['latitude' => $point[0], 'longitude' => $point[1], 'id' => null]];
             }
         }
     }
@@ -210,9 +199,9 @@ if ($path === '/api/v1/tracks') {
     $to = strtotime($_GET['end_at']);
     $features = [];
     foreach (weekdays($from - 86400, $to) as $d) {
-        $day = day($d);
-        if ($day['end'] >= $from && $day['start'] <= $to) {
-            $features[] = feature((int) $d->format('Ymd'), $day, false);
+        $track = track($d);
+        if ($track['end'] >= $from && $track['start'] <= $to) {
+            $features[] = feature((int) $d->format('Ymd'), $track, false);
         }
     }
     $features = array_reverse($features);
@@ -226,8 +215,8 @@ if ($path === '/api/v1/tracks') {
     return;
 }
 if (preg_match('#^/api/v1/tracks/(\d{8})$#', $path, $m)) {
-    $d = new DateTimeImmutable($m[1], new DateTimeZone('Europe/Berlin'));
-    echo json_encode(['type' => 'FeatureCollection', 'features' => [feature((int) $m[1], day($d), true)]]);
+    $d = new DateTimeImmutable($m[1], new DateTimeZone(ZONE));
+    echo json_encode(['type' => 'FeatureCollection', 'features' => [feature((int) $m[1], track($d), true)]]);
 
     return;
 }

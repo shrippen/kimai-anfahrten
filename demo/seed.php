@@ -69,11 +69,15 @@ $pref = static function (User $user, string $name, string $value) use ($em): voi
     $preference->setValue($value);
     $em->persist($preference);
 };
+$book = $w['logbook'];
+$owner = $w['people'][0]['id'];     // Mara: places, vehicles and the phone are hers
+$vehiclesById = array_column($w['vehicles'], null, 'id');
+$people = array_column($w['people'], null, 'id');
 // Mara's phone reports to the demo Dawarich (key moved into the secret store on flush)
-$pref($users['mara'], 'mileage_dawarich_url', 'http://127.0.0.1:8002');
-$pref($users['mara'], 'mileage_dawarich_api_key', 'demo-key');
-$pref($users['mara'], 'mileage_commute_km', '3.2');
-$pref($users['mara'], 'mileage_license_plate', 'HH-SW 204');
+$pref($users[$owner], 'mileage_dawarich_url', 'http://127.0.0.1:8002');
+$pref($users[$owner], 'mileage_dawarich_api_key', 'demo-key');
+$pref($users[$owner], 'mileage_commute_km', (string) $people[$owner]['commute_km']);
+$pref($users[$owner], 'mileage_license_plate', $vehiclesById[$book['vehicle']]['plate']);
 
 // Places and vehicles belong to a user: Mara's
 $types = ['office' => PlaceType::WORK, 'home' => PlaceType::HOME, 'customer' => PlaceType::CUSTOMER];
@@ -85,8 +89,8 @@ foreach ($w['places'] as $p) {
     $place->setAddress($p['address']);
     $place->setLatitude($p['lat']);
     $place->setLongitude($p['lon']);
-    $place->setRadius(150);
-    $place->setUser($users['mara']);
+    $place->setRadius($book['place_radius']);
+    $place->setUser($users[$owner]);
     if (isset($p['customer'])) {
         $place->setCustomer($customers[$p['customer']]);
     }
@@ -97,12 +101,12 @@ foreach ($w['places'] as $p) {
 $vehicles = [];
 foreach ($w['vehicles'] as $v) {
     $vehicle = new Vehicle();
-    $vehicle->setUser($users['mara']);
+    $vehicle->setUser($users[$owner]);
     $vehicle->setName($world->t($v['name']));
     $vehicle->setType($v['fuel'] === 'none' ? VehicleType::BICYCLE : VehicleType::COMPANY_CAR);
     $vehicle->setLicensePlate($v['plate'] ?: null);
     $vehicle->setHolder($w['studio']['name']);
-    $vehicle->setValidFrom(new DateTimeImmutable('2024-01-01'));
+    $vehicle->setValidFrom(new DateTimeImmutable($book['vehicles_since']));
     $vehicle->setInitialOdometer($v['odometer_start'] ?: null);
     $vehicle->setBusinessAsset(true);
     $vehicle->setPrivateUse($v['fuel'] === 'none' ? PrivateUseMethod::NONE : PrivateUseMethod::LOGBOOK);
@@ -112,9 +116,9 @@ foreach ($w['vehicles'] as $v) {
 }
 
 $now = new DateTimeImmutable('now', $world->today->getTimezone());
-$trip = static function (string $user, int $day, string $from, string $to, float $km, VehicleType $type, ?Vehicle $vehicle, ?string $plate, string $project, string $comment, string $time) use ($world, $users, $places, $projects, $em, $now): ?Trip {
+$trip = static function (string $user, int $day, string $from, string $to, float $km, VehicleType $type, ?Vehicle $vehicle, ?string $plate, string $project, string $comment, string $time) use ($world, $users, $places, $projects, $em, $now, $book, $owner): ?Trip {
     $departure = $world->date($day, $time);
-    $arrival = $departure->modify('+' . max(10, (int) round($km * 2.5)) . ' minutes');
+    $arrival = $departure->modify('+' . max($book['min_minutes'], (int) round($km * $book['minutes_per_km'])) . ' minutes');
     if ($arrival > $now) {
         return null;
     }
@@ -125,9 +129,9 @@ $trip = static function (string $user, int $day, string $from, string $to, float
     $t->setArrivalAt($arrival);
     $t->setPurpose(TripPurpose::BUSINESS);
     $t->setVehicle($type);
-    $t->setAssignedVehicle($user === 'mara' ? $vehicle : null);
+    $t->setAssignedVehicle($user === $owner ? $vehicle : null);
     $t->setLicensePlate($plate);
-    if ($user === 'mara') {
+    if ($user === $owner) {
         $t->setStartPlace($places[$from]);
         $t->setEndPlace($places[$to]);
     }
@@ -149,7 +153,7 @@ foreach ($w['trips'] as $t) {
     $vehicle = $vehicles[$t['vehicle']];
     $isBike = $t['vehicle'] === 'bike';
     $key = $t['user'] . $t['day'];
-    $time = isset($seen[$key]) ? '17:30' : '08:15';     // out in the morning, back in the evening
+    $time = isset($seen[$key]) ? $book['times']['back'] : $book['times']['out'];     // out in the morning, back in the evening
     $seen[$key] = true;
     $made = $trip($t['user'], $t['day'], $t['from'], $t['to'], $t['km'], $isBike ? VehicleType::BICYCLE : VehicleType::COMPANY_CAR,
         $vehicle, $isBike ? null : $vehicle->getLicensePlate(), $t['project'], $world->t($t['purpose']), $time);
@@ -163,13 +167,14 @@ foreach ($w['rentals'] as $r) {
     $rental->setLicensePlate($r['plate']);
     $rental->setStartDate($world->date($r['from']));
     $rental->setEndDate($world->date($r['to']));
-    $rental->setRentalCosts(round($r['cost'] * 0.8, 2));
-    $rental->setFuelCosts(round($r['cost'] * 0.2, 2));
+    $rental->setRentalCosts(round($r['cost'] * $book['rental_split']['rent'], 2));
+    $rental->setFuelCosts(round($r['cost'] * $book['rental_split']['fuel'], 2));
     $rental->setComment($world->t($r['car']));
     $em->persist($rental);
     $half = $r['km'] / 2;
-    foreach ([[$r['from'], $r['pickup'], 'speiche-workshop'], [$r['to'], 'speiche-workshop', 'studio']] as [$day, $from, $to]) {
-        $made = $trip($r['user'], $day, $from, $to, $half, VehicleType::RENTAL_CAR, null, $r['plate'], $r['project'], $world->t($r['car']), '09:00');
+    [$stop, $back] = $book['rental_stops'];
+    foreach ([[$r['from'], $r['pickup'], $stop], [$r['to'], $stop, $back]] as [$day, $from, $to]) {
+        $made = $trip($r['user'], $day, $from, $to, $half, VehicleType::RENTAL_CAR, null, $r['plate'], $r['project'], $world->t($r['car']), $book['times']['rental']);
         if ($made) {
             $made->setRental($rental);
             $count++;
@@ -177,13 +182,14 @@ foreach ($w['rentals'] as $r) {
     }
 }
 
-// Month approvals: last month approved by Lena, this month submitted by Jonas and Lena
+// Month approvals: last month approved, this month submitted (world: approvals)
+$approvals = $w['approvals'];
 $last = $world->today->modify('first day of previous month');
-foreach (['mara', 'jonas', 'lena'] as $id) {
-    $lock = new MonthLock($users[$id], (int) $last->format('Y'), (int) $last->format('n'), $users['lena'], MonthStatus::APPROVED);
+foreach ($approvals['trips']['approved_last_month'] as $id) {
+    $lock = new MonthLock($users[$id], (int) $last->format('Y'), (int) $last->format('n'), $users[$approvals['by']], MonthStatus::APPROVED);
     $em->persist($lock);
 }
-foreach (['jonas'] as $id) {
+foreach ($approvals['trips']['submitted_this_month'] as $id) {
     $lock = new MonthLock($users[$id], (int) $world->today->format('Y'), (int) $world->today->format('n'), $users[$id], MonthStatus::SUBMITTED);
     $em->persist($lock);
 }
