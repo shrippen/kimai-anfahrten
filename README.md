@@ -177,7 +177,7 @@ Entfernung eingetragen (oder 0), gibt es ohne `distanceKm` einen Fehler 400 stat
 
 ```json
 {
-  "installed": true, "pluginVersion": "0.9.0", "apiVersions": ["v1"],
+  "installed": true, "pluginVersion": "0.10.0", "apiVersions": ["v1"],
   "permissions": {"view": true, "editOwn": true, "deleteOwn": true, "editLocked": false,
                   "viewTeam": false, "viewOther": false, "editOther": false},
   "features": ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck", "places", "placesWrite"],

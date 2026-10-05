@@ -12,7 +12,7 @@ use KimaiPlugin\MileageBundle\Entity\Place;
 final class ApiInfo
 {
     // Bump together with composer.json's "version".
-    public const PLUGIN_VERSION = '0.9.0';
+    public const PLUGIN_VERSION = '0.10.0';
     // The unprefixed /api/mileage endpoints are v1; an incompatible change would get a new prefix.
     public const API_VERSIONS = ['v1'];
 

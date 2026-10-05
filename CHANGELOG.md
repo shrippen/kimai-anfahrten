@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-10-06
+
+### Added
+
+- API: `GET /api/mileage/places` lists the user's places with their linked customer
+
 ### Changed
 
 - UI kit 0.7.0; places on maps use the kit map pin (square, `--knust-map-marker`) instead of Leaflet's blue pin
