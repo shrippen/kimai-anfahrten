@@ -3,6 +3,7 @@
 namespace KimaiPlugin\MileageBundle\Service;
 
 use KimaiPlugin\MileageBundle\Entity\MonthLock;
+use KimaiPlugin\MileageBundle\Entity\Place;
 
 /**
  * Discovery answer of GET /api/mileage/ping. Clients check "features" before using an addition to the API, so a
@@ -19,9 +20,10 @@ final class ApiInfo
      * Additions to v1 since its first release, in the order they were added:
      * tripTimesheet = "timesheet" on POST/PATCH trips, dateRange = from/to on GET trips and suggestions,
      * acceptFields = project/distanceKm/comment/timesheet on accepting a suggestion (and "timesheet" in its JSON),
-     * commuteCheck = a commute without distance and without the profile's commute distance is a 400.
+     * commuteCheck = a commute without distance and without the profile's commute distance is a 400,
+     * places = GET /api/mileage/places.
      */
-    public const FEATURES = ['tripTimesheet', 'dateRange', 'acceptFields', 'commuteCheck'];
+    public const FEATURES = ['tripTimesheet', 'dateRange', 'acceptFields', 'commuteCheck', 'places'];
 
     /**
      * @param array<string, bool> $permissions of the token owner
@@ -59,5 +61,30 @@ final class ApiInfo
         sort($months);
 
         return array_values(array_unique($months));
+    }
+
+    /**
+     * Places for GET /api/mileage/places. Links Dawarich areas/places to Kimai customers, so other tools (e.g. a
+     * dashboard) reuse this mapping. Without address and coordinates: clients only need the link.
+     *
+     * @param iterable<Place> $places
+     * @return list<array{id: ?int, name: ?string, type: string, customerId: ?int, dawarichAreaId: ?int, dawarichPlaceId: ?int, temporary: bool}>
+     */
+    public static function places(iterable $places): array
+    {
+        $out = [];
+        foreach ($places as $place) {
+            $out[] = [
+                'id' => $place->getId(),
+                'name' => $place->getName(),
+                'type' => $place->getType()->value,
+                'customerId' => $place->getCustomer()?->getId(),
+                'dawarichAreaId' => $place->getDawarichAreaId(),
+                'dawarichPlaceId' => $place->getDawarichPlaceId(),
+                'temporary' => $place->isTemporary(),
+            ];
+        }
+
+        return $out;
     }
 }

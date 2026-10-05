@@ -2,9 +2,12 @@
 
 namespace KimaiPlugin\MileageBundle\Tests\Service;
 
+use App\Entity\Customer;
 use App\Entity\User;
 use KimaiPlugin\MileageBundle\Entity\MonthLock;
+use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Enum\MonthStatus;
+use KimaiPlugin\MileageBundle\Enum\PlaceType;
 use KimaiPlugin\MileageBundle\Service\ApiInfo;
 use PHPUnit\Framework\TestCase;
 
@@ -43,5 +46,19 @@ class ApiInfoTest extends TestCase
         ];
 
         self::assertSame(['2025-12', '2026-01', '2026-03'], ApiInfo::lockedMonths($locks));
+    }
+
+    public function testPlacesMapsCustomerAndArea(): void
+    {
+        $customer = $this->createMock(Customer::class);
+        $customer->method('getId')->willReturn(12);
+        $site = (new Place())->setName('Muster GmbH')->setType(PlaceType::CUSTOMER)->setCustomer($customer)->setDawarichAreaId(7);
+        $home = (new Place())->setName('Zuhause')->setType(PlaceType::HOME);
+
+        self::assertSame([
+            ['id' => null, 'name' => 'Muster GmbH', 'type' => 'customer', 'customerId' => 12, 'dawarichAreaId' => 7, 'dawarichPlaceId' => null, 'temporary' => false],
+            ['id' => null, 'name' => 'Zuhause', 'type' => 'home', 'customerId' => null, 'dawarichAreaId' => null, 'dawarichPlaceId' => null, 'temporary' => false],
+        ], ApiInfo::places([$site, $home]));
+        self::assertContains('places', ApiInfo::FEATURES);
     }
 }

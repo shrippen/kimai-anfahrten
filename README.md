@@ -158,6 +158,7 @@ Authentifizierung mit einem Kimai-API-Token (`Authorization: Bearer …`, *Profi
 | POST | `/api/mileage/trips` | Fahrt anlegen, z. B. `{"distanceKm": 12.5, "destination": "Kunde"}` oder `{"purpose": "commute"}`; `"timesheet": 123` verknüpft einen eigenen Zeiteintrag |
 | GET / PATCH / DELETE | `/api/mileage/trips/{id}` | einzelne Fahrt |
 | GET | `/api/mileage/vehicles` | Fahrzeuge |
+| GET | `/api/mileage/places` | Orte mit Typ, Kunde (`customerId`) und Herkunft aus Dawarich (`dawarichAreaId`, `dawarichPlaceId`) |
 | GET | `/api/mileage/suggestions` | offene erkannte Fahrten, optional `?from=…&to=…` wie bei den Fahrten |
 | POST | `/api/mileage/suggestions/{id}/accept` | übernehmen, optional `purpose`, `vehicle`, `project`, `distanceKm`, `comment`, `timesheet` |
 | POST | `/api/mileage/suggestions/{id}/dismiss` | verwerfen |
@@ -177,7 +178,7 @@ Entfernung eingetragen (oder 0), gibt es ohne `distanceKm` einen Fehler 400 stat
   "installed": true, "pluginVersion": "0.9.0", "apiVersions": ["v1"],
   "permissions": {"view": true, "editOwn": true, "deleteOwn": true, "editLocked": false,
                   "viewTeam": false, "viewOther": false, "editOther": false},
-  "features": ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck"],
+  "features": ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck", "places"],
   "profile": {"commuteKm": 12.5, "defaultVehicle": "own_car", "defaultVehicleId": 6, "dawarichConfigured": true},
   "lockedMonths": ["2025-12", "2026-01"]
 }
