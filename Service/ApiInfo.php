@@ -12,7 +12,7 @@ use KimaiPlugin\MileageBundle\Entity\Place;
 final class ApiInfo
 {
     // Bump together with composer.json's "version".
-    public const PLUGIN_VERSION = '0.9.0';
+    public const PLUGIN_VERSION = '0.10.0';
     // The unprefixed /api/mileage endpoints are v1; an incompatible change would get a new prefix.
     public const API_VERSIONS = ['v1'];
 
@@ -21,9 +21,9 @@ final class ApiInfo
      * tripTimesheet = "timesheet" on POST/PATCH trips, dateRange = from/to on GET trips and suggestions,
      * acceptFields = project/distanceKm/comment/timesheet on accepting a suggestion (and "timesheet" in its JSON),
      * commuteCheck = a commute without distance and without the profile's commute distance is a 400,
-     * places = GET /api/mileage/places.
+     * places = GET /api/mileage/places, placesWrite = POST/PATCH /api/mileage/places and coordinates in the places.
      */
-    public const FEATURES = ['tripTimesheet', 'dateRange', 'acceptFields', 'commuteCheck', 'places'];
+    public const FEATURES = ['tripTimesheet', 'dateRange', 'acceptFields', 'commuteCheck', 'places', 'placesWrite'];
 
     /**
      * @param array<string, bool> $permissions of the token owner
@@ -65,10 +65,10 @@ final class ApiInfo
 
     /**
      * Places for GET /api/mileage/places. Links Dawarich areas/places to Kimai customers, so other tools (e.g. a
-     * dashboard) reuse this mapping. Without address and coordinates: clients only need the link.
+     * dashboard) reuse this mapping.
      *
      * @param iterable<Place> $places
-     * @return list<array{id: ?int, name: ?string, type: string, customerId: ?int, dawarichAreaId: ?int, dawarichPlaceId: ?int, temporary: bool}>
+     * @return list<array<string, mixed>>
      */
     public static function places(iterable $places): array
     {
@@ -79,6 +79,10 @@ final class ApiInfo
                 'name' => $place->getName(),
                 'type' => $place->getType()->value,
                 'customerId' => $place->getCustomer()?->getId(),
+                'latitude' => $place->getLatitude(),
+                'longitude' => $place->getLongitude(),
+                'radius' => $place->getRadius(),
+                'address' => $place->getAddress(),
                 'dawarichAreaId' => $place->getDawarichAreaId(),
                 'dawarichPlaceId' => $place->getDawarichPlaceId(),
                 'temporary' => $place->isTemporary(),

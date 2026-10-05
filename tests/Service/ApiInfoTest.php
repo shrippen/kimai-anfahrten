@@ -56,9 +56,10 @@ class ApiInfoTest extends TestCase
         $home = (new Place())->setName('Zuhause')->setType(PlaceType::HOME);
 
         self::assertSame([
-            ['id' => null, 'name' => 'Muster GmbH', 'type' => 'customer', 'customerId' => 12, 'dawarichAreaId' => 7, 'dawarichPlaceId' => null, 'temporary' => false],
-            ['id' => null, 'name' => 'Zuhause', 'type' => 'home', 'customerId' => null, 'dawarichAreaId' => null, 'dawarichPlaceId' => null, 'temporary' => false],
+            ['id' => null, 'name' => 'Muster GmbH', 'type' => 'customer', 'customerId' => 12, 'latitude' => 0.0, 'longitude' => 0.0, 'radius' => 150, 'address' => null, 'dawarichAreaId' => 7, 'dawarichPlaceId' => null, 'temporary' => false],
+            ['id' => null, 'name' => 'Zuhause', 'type' => 'home', 'customerId' => null, 'latitude' => 0.0, 'longitude' => 0.0, 'radius' => 150, 'address' => null, 'dawarichAreaId' => null, 'dawarichPlaceId' => null, 'temporary' => false],
         ], ApiInfo::places([$site, $home]));
         self::assertContains('places', ApiInfo::FEATURES);
+        self::assertContains('placesWrite', ApiInfo::FEATURES);
     }
 }
