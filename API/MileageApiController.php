@@ -3,11 +3,13 @@
 namespace KimaiPlugin\MileageBundle\API;
 
 use App\Entity\Project;
+use App\Repository\CustomerRepository;
 use App\Entity\Timesheet;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use KimaiPlugin\MileageBundle\Controller\TargetUserTrait;
+use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Entity\Trip;
 use KimaiPlugin\MileageBundle\Entity\TripSuggestion;
 use KimaiPlugin\MileageBundle\Enum\SuggestionStatus;
@@ -26,6 +28,7 @@ use KimaiPlugin\MileageBundle\Service\DateRange;
 use KimaiPlugin\MileageBundle\Service\InvalidInputException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
+use KimaiPlugin\MileageBundle\Service\PlaceInput;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use KimaiPlugin\MileageBundle\Service\TaxCalculator;
 use KimaiPlugin\MileageBundle\Service\TripMapper;
@@ -66,6 +69,7 @@ class MileageApiController extends AbstractController
         private readonly AttachmentRepository $attachmentRepository,
         private readonly AttachmentStorage $attachmentStorage,
         private readonly PlaceRepository $placeRepository,
+        private readonly CustomerRepository $customerRepository,
     ) {
     }
 
@@ -186,6 +190,44 @@ class MileageApiController extends AbstractController
         $user = $this->targetUser($request);
 
         return $this->json(ApiInfo::places($this->placeRepository->findByUser($user)));
+    }
+
+    /**
+     * Creates a place, e.g. {"name": "Muster GmbH", "type": "customer", "customerId": 12, "latitude": 53.55,
+     * "longitude": 9.93, "radius": 150, "dawarichAreaId": 7}.
+     */
+    #[Route(path: '/places', name: 'api_mileage_place_create', methods: ['POST'])]
+    public function createPlace(Request $request): JsonResponse
+    {
+        $user = $this->targetUser($request);
+        $this->assertCanEdit($user);
+
+        return $this->savePlace((new Place())->setUser($user), $this->payload($request), Response::HTTP_CREATED);
+    }
+
+    #[Route(path: '/places/{id}', name: 'api_mileage_place_update', requirements: ['id' => '\d+'], methods: ['PATCH'])]
+    public function updatePlace(Request $request, Place $place): JsonResponse
+    {
+        $this->assertCanEdit($place->getUser());
+
+        return $this->savePlace($place, $this->payload($request), Response::HTTP_OK);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function savePlace(Place $place, array $data, int $status): JsonResponse
+    {
+        $errors = PlaceInput::apply($place, $data, fn (int $id) => $this->customerRepository->find($id));
+        foreach ($this->validator->validate($place) as $violation) {
+            $errors[$violation->getPropertyPath() ?: 'place'] ??= $this->translator->trans((string) $violation->getMessage());
+        }
+        if ($errors !== []) {
+            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
+        }
+        $this->placeRepository->save($place);
+
+        return $this->json(ApiInfo::places([$place])[0], $status);
     }
 
     #[Route(path: '/suggestions', name: 'api_mileage_suggestions', methods: ['GET'])]

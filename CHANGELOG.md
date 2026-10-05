@@ -106,6 +106,8 @@ All notable changes to this project will be documented in this file.
 
 - API: `GET /api/mileage/places` lists places with type, customer and Dawarich area/place id (feature `places`
   in `ping`), so other tools reuse the place → customer mapping
+- API: `POST /api/mileage/places` and `PATCH /api/mileage/places/{id}` create and change places; the list has
+  coordinates, radius and address (feature `placesWrite`)
 - Receipts in closed months: adding one is allowed (handing in later), changing or deleting one needs
   "edit_locked_mileage" (enforced for every way of writing, with a message in the web UI). A rental counts as
   closed when a month of its period is closed. The trip page of a closed month is shown read-only with the
