@@ -16,9 +16,11 @@ use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\TripSource;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
 use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
+use KimaiPlugin\MileageBundle\Repository\PlaceRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
 use KimaiPlugin\MileageBundle\Repository\VehicleRepository;
+use KimaiPlugin\MileageBundle\Service\ApiInfo;
 use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
 use KimaiPlugin\MileageBundle\Service\DateRange;
 use KimaiPlugin\MileageBundle\Service\InvalidInputException;
@@ -63,6 +65,7 @@ class MileageApiController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly AttachmentStorage $attachmentStorage,
+        private readonly PlaceRepository $placeRepository,
     ) {
     }
 
@@ -175,6 +178,14 @@ class MileageApiController extends AbstractController
             'licensePlate' => $v->getLicensePlate(),
             'active' => $v->isActive(),
         ], $this->vehicleRepository->findByUser($user)));
+    }
+
+    #[Route(path: '/places', name: 'api_mileage_places', methods: ['GET'])]
+    public function places(Request $request): JsonResponse
+    {
+        $user = $this->targetUser($request);
+
+        return $this->json(ApiInfo::places($this->placeRepository->findByUser($user)));
     }
 
     #[Route(path: '/suggestions', name: 'api_mileage_suggestions', methods: ['GET'])]
