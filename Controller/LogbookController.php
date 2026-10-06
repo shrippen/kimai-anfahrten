@@ -240,7 +240,6 @@ class LogbookController extends AbstractController
         }
     }
 
-
     /**
      * @param list<array{trip: \KimaiPlugin\MileageBundle\Entity\Trip, warnings: list<string>}> $rows
      */

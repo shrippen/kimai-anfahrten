@@ -3,17 +3,17 @@
 namespace KimaiPlugin\MileageBundle\Controller;
 
 use App\Controller\AbstractController;
-use App\Repository\UserRepository;
 use App\Repository\Query\BaseQuery;
+use App\Repository\UserRepository;
 use App\Utils\DataTable;
 use App\Utils\Pagination;
 use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Form\PlaceForm;
 use KimaiPlugin\MileageBundle\Repository\PlaceRepository;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
-use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
+use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

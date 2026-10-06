@@ -3,9 +3,9 @@
 namespace KimaiPlugin\MileageBundle\Tests\Service;
 
 use App\Configuration\SystemConfiguration;
+use App\Entity\User;
 use KimaiPlugin\MileageBundle\Entity\Place;
 use KimaiPlugin\MileageBundle\Entity\Trip;
-use App\Entity\User;
 use KimaiPlugin\MileageBundle\Enum\PlaceType;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Service\MealAllowanceCalculator;

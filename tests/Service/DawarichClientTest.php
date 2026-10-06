@@ -30,7 +30,7 @@ class DawarichClientTest extends TestCase
      */
     public static function keys(array $keys): DawarichKeyStore
     {
-        return new class($keys) implements DawarichKeyStore {
+        return new class ($keys) implements DawarichKeyStore {
             /** @param array<int, string> $keys */
             public function __construct(public array $keys)
             {

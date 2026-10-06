@@ -3,8 +3,8 @@
 namespace KimaiPlugin\MileageBundle\Controller;
 
 use App\Controller\AbstractController;
-use App\Repository\UserRepository;
 use App\Repository\Query\BaseQuery;
+use App\Repository\UserRepository;
 use App\Utils\DataTable;
 use App\Utils\Pagination;
 use KimaiPlugin\MileageBundle\Entity\Vehicle;
