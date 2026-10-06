@@ -161,6 +161,7 @@ Authentifizierung mit einem Kimai-API-Token (`Authorization: Bearer …`, *Profi
 | GET | `/api/mileage/places` | Orte mit Typ, Kunde (`customerId`), Koordinaten, Radius, Adresse und Herkunft aus Dawarich (`dawarichAreaId`, `dawarichPlaceId`) |
 | POST | `/api/mileage/places` | Ort anlegen, z. B. `{"name": "Muster GmbH", "type": "customer", "customerId": 12, "latitude": 53.55, "longitude": 9.93, "dawarichAreaId": 7}` |
 | PATCH | `/api/mileage/places/{id}` | Ort ändern (nur die angegebenen Felder; `null` leert Kunde bzw. Dawarich-Bezug) |
+| DELETE | `/api/mileage/places/{id}` | Ort löschen |
 | GET | `/api/mileage/suggestions` | offene erkannte Fahrten, optional `?from=…&to=…` wie bei den Fahrten |
 | POST | `/api/mileage/suggestions/{id}/accept` | übernehmen, optional `purpose`, `vehicle`, `project`, `distanceKm`, `comment`, `timesheet` |
 | POST | `/api/mileage/suggestions/{id}/dismiss` | verwerfen |
