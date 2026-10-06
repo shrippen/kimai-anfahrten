@@ -108,6 +108,82 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
       Zeiteintrag an Fahrten und Vorschlägen
 - [x] CSV-Import mit Vorschau und Duplikaterkennung (Web und Konsole)
 
+## 0.11 — Orte: Karte neben der Liste, Flächen, Protomaps, Geokodierung
+
+Entwurf: Design-Canvas „Orte Seitenlayout“ (Knust-Theme, 2026-10-06). Teil A und B bauen aufeinander auf, C und D sind
+unabhängig davon. GUI-Regel beachten: alles Fehlende zuerst in Kante (`kimai/knust`, `kimai/kit`) ergänzen,
+`../Kante/kimai/kit/bin/sync.sh mileage`, dann hier verwenden; keine eigenen Farben, Maße oder Komponenten.
+
+### A — Seite „Orte“: Layout, Flächen, Hover
+
+- [ ] **Kante zuerst:** Kit-Makro `kpu-split` (Liste + Karte nebeneinander, Karte sticky, Umbruch unter `xl`),
+      `kpu-map-area` (Kartenfläche: normal / hervorgehoben / vorläufig gestrichelt) mit Tokens `--knust-map-area-*`,
+      Kit-JS für Kreise und Hover-Verknüpfung; danach `sync.sh` und `check-kit.sh`
+- [ ] **Layout:** ab `xl` Liste links (ca. 600 px) und Karte rechts, darunter Karte oben und Liste darunter
+- [ ] **Karte sticky in beiden Varianten:** breit klebt die Karte oben im Scrollbereich, die Liste scrollt daneben;
+      schmal bleibt die Karte oben stehen, die Liste scrollt darunter; Listenkopf klebt ebenfalls; Kartenhöhe unter `xl`
+      fest und niedrig, damit die Liste Platz behält
+- [ ] **Spalten:** Name, Art, Adresse, Kunde. *Art* nur als Icon (`PlaceType::icon()`, Typname als Tooltip und
+      `aria-label`, schmale Spalte); die Spalte *Radius* entfällt, der Radius steht im Popup des Ortes (anzeigen und
+      einstellen) und als Fläche auf der Karte
+- [ ] **Orte als Flächen:** `L.circle([lat, lon], {radius})` statt nur Punkten (Dawarich-Areas sind Kreise, kein
+      Polygon nötig); Pin (`kpu-map-pin`) bleibt als Mittelpunkt; Farbe je Ortstyp aus `--knust-*`, zur Laufzeit gelesen;
+      vorläufige Orte gestrichelt; `fitBounds` über die Kreisgrenzen (`circle.getBounds()`), nicht nur die Mittelpunkte;
+      `data-markers` wird `[lat, lon, name, radius, type, id]`, die Fahrtenkarte bleibt unverändert
+- [ ] **Hover in beide Richtungen:** Zeile hovern hebt die Fläche auf der Karte hervor (dickerer Rand, stärkere Füllung,
+      größerer Pin, Name als Label); Fläche hovern hebt die Zeile in der Liste hervor (Hintergrund und Streifen in der
+      Typfarbe). Zeilen bekommen `data-place-id`; gleiches Verhalten bei Tastaturfokus auf der Zeile
+- [ ] **`scrollIntoView` beim Hover auf der Karte:** liegt die hervorgehobene Zeile außerhalb des sichtbaren Bereichs der
+      Liste, wird sie mit `scrollIntoView({block: 'nearest'})` in Sicht gebracht (kein Zentrieren, damit nichts springt).
+      Nur bei Hover auf der Karte, nicht beim Hover in der Liste selbst; kurze Verzögerung (ca. 150 ms), damit
+      Darüberwischen nicht durch die Liste ruckelt; `scroll-margin-top` für den klebenden Listenkopf (und unter `xl`
+      für die klebende Karte), `behavior: 'auto'` bei `prefers-reduced-motion`; Zeile ist beim Scrollen nicht verdeckt
+- [ ] **Touch:** ohne Hover hebt ein Tippen auf eine Fläche die Zeile hervor und scrollt sie in Sicht; Tippen auf die
+      Zeile hebt die Fläche hervor. Klick auf eine Fläche öffnet wie ein Klick auf die Zeile den Popup des Ortes
+      *(zu bestätigen)*
+- [ ] **Tests und Abschluss:** E2E-Test (Layout ab `xl`, Karte bleibt beim Scrollen sichtbar, Hover in beide
+      Richtungen, `scrollIntoView` bei weggescrollter Zeile), `CHANGELOG.md`; Screenshots erst beim getaggten Release
+      neu aufnehmen
+
+### B — Alternative Karten-Integration über Protomaps
+
+- [ ] Einstellung **Kartenquelle**: Rasterkacheln (bisher, Standard) oder **Protomaps-Dienst** (Vektorkacheln mit
+      API-Schlüssel); Karte weiterhin abschaltbar, Fallback auf Raster, wenn der Dienst nicht lädt
+- [ ] **Entschieden:** nur Protomaps-Dienste mit API-Schlüssel, keine eigenen `.pmtiles`-Dateien (weder ausgeliefert
+      noch selbst gehostet). Schlüssel als Passwortfeld in den Systemeinstellungen, nie im Seitenquelltext von Seiten
+      ohne Karte und nicht im Protokoll; Hinweis in der Doku, dass Kartenanfragen (Kachelkoordinaten, IP) an den Dienst
+      gehen. *Klären:* ob der Schlüssel im Browser sichtbar sein muss (Kacheln werden vom Browser geladen) und ob der
+      Dienst Schlüssel auf Domains beschränken kann, sonst Kachel-Proxy im Plugin
+- [ ] Anbindung in Leaflet über `protomaps-leaflet` (mit dem Plugin ausgeliefert wie Leaflet, kein CDN);
+      `mileage_map_tiles()`/`mileage_map_attribution()` und `_map_script.html.twig` um die Quelle erweitern;
+      Kartenstil aus den Knust-Tokens ableiten (hell/dunkel, kein eigenes Farbschema)
+- [ ] Gilt für alle Karten (Orte, Fahrt, Vorschläge); Flächen, Routen und Pins aus Teil A bleiben unverändert
+- [ ] Attribution (OpenStreetMap und Protomaps) immer sichtbar; Content-Security-Policy (Dienst-Domain) und
+      Web-Worker/`blob:` prüfen; Tests für Einstellung, Fehlerfall ohne/mit falschem Schlüssel, Fallback und Attribution
+
+### C — Dawarich als Geocoding-Server
+
+- [ ] **Ist-Stand:** Rückwärts-Geokodierung läuft schon über Dawarich (`/api/v1/places/nearby`), erst danach über das
+      optionale Nominatim/Photon (`GeocoderClient`)
+- [ ] **Zuerst klären:** welche Dawarich-API (Version der eigenen Instanz) die Vorwärts-Suche (Adresse → Koordinaten)
+      anbietet oder ob nur der dort konfigurierte Photon/Nominatim erreichbar ist; nichts annehmen, was die API nicht
+      hergibt
+- [ ] Einstellung **Geocoding-Server**: Dawarich (Standard, wenn verbunden), eigene Nominatim/Photon-URL oder aus;
+      Fehler und Zeitüberschreitung fallen auf die nächste Quelle zurück
+- [ ] **Vorwärts-Geokodierung** im Ort-Popup (Adresse suchen, Koordinaten und Radius übernehmen, Fläche in der Vorschau)
+      und für **Kundenadressen aus Kimai als Ortsvorschlag** (schließt den offenen Punkt aus 0.3)
+- [ ] Zugriff mit dem Dawarich-Schlüssel des jeweiligen Nutzers, Ratenbegrenzung beachten, nur Adresse speichern;
+      Tests mit gemocktem `DawarichClient`
+
+### Reihenfolge
+
+1. Kante: `kpu-split`, `kpu-map-area`, Hover-Skript (A, Voraussetzung für alles Weitere auf der Seite)
+2. A als Branch und Pull Request auf Gitea; Release danach, dann Screenshots
+3. C (Klärung der Dawarich-API, dann Umsetzung), unabhängig von A
+4. B (Protomaps-Dienst mit API-Schlüssel)
+
+---
+
 ## 1.0 — Veröffentlichung
 
 - [ ] Landingpage via GitHub Pages — *bewusst zurückgestellt*
