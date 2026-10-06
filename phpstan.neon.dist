@@ -9,6 +9,8 @@ parameters:
         analyseAndScan:
             # the unit test stand-ins would shadow the real Kimai classes
             - tests
+            # the demo seed runs inside a Kimai instance, never shipped
+            - demo
         analyse:
             - .kimai (?)
             - vendor
