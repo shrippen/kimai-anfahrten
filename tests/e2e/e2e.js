@@ -181,6 +181,13 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   r = await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-14');
   check(r.status === 200 && (await r.json()).some((t) => t.id === created.id), 'trips by date range');
   check((await api('hans', '/api/mileage/trips?from=2026-08-14&to=2026-08-01')).status === 400, 'reversed date range → 400');
+  r = await api('hans', '/api/mileage/places', { method: 'POST', body: JSON.stringify({ name: 'Ort API', type: 'other', latitude: 52.52, longitude: 13.405 }) });
+  check(r.status === 201, 'create place → 201');
+  const place = await r.json();
+  check((await api('hans', `/api/mileage/places/${place.id}`, { method: 'DELETE' })).status === 204, 'delete place → 204');
+  r = await api('hans', '/api/mileage/places');
+  check(r.ok && !(await r.json()).some((p) => p.id === place.id), 'deleted place gone');
+  check((await api('hans', `/api/mileage/places/${place.id}`, { method: 'DELETE' })).status === 404, 'delete missing place → 404');
 
   section('CSV import (hans)');
   page = await login(browser, 'hans');

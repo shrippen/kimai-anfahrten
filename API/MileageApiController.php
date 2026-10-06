@@ -213,6 +213,15 @@ class MileageApiController extends AbstractController
         return $this->savePlace($place, $this->payload($request), Response::HTTP_OK);
     }
 
+    #[Route(path: '/places/{id}', name: 'api_mileage_place_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function deletePlace(Place $place): Response
+    {
+        $this->assertCanEdit($place->getUser());
+        $this->placeRepository->remove($place);
+
+        return new Response(null, Response::HTTP_NO_CONTENT);
+    }
+
     /**
      * @param array<string, mixed> $data
      */
