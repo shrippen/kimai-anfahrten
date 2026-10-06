@@ -241,9 +241,11 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
     const res = await page.goto(BASE + url);
     check(res.status() === expected, `${user} ${url} → ${res.status()} (expected ${expected})`);
   }
-  // approved month is locked for hans
+  // approved month is locked for hans: no edit, only the read-only trip page for receipts
   await page.goto(BASE + '/de/mileage/2026/8');
-  check(await page.locator('a[href*="/mileage/trip/"][href$="/edit"]').count() === 0, 'approved month cannot be edited');
+  const tripPages = page.locator('a[href*="/mileage/trip/"][href$="/edit"]');
+  check(await tripPages.filter({ hasText: 'Bearbeiten' }).count() === 0, 'approved month cannot be edited');
+  check(await tripPages.filter({ hasText: 'Belege' }).count() > 0, 'receipts can still be handed in');
 
   await browser.close();
   console.log(failures === 0 ? '\nAll end-to-end checks passed.' : `\n${failures} end-to-end check(s) FAILED.`);
