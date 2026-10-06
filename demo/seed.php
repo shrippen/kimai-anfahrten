@@ -144,6 +144,7 @@ $trip = static function (string $user, int $day, string $from, string $to, float
     $t->setSource(TripSource::MANUAL);
     $t->setComment($comment);
     $em->persist($t);
+
     return $t;
 };
 
@@ -155,8 +156,19 @@ foreach ($w['trips'] as $t) {
     $key = $t['user'] . $t['day'];
     $time = isset($seen[$key]) ? $book['times']['back'] : $book['times']['out'];     // out in the morning, back in the evening
     $seen[$key] = true;
-    $made = $trip($t['user'], $t['day'], $t['from'], $t['to'], $t['km'], $isBike ? VehicleType::BICYCLE : VehicleType::COMPANY_CAR,
-        $vehicle, $isBike ? null : $vehicle->getLicensePlate(), $t['project'], $world->t($t['purpose']), $time);
+    $made = $trip(
+        $t['user'],
+        $t['day'],
+        $t['from'],
+        $t['to'],
+        $t['km'],
+        $isBike ? VehicleType::BICYCLE : VehicleType::COMPANY_CAR,
+        $vehicle,
+        $isBike ? null : $vehicle->getLicensePlate(),
+        $t['project'],
+        $world->t($t['purpose']),
+        $time
+    );
     $count += $made ? 1 : 0;
 }
 

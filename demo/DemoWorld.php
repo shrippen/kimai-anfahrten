@@ -1,4 +1,5 @@
 <?php
+
 // Studio Weber demo world: loads world.json next to this file.
 // Rules: today = DEMO_TODAY or the real date, anchor = Monday of today's week,
 // date = anchor + offset days, text = value[lang] for {de, en} values.
@@ -26,6 +27,7 @@ final class DemoWorld
     public function date(int $offset, string $time = '00:00'): \DateTimeImmutable
     {
         [$h, $m] = array_map('intval', explode(':', $time));
+
         return $this->anchor->modify(sprintf('%+d days', $offset))->setTime($h, $m);
     }
 
@@ -34,6 +36,7 @@ final class DemoWorld
         if (is_array($value) && (array_key_exists('de', $value) || array_key_exists('en', $value))) {
             return $value[$this->lang] ?? $value['en'] ?? '';
         }
+
         return $value;
     }
 
@@ -46,6 +49,7 @@ final class DemoWorld
     public static function minutes(string $hhmm): int
     {
         [$h, $m] = array_map('intval', explode(':', $hhmm));
+
         return $h * 60 + $m;
     }
 
@@ -68,6 +72,7 @@ final class DemoWorld
             }
             $out[] = $row;
         }
+
         return $out;
     }
 }

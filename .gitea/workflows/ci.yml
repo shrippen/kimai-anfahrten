@@ -110,7 +110,7 @@ jobs:
           cat > .env.local <<'ENV'
           APP_ENV=prod
           APP_SECRET=e2e-secret-not-for-production
-          DATABASE_URL=mysql://kimai:kimai@127.0.0.1:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB
+          DATABASE_URL=mysql://kimai:kimai@mariadb:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB
           MAILER_URL=null://null
           MAILER_FROM=kimai@example.com
           ENV
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload screenshots and logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: e2e-screenshots
           path: plugin/tests/e2e/screenshots/

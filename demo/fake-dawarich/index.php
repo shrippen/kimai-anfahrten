@@ -37,10 +37,12 @@ if ($path === '/api/v1/areas') {
 
 // places (Api::V1::PlacesController#serialize_place)
 if ($path === '/api/v1/places') {
-    echo json_encode(array_map(static fn (array $p) => ['id' => $p['id'], 'name' => $world->t($places[$p['place']]['name']),
+    echo json_encode(array_map(
+        static fn (array $p) => ['id' => $p['id'], 'name' => $world->t($places[$p['place']]['name']),
         'latitude' => $places[$p['place']]['lat'], 'longitude' => $places[$p['place']]['lon'], 'source' => 'manual', 'note' => null,
         'icon' => null, 'color' => null, 'visits_count' => $p['visits'], 'name_locked' => true, 'created_at' => '2026-01-01T00:00:00Z', 'tags' => []],
-        $day['suggested']));
+        $day['suggested']
+    ));
 
     return;
 }

@@ -3,9 +3,9 @@
 namespace KimaiPlugin\MileageBundle\API;
 
 use App\Entity\Project;
-use App\Repository\CustomerRepository;
 use App\Entity\Timesheet;
 use App\Entity\User;
+use App\Repository\CustomerRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use KimaiPlugin\MileageBundle\Controller\TargetUserTrait;

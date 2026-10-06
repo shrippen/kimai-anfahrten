@@ -3,8 +3,8 @@
 namespace KimaiPlugin\MileageBundle\Controller;
 
 use App\Controller\AbstractController;
-use App\Repository\UserRepository;
 use App\Repository\Query\BaseQuery;
+use App\Repository\UserRepository;
 use App\Utils\DataTable;
 use App\Utils\Pagination;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,10 +14,10 @@ use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\RentalRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Service\AttachmentStorage;
-use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
-use KimaiPlugin\MileageBundle\Service\TripService;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
 use KimaiPlugin\MileageBundle\Service\MonthLockService;
+use KimaiPlugin\MileageBundle\Service\RentalCostAllocator;
+use KimaiPlugin\MileageBundle\Service\TripService;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
