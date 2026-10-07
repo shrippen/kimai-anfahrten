@@ -198,3 +198,14 @@ unabhängig davon. GUI-Regel beachten: alles Fehlende zuerst in Kante (`kimai/kn
 1. Mit der eigenen Dawarich-Instanz testen (0.2) — Verbindung testen, eine Woche erkennen lassen, Ergebnisse prüfen.
 2. Danach 1.0 (Landingpage, Marketplace) oder die offenen Sonderfälle aus 0.5, je nach Bedarf.
 3. Eine echte **Kundenrechnungsstellung** ist bewusst **nicht** Teil dieser Roadmap — das übernimmt Invoice Ninja.
+
+## Update-Hinweis (Kit 0.8)
+
+Ein Hinweis für Admins, wenn es ein neueres Release gibt, weil Kimai-Plugins von Hand kopiert werden und sonst niemand davon erfährt.
+Format und Regeln: `shrippen.github.io/overview/VERSIONS.md`.
+
+- [ ] Kit auf 0.8 bringen: `../Kante/kimai/kit/bin/sync.sh .`
+- [ ] `{{ kit.update_hint('kimai-anfahrten', <version>, {enabled: …}) }}` auf der Einstellungs- oder Übersichtsseite; Version aus `composer.json` (`version`)
+- [ ] Einstellung „Nach Updates suchen“ (Standard an); im Demo-Modus immer aus
+- [ ] README: was abgerufen wird (`https://shrippen.github.io/versions.json` ohne Parameter, höchstens einmal am Tag, nur im Browser von Nutzern mit dem Recht `plugins`)
+- [ ] Nach jedem Release `python3 ../shrippen.github.io/overview/tools/build-versions.py` und `docs/versions.json` dort committen
