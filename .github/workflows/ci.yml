@@ -1,18 +1,28 @@
+# Checks on every push: PHP lint and unit tests (8.1–8.4), PHPStan against Kimai and
+# PHP-CS-Fixer, and browser end-to-end tests inside Kimai 2.67 (tests/e2e).
+#
+# Public mirror: Gitea pushes every branch and tag here on each commit.
+# This runs the checks and reports them back to the commit on Gitea as
+# the status "github / test", where the pull requests live. There are no
+# pull requests on GitHub, so everything runs on push.
+#
+# Needs the secret GITEA_TOKEN: a Gitea token with write access to the
+# repository (commit statuses).
 name: CI
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches: ["**"]
 
-# One runner works the queue in order. A newer push to the same branch or PR replaces the
-# older run instead of queueing behind it.
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+# No concurrency group: every commit runs to the end and keeps its own
+# status, a newer push does not cancel an older run.
 
 permissions:
   contents: read
+
+env:
+  GITEA_STATUS: https://git.arianw.de/api/v1/repos/shrippen/kimai-anfahrt/statuses/${{ github.sha }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   tests:
@@ -22,7 +32,21 @@ jobs:
       fail-fast: false
       matrix:
         php: ['8.1', '8.2', '8.3', '8.4']
+    outputs:
+      started: ${{ steps.start.outputs.t }}
     steps:
+      # A missing status is no reason to fail the checks.
+      - id: start
+        name: Report pending to Gitea
+        run: |
+          echo "t=$(date +%s)" >> "$GITHUB_OUTPUT"
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"pending\",\"context\":\"github / test\",\"description\":\"running\",\"target_url\":\"$RUN_URL\"}" \
+            || echo "::warning::Gitea status not reported"
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
@@ -109,6 +133,7 @@ jobs:
           path: ~/.cache/composer
           key: composer-kimai-${{ env.KIMAI_VERSION }}
 
+      # No job container on GitHub: MariaDB is the service port on localhost.
       - name: Install Kimai
         working-directory: kimai
         run: |
@@ -116,7 +141,7 @@ jobs:
           cat > .env.local <<'ENV'
           APP_ENV=prod
           APP_SECRET=e2e-secret-not-for-production
-          DATABASE_URL=mysql://kimai:kimai@mariadb:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB
+          DATABASE_URL=mysql://kimai:kimai@127.0.0.1:3306/kimai?charset=utf8mb4&serverVersion=10.11.0-MariaDB
           MAILER_URL=null://null
           MAILER_FROM=kimai@example.com
           ENV
@@ -133,10 +158,40 @@ jobs:
       - name: End-to-end tests
         run: plugin/tests/e2e/run.sh kimai
 
+      # v4: GitHub no longer runs v3.
       - name: Upload screenshots and logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: e2e-screenshots
           path: plugin/tests/e2e/screenshots/
           if-no-files-found: ignore
+
+  # Also runs when a check failed or was cancelled, so Gitea never keeps a
+  # stale "pending". success only if every check passed, failure if one
+  # failed, otherwise error (cancelled, skipped).
+  report:
+    needs: [tests, static-analysis, e2e]
+    if: always()
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report result to Gitea
+        run: |
+          state=success
+          for r in $RESULTS; do
+            case "$r" in
+              success) ;;
+              failure) state=failure ;;
+              *) if [ "$state" = success ]; then state=error; fi ;;
+            esac
+          done
+          desc=$state
+          if [ -n "$STARTED" ]; then desc="$state in $(( ($(date +%s) - STARTED) / 60 )) min"; fi
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"$state\",\"context\":\"github / test\",\"description\":\"$desc\",\"target_url\":\"$RUN_URL\"}"
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          STARTED: ${{ needs.tests.outputs.started }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
