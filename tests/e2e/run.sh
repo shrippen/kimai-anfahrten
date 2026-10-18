@@ -34,8 +34,11 @@ DIFF="$($CONSOLE doctrine:schema:update --dump-sql 2>/dev/null | grep -i mileage
 if [ -n "$DIFF" ]; then echo "Schema differs from migrations:"; echo "$DIFF"; exit 1; fi
 
 echo "== Starting Kimai (8001) and fake Dawarich (8002)"
-# several workers: the browser loads assets in parallel, a single-threaded server can drop connections
-PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8001 -t "$KIMAI/public" > "$SHOTS/kimai.log" 2>&1 &
+# several workers: the browser loads assets in parallel, a single-threaded server can drop connections.
+# No JIT: setup-php turns on the tracing JIT (opcache.jit=1235), and with it a worker of PHP 8.3.35
+# died now and then in JIT code (segfault, 8 of 20 CI runs); the request it served never answered
+# and the test hung until its timeout.
+PHP_CLI_SERVER_WORKERS=4 php -d opcache.jit=disable -S 127.0.0.1:8001 -t "$KIMAI/public" > "$SHOTS/kimai.log" 2>&1 &
 KIMAI_PID=$!
 php -S 127.0.0.1:8002 "$E2E/fake-dawarich/index.php" > "$SHOTS/dawarich.log" 2>&1 &
 DAWARICH_PID=$!
@@ -44,6 +47,9 @@ for _ in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8001/de/login &&
 
 echo "== Running browser tests"
 if ! node "$E2E/e2e.js"; then
+    # a dead worker leaves its request unanswered: the test then fails on a timeout
+    workers="$(ps -o stat= --ppid "$KIMAI_PID" | grep -vc '^Z' || true)"  # a crashed one stays a zombie
+    [ "$workers" -lt 4 ] && echo "== A Kimai server worker died during the run ($workers of 4 left): PHP crashed, see dmesg"
     echo "== Last lines of the Kimai server log"
     grep -v " \[200\]: \| \[302\]: \|Accepted\|Closing" "$SHOTS/kimai.log" | tail -40 || true
     tail -40 "$KIMAI/var/log/prod.log" 2>/dev/null || true
