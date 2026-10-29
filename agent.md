@@ -17,6 +17,11 @@
 - The landing page (`docs/`) is not Kimai: it uses Kante (`https://shrippen.github.io/v1/`).
 - Rule text: https://github.com/shrippen/Kante/blob/main/AGENT-RULE.md
 
+## Release rule
+
+- Every release gets a release log, written before the tag, as a section `## [X.Y.Z] — YYYY-MM-DD` at the top of `CHANGELOG.md`: under `### English` and `### Deutsch` each a lead (what the release is about), the changes grouped as `#### New`, `Improved`, `Fixed` and `Note` (breaking changes, steps the user must take, e.g. `kimai:bundle:mileage:install` for a new table) and the compare link. Each point says what changed for the user and why, not which code moved. The internal demo is never mentioned.
+- The same text goes into the release notes on Gitea and, by the release workflow, on GitHub (it takes the section of the tag's version and fails without one), and as a new entry at the top of `#changes` on the landing page (`docs/index.html`, Kante `.changelog`, in English and German); from the fourth entry on, the oldest move into `details.changelog-more`. Graphics wherever possible: a demo screenshot per visible change (`docs/shots/release-<version>-<name>-<lang>.webp`), a diagram (Kante `.flow` or inline SVG) for changes inside. Bump the version in the footer (linked to `#changes`). Then run `python3 ../shrippen.github.io/overview/tools/build-versions.py` and commit `docs/versions.json` there (update check). A release is done when the landing page and `versions.json` show it.
+
 ## Repository rule
 
 - This repository lives on Gitea (`git.arianw.de`). GitHub is only a push mirror of it.

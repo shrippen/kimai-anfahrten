@@ -1,6 +1,6 @@
 # Tag vX.Y.Z (must match composer.json's "version").
-#   ──► lint ──► build MileageBundle-X.Y.Z.zip ──► release with notes from CHANGELOG.md (if it has a
-#   matching heading), zip attached.
+#   ──► lint ──► build MileageBundle-X.Y.Z.zip ──► release with the notes of CHANGELOG.md's section for X.Y.Z
+#   (the job fails without one), zip attached.
 #
 # GitHub only: GitHub is the public channel and the only one with release files. Gitea runs the
 # checks and gets the release without files (rule "Gitea prüft, GitHub veröffentlicht"); the job
@@ -50,16 +50,23 @@ jobs:
           if unzip -Z1 "$ZIP" | grep -q "/demo/"; then echo "error: internal demo in $ZIP" >&2; exit 1; fi
 
       - name: Release notes
+        # The notes are the CHANGELOG.md section of this version (heading "## [X.Y.Z] — date",
+        # "## X.Y.Z" or "## vX.Y.Z"). No section, no release: the log is written before the tag.
         run: |
-          if [ -f CHANGELOG.md ] && grep -qE "^## v?$VERSION( |$)" CHANGELOG.md; then
-            awk -v v="$VERSION" '
-              $0 ~ "^## v?" v "( |$)" { on = 1; next }
-              /^## /                  { on = 0 }
-              on
-            ' CHANGELOG.md > notes.md
-          else
-            echo "Mileage $VERSION." > notes.md
+          awk -v v="$VERSION" '
+            /^## / {
+              h = $0; sub(/^## /, "", h); sub(/^\[/, "", h); sub(/^v/, "", h)
+              c = substr(h, length(v) + 1, 1)
+              on = (substr(h, 1, length(v)) == v && (c == "" || c == " " || c == "]"))
+              next
+            }
+            on
+          ' CHANGELOG.md | sed -e '/./,$!d' > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "error: CHANGELOG.md has no section for $VERSION (## [$VERSION] — YYYY-MM-DD)" >&2
+            exit 1
           fi
+          cat notes.md
 
       - name: Publish on GitHub
         env:

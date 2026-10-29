@@ -38,8 +38,11 @@ with the tax office or sees in Kimai:
 - New translation keys exist in `messages.de.xlf` and `messages.en.xlf`.
 - The kit in `Resources/views/_kit/` changes only by the kit's `sync.sh`.
 - Entity changes come with a migration.
-- Release: tag equal to the version in `composer.json`, an entry in
-  `CHANGELOG.md`.
+- Release: tag equal to the version in `composer.json`; a section
+  `## [X.Y.Z] — date` in `CHANGELOG.md` with lead and groups in English and
+  German (it becomes the release notes, the release workflow fails
+  without it); the same entry at the top of `#changes` in `docs/index.html`
+  and the footer version bumped (release rule in `agent.md`).
 - Bug fixes: does the fix remove the cause, with a test that failed
   before?
 
