@@ -1822,6 +1822,34 @@
         <source>mileage.meal.overnight.confirmed</source>
         <target>overnight (confirmed by Dawarich)</target>
       </trans-unit>
+      <trans-unit id="m458" resname="mileage.auto_detect">
+        <source>mileage.auto_detect</source>
+        <target>Detect trips from Dawarich automatically</target>
+      </trans-unit>
+      <trans-unit id="m459" resname="mileage.auto_detect_help">
+        <source>mileage.auto_detect_help</source>
+        <target>Once a day, on the first page load of a user with Dawarich access, the past days are scanned (not the current day). The trips become suggestions under "Detected trips". No cron job is needed.</target>
+      </trans-unit>
+      <trans-unit id="m460" resname="mileage_auto_detect">
+        <source>mileage_auto_detect</source>
+        <target>Detect trips automatically</target>
+      </trans-unit>
+      <trans-unit id="m461" resname="mileage_auto_detect_help">
+        <source>mileage_auto_detect_help</source>
+        <target>Once a day, detects the trips of the past days from Dawarich as suggestions you accept or dismiss.</target>
+      </trans-unit>
+      <trans-unit id="m462" resname="mileage.auto_detect.covered">
+        <source>mileage.auto_detect.covered</source>
+        <target>detected automatically up to %date%</target>
+      </trans-unit>
+      <trans-unit id="m463" resname="mileage.auto_detect.failed">
+        <source>mileage.auto_detect.failed</source>
+        <target>The automatic trip detection failed on %time%: %error% Next attempt in an hour.</target>
+      </trans-unit>
+      <trans-unit id="m464" resname="mileage.auto_detect.error.unexpected">
+        <source>mileage.auto_detect.error.unexpected</source>
+        <target>Unexpected error, details in the Kimai log.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -62,6 +62,8 @@ foreach (['admin' => ['http://127.0.0.1:8002', 'test-key', '8'], 'hans' => [null
         $pref($user, 'mileage_dawarich_api_key', $key);
         $pref($user, 'mileage_commute_km', $km);
         $pref($user, 'mileage_license_plate', 'B-AB 123');
+        // automatic detection off until its own test at the end (it would add the trips of the last week)
+        $pref($user, 'mileage_auto_detect', '0');
     }
     $token = new AccessToken($user, 'e2e-token-' . $name . '-0123456789');
     $token->setName('e2e');

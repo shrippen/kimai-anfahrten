@@ -38,6 +38,12 @@ Das Plugin hat einen eigenen Bereich **Fahrten** in der Seitenleiste (direkt unt
   vorgeschlagen.
   Zuhause ↔ Büro wird als Arbeitsweg vorgeschlagen, Fahrten rund um einen Zeiteintrag beim Kunden als Dienstreise
   mit Projekt. Übernehmen, bearbeiten oder verwerfen.
+- **Läuft von selbst**: einmal am Tag, beim ersten Seitenaufruf in Kimai, werden die vergangenen Tage erkannt
+  (bis gestern; eine Fahrt von heute könnte noch laufen). Die Seite wartet nicht darauf: der Browser stößt die
+  Erkennung danach im Hintergrund an. Ergebnis sind Vorschläge unter *Erkannte Fahrten*, nichts wird ohne
+  Bestätigung gebucht. Abgeschlossene Monate werden übersprungen, schon erkannte Fahrten nicht doppelt angelegt.
+  Ist Dawarich nicht erreichbar, steht der Fehler auf der Seite *Erkannte Fahrten*, neuer Versuch nach einer Stunde.
+  Abschaltbar in den Systemeinstellungen und je Nutzer im Profil.
 - **Orte statt Namen**: Start und Ziel einer erkannten Fahrt sind Orte mit Koordinaten — eigene Orte, aus Dawarich
   übernommene *Areas* und *Places*, oder **vorläufige Orte**, die automatisch dort angelegt werden, wo eine Fahrt
   außerhalb aller Orte endet (Radius einstellbar, Standard 200 m); die nächste Fahrt, die darin beginnt, startet an
@@ -117,16 +123,20 @@ Danach unter **System → Rollen** (Abschnitt *Fahrten*) die Rechte prüfen.
    Tabelle, nicht bei Kimais Benutzereinstellungen — `/api/users/me` und Rechnungsvorlagen enthalten ihn nicht.
 2. **Fahrten → Fahrzeuge**: optional Fahrzeuge anlegen (für Fahrtenbuch, km-Stand, 1-%-Regel).
 3. **Fahrten → Orte → Aus Dawarich übernehmen** (Areas und Places), oder Orte selbst anlegen.
-4. **Fahrten → Erkannte Fahrten → Fahrten erkennen** — oder automatisch per Cronjob:
+4. Fertig: die Fahrten werden ab jetzt automatisch erkannt (siehe oben), ohne Cronjob. Für einen anderen Zeitraum
+   **Fahrten → Erkannte Fahrten → Fahrten erkennen**. Optional ein Cronjob, damit die Vorschläge auch ohne
+   Seitenaufruf bereitliegen (gleiche Logik und gleicher Stand wie beim Seitenaufruf, läuft also nicht doppelt):
 
    ```bash
-   # jede Nacht die letzten zwei Tage aller Nutzer mit Dawarich-Zugang
-   0 3 * * * /pfad/zu/kimai/bin/console kimai:bundle:mileage:suggest
+   # jede Nacht für alle Nutzer mit Dawarich-Zugang, bei denen die Erkennung fällig ist
+   30 3 * * * /pfad/zu/kimai/bin/console kimai:bundle:mileage:suggest --auto
+   # im Docker-Container von Kimai (als www-data, sonst gehört der Cache root)
+   30 3 * * * docker exec -u www-data kimai_app /opt/kimai/bin/console kimai:bundle:mileage:suggest --auto -q
    ```
 
 **System → Einstellungen** (Abschnitte *Fahrten & Fahrtkosten* und *Fahrten automatisch erkennen*): abweichende
 Sätze, Standard-Dawarich-URL, Geocoding-Server, Kartenkacheln (leer = keine Karten), Genehmigung durch Teamleitung,
-Empfindlichkeit der Fahrterkennung.
+automatische Erkennung an/aus, Empfindlichkeit der Fahrterkennung.
 
 Eigene Dawarich-URLs pro Benutzer sind standardmäßig **aus** (*Eigene Dawarich-URL pro Benutzer erlauben*): Die URL
 ruft der Kimai-Server auf, ein Benutzer könnte damit sonst interne Dienste im Netz des Servers ansprechen.
@@ -213,6 +223,7 @@ curl -X POST https://kimai.example.com/api/mileage/trips \
 
 ```bash
 bin/console kimai:bundle:mileage:suggest [--month=2026-09] [--days=2] [--user=name]
+bin/console kimai:bundle:mileage:suggest --auto [--user=name]   # automatische Erkennung, wo sie fällig ist
 bin/console kimai:bundle:mileage:import fahrten.csv --user=name [--dry-run] [--keep-duplicates]
 ```
 

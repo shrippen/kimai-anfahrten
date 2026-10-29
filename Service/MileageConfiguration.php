@@ -23,6 +23,7 @@ class MileageConfiguration
     public const PREF_DEFAULT_VEHICLE = 'mileage_default_vehicle';
     public const PREF_LICENSE_PLATE = 'mileage_license_plate';
     public const PREF_TAX_PROFILE = 'mileage_tax_profile';
+    public const PREF_AUTO_DETECT = 'mileage_auto_detect';
     /**
      * Stands in for a stored Dawarich API key in the preferences form (the key itself is never loaded
      * into the user preferences); submitting it unchanged keeps the key.
@@ -138,6 +139,27 @@ class MileageConfiguration
     public function getJourneyMaxGapDays(): int
     {
         return max(1, (int) $this->float('mileage.journey_max_gap_days', 14));
+    }
+
+    /**
+     * Automatic trip detection ({@see AutoDetector}): on unless switched off in the system settings or by the user.
+     */
+    public function isAutoDetectEnabled(User $user): bool
+    {
+        return self::flag($this->configuration->find('mileage.auto_detect'))
+            && self::flag($user->getPreferenceValue(self::PREF_AUTO_DETECT));
+    }
+
+    /**
+     * A checkbox setting that is on when never saved (an unchecked box is saved as false, "0" or "").
+     */
+    private static function flag(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        return \is_scalar($value) && filter_var($value, \FILTER_VALIDATE_BOOL, \FILTER_NULL_ON_FAILURE) !== false;
     }
 
     public function getDetectMinKm(): float

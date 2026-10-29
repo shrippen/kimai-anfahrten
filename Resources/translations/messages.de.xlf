@@ -1822,6 +1822,34 @@
         <source>mileage.meal.overnight.confirmed</source>
         <target>Übernachtung (von Dawarich bestätigt)</target>
       </trans-unit>
+      <trans-unit id="m458" resname="mileage.auto_detect">
+        <source>mileage.auto_detect</source>
+        <target>Fahrten automatisch aus Dawarich erkennen</target>
+      </trans-unit>
+      <trans-unit id="m459" resname="mileage.auto_detect_help">
+        <source>mileage.auto_detect_help</source>
+        <target>Einmal am Tag, beim ersten Seitenaufruf eines Nutzers mit Dawarich-Zugang, werden die vergangenen Tage erkannt (ohne den laufenden Tag). Die Fahrten landen als Vorschlag unter „Erkannte Fahrten“. Ein Cronjob ist nicht nötig.</target>
+      </trans-unit>
+      <trans-unit id="m460" resname="mileage_auto_detect">
+        <source>mileage_auto_detect</source>
+        <target>Fahrten automatisch erkennen</target>
+      </trans-unit>
+      <trans-unit id="m461" resname="mileage_auto_detect_help">
+        <source>mileage_auto_detect_help</source>
+        <target>Erkennt einmal am Tag die Fahrten der vergangenen Tage aus Dawarich als Vorschläge, die du übernimmst oder verwirfst.</target>
+      </trans-unit>
+      <trans-unit id="m462" resname="mileage.auto_detect.covered">
+        <source>mileage.auto_detect.covered</source>
+        <target>automatisch erkannt bis %date%</target>
+      </trans-unit>
+      <trans-unit id="m463" resname="mileage.auto_detect.failed">
+        <source>mileage.auto_detect.failed</source>
+        <target>Die automatische Fahrterkennung ist am %time% fehlgeschlagen: %error% Neuer Versuch in einer Stunde.</target>
+      </trans-unit>
+      <trans-unit id="m464" resname="mileage.auto_detect.error.unexpected">
+        <source>mileage.auto_detect.error.unexpected</source>
+        <target>Unerwarteter Fehler, Details im Kimai-Log.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -9,12 +9,19 @@
 {% block javascripts %}{{ parent() }}{% include '@Mileage/_assets.html.twig' with {part: 'js'} %}{% endblock %}
 
 {% block page_intro %}
-    {{ kit.context_line([target_user.displayName, 'mileage.suggestion.help'|trans]) }}
+    {{ kit.context_line([
+        target_user.displayName,
+        'mileage.suggestion.help'|trans,
+        auto_covered ? 'mileage.auto_detect.covered'|trans({'%date%': auto_covered|date_short}) : null,
+    ]) }}
     {{ parent() }}
 {% endblock %}
 
 {% block page_content_start %}
     {{ kit.result_callouts() }}
+    {% if auto_error %}
+        {{ kit.result_callout('mileage.auto_detect.failed'|trans({'%time%': auto_failed_at ? auto_failed_at|date_time : '', '%error%': auto_error}), 'warning') }}
+    {% endif %}
     {{ parent() }}
 {% endblock %}
 

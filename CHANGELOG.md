@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - API: `DELETE /api/mileage/places/{id}` deletes a place
+- Trips are detected from Dawarich automatically, no button and no cron job needed: once a day, after the first
+  page load of a user with Dawarich access, the browser starts the detection of the past days (up to yesterday) in
+  the background. The trips become suggestions as before; closed months are skipped, known trips are not suggested
+  twice. Errors (e.g. Dawarich unreachable) are shown on the suggestions page and retried after an hour. Can be
+  switched off in the system settings and per user in the preferences. Optional cron job:
+  `kimai:bundle:mileage:suggest --auto`. New table `kimai2_ext_mileage_detection_run` (run
+  `kimai:bundle:mileage:install`).
 
 ## [0.10.0] — 2026-10-06
 
