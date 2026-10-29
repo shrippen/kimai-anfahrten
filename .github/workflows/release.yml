@@ -50,22 +50,11 @@ jobs:
           if unzip -Z1 "$ZIP" | grep -q "/demo/"; then echo "error: internal demo in $ZIP" >&2; exit 1; fi
 
       - name: Release notes
-        # The notes are the CHANGELOG.md section of this version (heading "## [X.Y.Z] — date",
-        # "## X.Y.Z" or "## vX.Y.Z"). No section, no release: the log is written before the tag.
+        # The notes are the CHANGELOG.md section of this version (heading "## [X.Y.Z] — YYYY-MM-DD").
+        # No section, no release: the log is written before the tag. scripts/release-notes.sh is a
+        # copy of Kante's tools/release-notes.sh.
         run: |
-          awk -v v="$VERSION" '
-            /^## / {
-              h = $0; sub(/^## /, "", h); sub(/^\[/, "", h); sub(/^v/, "", h)
-              c = substr(h, length(v) + 1, 1)
-              on = (substr(h, 1, length(v)) == v && (c == "" || c == " " || c == "]"))
-              next
-            }
-            on
-          ' CHANGELOG.md | sed -e '/./,$!d' > notes.md
-          if ! grep -q '[^[:space:]]' notes.md; then
-            echo "error: CHANGELOG.md has no section for $VERSION (## [$VERSION] — YYYY-MM-DD)" >&2
-            exit 1
-          fi
+          scripts/release-notes.sh "$VERSION" > notes.md
           cat notes.md
 
       - name: Publish on GitHub
