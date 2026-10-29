@@ -49,6 +49,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: CHANGELOG.md headings
+        run: scripts/release-notes.sh --check
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
