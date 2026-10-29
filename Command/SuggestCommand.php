@@ -4,6 +4,7 @@ namespace KimaiPlugin\MileageBundle\Command;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use KimaiPlugin\MileageBundle\Service\AutoDetector;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
@@ -26,6 +27,7 @@ class SuggestCommand extends Command
         private readonly MileageConfiguration $configuration,
         private readonly SuggestionService $suggestionService,
         private readonly TranslatorInterface $translator,
+        private readonly AutoDetector $autoDetector,
     ) {
         parent::__construct();
     }
@@ -35,7 +37,8 @@ class SuggestCommand extends Command
         $this
             ->addOption('month', null, InputOption::VALUE_REQUIRED, 'Month to scan (YYYY-MM)')
             ->addOption('days', null, InputOption::VALUE_REQUIRED, 'Scan the last N days (default: 2)', '2')
-            ->addOption('user', null, InputOption::VALUE_REQUIRED, 'Only this username');
+            ->addOption('user', null, InputOption::VALUE_REQUIRED, 'Only this username')
+            ->addOption('auto', null, InputOption::VALUE_NONE, 'Run the automatic detection where it is due (same as on page load; ignores --month and --days)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -70,6 +73,10 @@ class SuggestCommand extends Command
             $users = $this->userRepository->findBy(['enabled' => true]);
         }
 
+        if ($input->getOption('auto') === true) {
+            return $this->auto($io, $users);
+        }
+
         $failed = false;
         $rows = [];
         foreach ($users as $user) {
@@ -87,6 +94,34 @@ class SuggestCommand extends Command
 
         $io->text(\sprintf('%s – %s', $from->format('Y-m-d'), $to->format('Y-m-d')));
         $io->table(['User', 'New suggestions'], $rows);
+
+        return $failed ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /**
+     * @param User[] $users
+     */
+    private function auto(SymfonyStyle $io, array $users): int
+    {
+        $failed = false;
+        $rows = [];
+        foreach ($users as $user) {
+            if (!$this->autoDetector->isEnabled($user)) {
+                continue;
+            }
+            $count = $this->autoDetector->run($user);
+            $status = $this->autoDetector->getStatus($user);
+            if ($count !== null) {
+                $result = (string) $count;
+            } elseif ($status?->error !== null) {
+                $failed = true;
+                $result = $this->translator->trans($status->error, $status->errorParameters);
+            } else {
+                $result = 'not due';
+            }
+            $rows[] = [$user->getUserIdentifier(), $result, $status->coveredUntil ?? ''];
+        }
+        $io->table(['User', 'New suggestions', 'Scanned up to'], $rows);
 
         return $failed ? Command::FAILURE : Command::SUCCESS;
     }

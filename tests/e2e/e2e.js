@@ -254,6 +254,27 @@ const api = (user, url, options = {}) => fetch(BASE + url, { ...options, headers
   check(await tripPages.filter({ hasText: 'Bearbeiten' }).count() === 0, 'approved month cannot be edited');
   check(await tripPages.filter({ hasText: 'Belege' }).count() > 0, 'receipts can still be handed in');
 
+  await page.close();
+
+  section('Automatic detection');
+  page = await login(browser, 'admin');
+  const autoScript = 'script[data-url*="/mileage/suggestions/auto"]';
+  check(await page.locator(autoScript).count() === 0, 'no automatic detection while switched off');
+  const enable = await api('admin', '/api/users/1/preferences', { method: 'PATCH', body: JSON.stringify([{ name: 'mileage_auto_detect', value: '1' }]) });
+  check(enable.ok, `switched on in the preferences (${enable.status})`);
+  const [autoResponse] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/mileage/suggestions/auto')),
+    page.goto(BASE + '/de/timesheet/'),
+  ]);
+  const auto = await autoResponse.json();
+  // the simulated Dawarich has three car trips on every weekday (fewer only where a closed month is skipped)
+  check(autoResponse.ok() && auto.count > 0, `any Kimai page starts the detection of the last seven days (${autoResponse.status()}, ${JSON.stringify(auto)})`);
+  await page.goto(BASE + '/de/mileage/suggestions');
+  check(await page.locator(autoScript).count() === 0, 'runs once a day: not started again');
+  check((await texts(page, '.kpu-context')).join().includes('automatisch erkannt bis'), 'suggestions page tells up to which day it ran');
+  const again = await page.evaluate(async (url) => (await fetch(url, { method: 'POST' })).status, BASE + '/de/mileage/suggestions/auto');
+  check(again === 403, `endpoint needs the CSRF token (${again})`);
+
   await browser.close();
   console.log(failures === 0 ? '\nAll end-to-end checks passed.' : `\n${failures} end-to-end check(s) FAILED.`);
   process.exit(failures === 0 ? 0 : 1);

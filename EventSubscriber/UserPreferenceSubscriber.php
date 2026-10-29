@@ -9,6 +9,7 @@ use KimaiPlugin\MileageBundle\Enum\VehicleType;
 use KimaiPlugin\MileageBundle\Form\Type\SecretType;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -70,6 +71,7 @@ class UserPreferenceSubscriber implements EventSubscriberInterface
             $stored = $this->configuration->getDawarichApiKey($event->getUser()) !== null ? MileageConfiguration::SECRET_UNCHANGED : null;
             $add(MileageConfiguration::PREF_DAWARICH_API_KEY, SecretType::class, ['help' => 'mileage_dawarich_api_key_help'], $stored);
         }
+        $add(MileageConfiguration::PREF_AUTO_DETECT, CheckboxType::class, ['help' => 'mileage_auto_detect_help'], true);
         $add(MileageConfiguration::PREF_HOME_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_WORK_ADDRESS, TextType::class);
         $add(MileageConfiguration::PREF_COMMUTE_KM, NumberType::class, ['help' => 'mileage_commute_km_help', 'scale' => 1, 'html5' => true]);

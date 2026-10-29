@@ -12,11 +12,13 @@ use KimaiPlugin\MileageBundle\Entity\TripSuggestion;
 use KimaiPlugin\MileageBundle\Enum\SuggestionStatus;
 use KimaiPlugin\MileageBundle\Enum\TripPurpose;
 use KimaiPlugin\MileageBundle\Enum\VehicleType;
+use KimaiPlugin\MileageBundle\EventSubscriber\AutoDetectionSubscriber;
 use KimaiPlugin\MileageBundle\Form\SuggestionDetectForm;
 use KimaiPlugin\MileageBundle\Repository\AttachmentRepository;
 use KimaiPlugin\MileageBundle\Repository\TripAuditRepository;
 use KimaiPlugin\MileageBundle\Repository\TripRepository;
 use KimaiPlugin\MileageBundle\Repository\TripSuggestionRepository;
+use KimaiPlugin\MileageBundle\Service\AutoDetector;
 use KimaiPlugin\MileageBundle\Service\DawarichException;
 use KimaiPlugin\MileageBundle\Service\MileageConfiguration;
 use KimaiPlugin\MileageBundle\Service\MileagePages;
@@ -24,6 +26,7 @@ use KimaiPlugin\MileageBundle\Service\MonthLockService;
 use KimaiPlugin\MileageBundle\Service\SuggestionService;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -54,6 +57,7 @@ class SuggestionController extends AbstractController
         private readonly TripAuditRepository $auditRepository,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly MileagePages $pages,
+        private readonly AutoDetector $autoDetector,
     ) {
     }
 
@@ -65,6 +69,7 @@ class SuggestionController extends AbstractController
         $suggestions = $this->suggestionRepository->findOpen($user);
         $canEdit = $this->canEditTripsOf($user);
         $dawarich = $this->configuration->isDawarichConfigured($user);
+        $auto = $this->autoDetector->isEnabled($user) ? $this->autoDetector->getStatus($user) : null;
 
         $locked = [];
         foreach ($suggestions as $suggestion) {
@@ -111,8 +116,34 @@ class SuggestionController extends AbstractController
             'bulk' => $bulk,
             'locked' => $locked,
             'dawarich_configured' => $dawarich,
+            'auto_covered' => $auto?->coveredUntil !== null ? new \DateTimeImmutable($auto->coveredUntil) : null,
+            'auto_error' => $auto?->error !== null ? $this->translator->trans($auto->error, $auto->errorParameters) : null,
+            'auto_failed_at' => $auto?->error !== null ? $auto->lastRunAt : null,
             'default_vehicle' => $this->configuration->getDefaultVehicle($user),
         ]);
+    }
+
+    /**
+     * Automatic detection for the logged-in user, posted by the script of {@see AutoDetectionSubscriber} after a page
+     * load. Does nothing when it is not due; errors are stored and shown on the suggestions page.
+     */
+    #[Route(path: '/auto', name: 'mileage_suggestions_auto', methods: ['POST'])]
+    public function auto(Request $request): JsonResponse
+    {
+        $this->assertCsrf($request, AutoDetectionSubscriber::CSRF);
+        $user = $this->getUser();
+        if (!$this->isGranted('edit_own_mileage')) {
+            throw $this->createAccessDeniedException();
+        }
+        // release the session lock, so the user's next pages do not wait for Dawarich
+        if ($request->hasSession()) {
+            $request->getSession()->save();
+        }
+        // keep running when the user leaves the page
+        ignore_user_abort(true);
+        @set_time_limit(AutoDetector::STALE_MINUTES * 60);
+
+        return new JsonResponse(['count' => $this->autoDetector->run($user)]);
     }
 
     /**

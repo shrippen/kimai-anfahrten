@@ -71,6 +71,8 @@ Unit-Tests, PHPStan gegen den Kimai-Quellcode und Browser-Tests gegen ein echtes
 - [x] Rückwärts-Geokodierung (Nominatim/Photon, abschaltbar)
 - [x] Kartenvorschau (Leaflet wird mit dem Plugin ausgeliefert, Kachelserver einstellbar/abschaltbar)
 - [x] `kimai:bundle:mileage:suggest` für den Cronjob
+- [x] Erkennung läuft automatisch (einmal am Tag nach dem ersten Seitenaufruf, ohne Cronjob; abschaltbar,
+      Fehler auf der Seite *Erkannte Fahrten*); `suggest --auto` als optionaler Cronjob
 
 ## 0.4 — Fahrzeuge und Fahrtenbuch ✅
 

@@ -21,6 +21,7 @@ services:
             - '../../.php-cs-fixer.dist.php'
 
     KimaiPlugin\MileageBundle\Service\DawarichKeyStore: '@KimaiPlugin\MileageBundle\Repository\UserSecretRepository'
+    KimaiPlugin\MileageBundle\Service\DetectionStatusStore: '@KimaiPlugin\MileageBundle\Repository\DetectionRunRepository'
 
     KimaiPlugin\MileageBundle\Controller\:
         resource: '../../Controller'
