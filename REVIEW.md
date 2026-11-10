@@ -1,6 +1,6 @@
 # Review guide
 
-Every PR is reviewed before it is merged (rule in `agent.md`): by PR-Agent
+Every PR is reviewed before it is merged (rule in `RULES.md` and the skill `pr-review`): by PR-Agent
 (owner, 22.10.2026); a new Claude agent checks the **Wichtig** of earlier
 rounds, and reviews when PR-Agent fails. The
 reviewer knows nothing of the session that wrote the change: it gets the
@@ -42,13 +42,13 @@ with the tax office or sees in Kimai:
   `## [X.Y.Z] — date` in `CHANGELOG.md` with lead and groups in English and
   German (it becomes the release notes, the release workflow fails
   without it); the same entry at the top of `#changes` in `docs/index.html`
-  and the footer version bumped (release rule in `agent.md`).
+  and the footer version bumped (steps in `RELEASE.md`).
 - Bug fixes: does the fix remove the cause, with a test that failed
   before?
 
 ## What the owner confirms here
 
-"What is published" (rule in `agent.md`) means here: a release (a tag that
+"What is published" (rule in `RULES.md`) means here: a release (a tag that
 GitHub builds into the plugin zip), a change to the release workflow, a new
 public page under `docs/`.
 
@@ -73,5 +73,5 @@ public page under `docs/`.
 - In a later round: say for each open **Wichtig** of the last round whether
   it is fixed, or whether its answer is accepted, with the reason. PR-Agent
   sees no earlier round: it reports only its own findings with their labels,
-  and a new Claude agent closes the open ones (`agent.md`).
+  and a new Claude agent closes the open ones (skill `pr-review`).
 - Findings in German, code names as they are.
