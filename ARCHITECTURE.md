@@ -60,7 +60,7 @@ and console commands all work on the same trips.
   commute, deleting a trip or a rental with its receipt files.
 - The guards in `Doctrine/` are the last line, not the only one: they stop a wrong
   write that an entry point let through. They are called by the database layer and
-  ask services for the rule (`MonthLockService`, `DawarichKeyStore`).
+  use services: `MonthLockService` for the rule, `DawarichKeyStore` to store the key.
 - A query is written in `Repository/`, also one for Kimai's timesheets; a service
   asks a repository and builds none itself. A repository may implement an interface
   a service defines (`DawarichKeyStore`).
@@ -101,9 +101,9 @@ and console commands all work on the same trips.
   entity manager (not in `AUDIT.md`).
 - Three services build queries themselves: `CommuteGenerator`, `PlausibilityChecker`
   and `SuggestionService` (not in `AUDIT.md`).
-- Who may see, edit or delete a user's trips is decided in an entry point, the trait
-  the pages share; `AUDIT.md` (finding 2) proposes that the API uses it, the target
-  is a service both ask.
+- Who may see, edit or delete a user's trips is decided in a trait of `Controller/`
+  that pages and API share; the API checks edit and delete itself a second time
+  (`AUDIT.md`, finding 2). The target is a service both ask.
 - "Closed month only with the special permission" is checked anew in nine places
   (`AUDIT.md`, finding 1).
 - Who may edit, delete or see the team stands twice: pages and API, team service and
