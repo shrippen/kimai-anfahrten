@@ -22,7 +22,7 @@ and console commands all work on the same trips.
 | `Doctrine/` | The guards on every write, whatever the way in: a closed month stays closed, every change to a trip is recorded (`TripAuditListener`); the Dawarich key is stored apart from the user's preferences (`DawarichKeyListener`). |
 | `Service/` | The work. Today one flat folder; in the target grouped by kind: |
 | – trips | Use cases on trips and their rights: defaults of a new trip, commutes, receipts on disk, month locks, who sees and approves whose trips (`TripService`, `CommuteGenerator`, `AttachmentStorage`, `MonthLockService`, `TeamService`). |
-| – tax | The calculation, pure: rates per year, yearly statement, meal allowances, rental cost shares, logbook and plausibility checks. |
+| – tax | The calculation, pure: rates per year, yearly statement, meal allowances, rental cost shares, logbook checks. Beside it the plausibility check before the tax return, which reads the database. |
 | – detection | From GPS history to suggestions and from suggestions to trips: tracks, places, timesheets, the daily automatic run. |
 | – outside servers | The only code that talks to another server: `DawarichClient`, `GeocoderClient`; the key in `DawarichKeyStore`. |
 | – import, export | Trips from and to CSV and plain arrays (`TripCsvImporter`, `TripCsvExporter`, `TripMapper`, `CsvSafe`). |
@@ -49,7 +49,7 @@ and console commands all work on the same trips.
                      ▼
  storage        Repository
                      │
-                     ▼              Doctrine/ guards every write on its way
+                     ▼              Doctrine/ guards every write; asks Service for the rule
  model          Entity   Enum   Kimai's entities   (used by every layer above)
 ```
 
@@ -59,13 +59,15 @@ and console commands all work on the same trips.
 - A use case exists once as a service function, whichever entry point starts it: a new
   commute, deleting a trip or a rental with its receipt files.
 - The guards in `Doctrine/` are the last line, not the only one: they stop a wrong
-  write that an entry point let through.
+  write that an entry point let through. They are called by the database layer and
+  ask services for the rule (`MonthLockService`, `DawarichKeyStore`).
 - A query is written in `Repository/`, also one for Kimai's timesheets; a service
   asks a repository and builds none itself. A repository may implement an interface
   a service defines (`DawarichKeyStore`).
 - The calculation (rates, yearly statement, allowances, cost shares, distances, trips
   from tracks) uses no database and no service of Symfony or Kimai; it works on the
-  model and plain values and has unit tests.
+  model, plain values and the settings from `MileageConfiguration`, and has unit
+  tests.
 - Only the outside-server classes send requests. The Dawarich key is stored through
   `DawarichKeyStore` only and reaches no page, log or API answer.
 - A CSV file is written by one building block (separator, number format, protection
@@ -81,8 +83,8 @@ and console commands all work on the same trips.
 | Change | Touch |
 |---|---|
 | A field on a trip | `Entity/Trip.php` and a migration; `Form/TripForm.php` and its template; `Service/TripMapper.php` (API and CSV); the CSV export; texts; a test |
-| A tax rule or a rate of a new year | The tax services (`TaxRateSchedule`, `TaxCalculator`, `MealAllowanceCalculator`), the report template, README; a unit test |
-| A rule on who may do what, or on closed months | The trips services (`TeamService`, `MonthLockService`); a new permission also in `EventSubscriber/PermissionSectionSubscriber.php`; a unit test |
+| A tax rule or a rate of a new year | The tax services (`TaxRateSchedule`, `TaxCalculator`, `MealAllowanceCalculator`); a rate the administrator can set: its default in `MileageConfiguration`; the report template, README; a unit test |
+| A rule on who may do what, or on closed months | The trips services (`TeamService`, `MonthLockService`); a new permission with its roles in `DependencyInjection/MileageExtension.php`; a unit test |
 | A use case on trips, rentals or receipts | A function in the trips services; pages and API call it |
 | How trips are detected | The detection services; `tests/Service/` with tracks as fixtures |
 | Something new from Dawarich or another server | The outside-server classes; the stand-in server under `tests/e2e/` |
@@ -97,8 +99,11 @@ and console commands all work on the same trips.
 
 - Pages, API and two commands use repositories directly (16 files), three of them the
   entity manager (not in `AUDIT.md`).
-- Two services build queries themselves: `CommuteGenerator` and `PlausibilityChecker`
-  (not in `AUDIT.md`).
+- Three services build queries themselves: `CommuteGenerator`, `PlausibilityChecker`
+  and `SuggestionService` (not in `AUDIT.md`).
+- Who may see, edit or delete a user's trips is decided in an entry point, the trait
+  the pages share; `AUDIT.md` (finding 2) proposes that the API uses it, the target
+  is a service both ask.
 - "Closed month only with the special permission" is checked anew in nine places
   (`AUDIT.md`, finding 1).
 - Who may edit, delete or see the team stands twice: pages and API, team service and
