@@ -22,7 +22,8 @@ composer.lock
 .phpstan.cache
 /coverage/
 
-/tools/
+/tools/*
+!/tools/structure-check.py
 composer.local.json
 /.kimai
 .phpunit.cache/

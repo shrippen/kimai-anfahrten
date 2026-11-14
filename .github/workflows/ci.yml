@@ -1,5 +1,5 @@
-# Checks on every push: PHP lint and unit tests (8.1–8.4), PHPStan against Kimai and
-# PHP-CS-Fixer, and browser end-to-end tests inside Kimai 2.67 (tests/e2e).
+# Checks on every push: structure limits (tools/structure-check.py), PHP lint and unit tests
+# (8.1–8.4), PHPStan against Kimai and PHP-CS-Fixer, and browser end-to-end tests inside Kimai 2.67 (tests/e2e).
 #
 # Public mirror: Gitea pushes every branch and tag here on each commit.
 # This runs the checks and reports them back to the commit on Gitea as
@@ -74,6 +74,9 @@ jobs:
       KIMAI_VERSION: '2.67.0'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Structure limits
+        run: pipx run tools/structure-check.py
 
       - uses: shivammathur/setup-php@v2
         with:

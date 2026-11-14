@@ -1,0 +1,21 @@
+# What is over a structure limit today (tools/structure-check.py). An entry may shrink,
+# never grow; a raised or new entry needs its reason in the PR. Rewrite with --update.
+# Lines: exclude<TAB>glob | path<TAB>function or - for the file<TAB>metric=value ...
+exclude	Resources/public/leaflet/*
+exclude	Resources/views/_kit/*
+API/MileageApiController.php	MileageApiController::acceptChanges	ccn=16
+Controller/SuggestionController.php	SuggestionController::undoAction	ccn=17
+Controller/TeamController.php	TeamController::index	ccn=17
+Controller/TripController.php	TripController::handleForm	ccn=22
+Controller/TripController.php	TripController::index	ccn=18 length=86
+Doctrine/TripAuditListener.php	TripAuditListener::onFlush	ccn=27
+EventSubscriber/SystemConfigurationSubscriber.php	SystemConfigurationSubscriber::onSystemConfiguration	length=112
+Form/TripForm.php	TripForm::buildForm	length=139
+Migrations/Version20260926000000.php	Version20260926000000::up	length=82
+Service/DawarichClient.php	DawarichClient::parseTrack	ccn=17
+Service/LogbookService.php	LogbookService::analyse	ccn=18
+Service/MealAllowanceCalculator.php	MealAllowanceCalculator::calculate	ccn=34 length=144
+Service/PlaceInput.php	PlaceInput::apply	ccn=20
+Service/PlausibilityChecker.php	PlausibilityChecker::evaluate	ccn=34 length=92
+Service/TripMapper.php	TripMapper::apply	ccn=37
+tests/e2e/e2e.js	(anonymous)	ccn=25 length=245
