@@ -14,5 +14,5 @@ is published, so the owner confirms it in words.
 ## Repository (this project)
 
 - CI runs on the GitHub mirror (`.github/workflows/ci.yml`, since 16.10.2026) and reports back to Gitea as the commit status `github / test`.
-- The merge waits for: CI is green on the PR's latest commit: `github / test` from the GitHub mirror (`.github/workflows/ci.yml`: PHP lint and unit tests on PHP 8.1–8.4, PHPStan, PHP-CS-Fixer and the end-to-end tests in Kimai) shows success there. No status there yet means wait, not merge; if it never comes, check the mirror or ask the owner. PR-Agent's status does not count here.
+- The merge waits for: CI is green on the PR's latest commit: `github / test` from the GitHub mirror (`.github/workflows/ci.yml`: structure limits, PHP lint and unit tests on PHP 8.1–8.4, PHPStan, PHP-CS-Fixer and the end-to-end tests in Kimai) shows success there. No status there yet means wait, not merge; if it never comes, check the mirror or ask the owner. PR-Agent's status does not count here.
 - Everything else: `RULES.md` (Repository) and the skill `pr-review`.
