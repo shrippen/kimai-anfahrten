@@ -41,19 +41,19 @@ Nirgends steht, wie das Repo gebaut sein soll und wohin Neues gehört. Der Ordne
 Für Demo und End-to-End-Tests gibt es je einen kleinen Ersatz-Server, der die Antworten von Dawarich nachahmt. Die Demo-Fassung nennt sich selbst eine Kopie der Test-Fassung. Beide haben rund 230 Zeilen, davon rund 180 gleich, und dieselben sechs Adressen. Vor allem die Orte unterscheiden sich: Hamburg für die Demo, Berlin für die Tests. Die Demo-Fassung liest ihre Orte schon aus der Welt-Datei der Demo, die Test-Fassung hat sie fest im Code. Ändert Dawarich seine Schnittstelle und das Plugin folgt, müssen beide Ersatz-Server mitgezogen werden. Sonst zeigt die Demo Fehler, die die Tests nicht sehen. Vorschlag: Nur die Demo-Fassung bleibt; die Tests geben ihr eine eigene Welt-Datei. Aufwand klein. Risiko gering: Die End-to-End-Tests zeigen sofort, ob der Server noch stimmt. Beleg: `demo/fake-dawarich/index.php:4`, `demo/fake-dawarich/index.php:31`, `tests/e2e/fake-dawarich/index.php:25`.
 
 ### 10. Bestandsliste: vier Einträge trennen sich an einer klaren Naht, fünf dürfen bleiben, sieben sind nicht bewertet
-Die Bestandsliste ist die Liste der Stellen, die heute über den Grenzen für Länge und Verzweigung liegen. Drei Einträge haben eine klare Trennstelle.
+Die Bestandsliste ist die Liste der Stellen, die heute über den Grenzen für Länge und Verzweigung liegen. Vier Einträge haben eine klare Trennstelle.
 
 - Die Rechnung der Verpflegungspauschalen hat 144 Zeilen und drei Schritte: Dienstfahrten zu Reisen verbinden, Reisen auf Tage verteilen, Tage mit der Drei-Monats-Regel bewerten. Jeder Schritt kann eine eigene Funktion werden; Tests sind vorhanden.
 - Das Formular einer Fahrt hat zwei Wege, die nichts teilen: Strecke aus Dawarich messen und speichern.
 - Die Prüfung vor dem Speichern in der Datenbankschicht behandelt neue, geänderte und gelöschte Fahrten in drei getrennten Schleifen.
 
-- Die Plausibilitätsprüfung (92 Zeilen) sammelt erst in einer Schleife neun Listen und macht danach in neun gleichförmigen Blöcken Hinweise daraus; Sammeln und Hinweise bilden trennen sich.
+- Die Plausibilitätsprüfung (92 Zeilen) sammelt erst in einer Schleife neun Listen und macht danach in zehn Blöcken Hinweise daraus (acht gleichförmig, zwei Sonderfälle); Sammeln und Hinweise bilden trennen sich.
 
-So bleiben dürfen: das Übernehmen der API-Felder auf eine Fahrt (eine flache Liste gleichartiger Felder), der Aufbau des Fahrtformulars und der Systemeinstellungen (lange Listen), die Datenbank-Migration (läuft einmal) und der Ablauf der End-to-End-Tests (ein Drehbuch).
+So bleiben dürfen: das Übernehmen der API-Felder auf eine Fahrt (eine flache Liste gleichartiger Felder), der Aufbau des Fahrtformulars und der Systemeinstellungen (lange Listen), die Datenbank-Migration (der einmalige Umbau der Datenbank bei einem Update; läuft einmal) und der Ablauf der End-to-End-Tests (ein Drehbuch).
 
-Nicht bewertet sind sieben Einträge, die knapp über der Grenze für Verzweigungen liegen: das Übernehmen der Ortsfelder, die Liste der Fahrten, die Auswertung des Fahrtenbuchs, das Lesen einer Dawarich-Strecke, das Rückgängigmachen eines Vorschlags, die Teamseite und die Änderungsprüfung der API. Sie werden angesehen, wenn dort ohnehin gearbeitet wird.
+Nicht bewertet sind sieben Einträge, die über der Grenze für Verzweigungen oder Länge liegen: das Übernehmen der Ortsfelder, die Liste der Fahrten, die Auswertung des Fahrtenbuchs, das Lesen einer Dawarich-Strecke, das Rückgängigmachen eines Vorschlags, die Teamseite und die Änderungsprüfung der API. Sie werden angesehen, wenn dort ohnehin gearbeitet wird.
 
-Aufwand je Eintrag klein. Risiko gering bei der Verpflegungsrechnung (Tests vorhanden), mittel bei den anderen. Beleg: `Service/MealAllowanceCalculator.php:59`, `Service/MealAllowanceCalculator.php:80`, `Service/MealAllowanceCalculator.php:147`, `Controller/TripController.php:360`, `Doctrine/TripAuditListener.php:43`, `Service/PlausibilityChecker.php:51`, `Service/TripMapper.php:59`, `Form/TripForm.php`, `EventSubscriber/SystemConfigurationSubscriber.php:24`.
+Aufwand je Eintrag klein. Risiko gering bei der Verpflegungsrechnung und der Plausibilitätsprüfung (Tests vorhanden), mittel bei den anderen. Beleg: `Service/MealAllowanceCalculator.php:59`, `Service/MealAllowanceCalculator.php:80`, `Service/MealAllowanceCalculator.php:147`, `Controller/TripController.php:360`, `Doctrine/TripAuditListener.php:43`, `Service/PlausibilityChecker.php:51`, `Service/TripMapper.php:59`, `Form/TripForm.php`, `EventSubscriber/SystemConfigurationSubscriber.php:24`.
 
 ## Seit dem letzten Audit
 Erstes Audit.
